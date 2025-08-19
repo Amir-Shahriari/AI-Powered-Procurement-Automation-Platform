@@ -1,0 +1,1985 @@
+import os, io, re, json, uuid, shutil
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import fitz  # PyMuPDF
+import docx2txt
+from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, Field
+from dotenv import load_dotenv
+
+# CUDA / GPU libs
+import torch
+
+# Optional FAISS-GPU
+try:
+    import faiss  # type: ignore
+    _FAISS_OK = True
+except Exception:
+    _FAISS_OK = False
+
+# Chroma config (CPU ANN, persistent)
+from chromadb.config import Settings as ChromaSettings
+
+# Vector / RAG
+from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS as LCFAISS
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.schema import SystemMessage, HumanMessage
+
+# Local LLM (Ollama) or OpenAI-compatible fallback
+from langchain_community.chat_models import ChatOllama
+from langchain_openai import ChatOpenAI
+
+# -------------------- Config --------------------
+load_dotenv()
+DATA_DIR = Path("./data"); DATA_DIR.mkdir(exist_ok=True)
+INDEX_DIR = Path("./chroma"); INDEX_DIR.mkdir(exist_ok=True)
+FAISS_DIR = Path("./faiss"); FAISS_DIR.mkdir(exist_ok=True)
+
+VECTOR_BACKEND = os.getenv("VECTOR_BACKEND", "faiss_gpu").lower()  # "faiss_gpu" | "chroma"
+
+CHROMA_SETTINGS = ChromaSettings(
+    anonymized_telemetry=False,
+    persist_directory=str(INDEX_DIR),
+)
+
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b-instruct")
+
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
+os.getenv("OPENAI_API_KEY", "local-anything")
+
+# --- Embeddings ---
+EMBED = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-MiniLM-L6-v2",
+    model_kwargs={"device": "cuda" if torch.cuda.is_available() else "cpu"},
+    encode_kwargs={"device": "cuda" if torch.cuda.is_available() else "cpu", "batch_size": 64},
+)
+
+SPLITTER = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=150)
+
+app = FastAPI(title="Spec → Returnable + RFT + TEPP (CUDA)", version="2.1.0")
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_credentials=True,
+    allow_methods=["*"], allow_headers=["*"]
+)
+
+# -------------------- Domain models --------------------
+class Contact(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+
+class Section(BaseModel):
+    title: str
+    items: List[str] = Field(default_factory=list)
+
+class SpecSummary(BaseModel):
+    title: Optional[str] = None
+    tender_no: Optional[str] = None
+    contract_no: Optional[str] = None
+    closing_datetime: Optional[str] = None
+    contact: Optional[Contact] = None
+    scope: List[str] = Field(default_factory=list)
+    location: Optional[str] = None
+    safety_standards: List[str] = Field(default_factory=list)
+
+class ReturnableScheduleDoc(BaseModel):
+    schedules: List[Section] = Field(default_factory=list)
+
+class RFTDoc(BaseModel):
+    header: Dict[str, Any] = Field(default_factory=dict)
+    sections: List[Section] = Field(default_factory=list)
+
+# -------- TEPP extended models --------
+class CommitteeMember(BaseModel):
+    name: Optional[str] = None
+    title: Optional[str] = None
+    branch: Optional[str] = None
+    role: Optional[str] = None  # Chair, Member, Advisor
+
+class ScheduleItem(BaseModel):
+    task: str
+    responsible: Optional[str] = None
+    due: Optional[str] = None
+
+class ScoringRubric(BaseModel):
+    levels: List[Dict[str, Any]] = Field(default_factory=list)  # [{level, requirement, score}...]
+
+class TEPPDoc(BaseModel):
+    # existing fields for back-compat
+    header: Dict[str, Any] = Field(default_factory=dict)
+    evaluation_criteria: List[Dict[str, Any]] = Field(default_factory=list)
+    probity: Dict[str, Any] = Field(default_factory=dict)
+    milestones: List[str] = Field(default_factory=list)
+
+    # new structured sections to mirror Council TEPP
+    aim: List[str] = Field(default_factory=list)
+    description: Dict[str, Any] = Field(default_factory=dict)  # {"summary": [...], "desired_outcomes": [...], "purpose_rft": [...]}
+    probity_and_accountability: Dict[str, Any] = Field(default_factory=dict)  # {"authorised_contact_officer":{}, "receipt_of_tenders":[...], "late_tenders":[...], "clarifications":[...], "risks":[{issue, consequence, action}]}
+    evaluation_committee: List[CommitteeMember] = Field(default_factory=list)
+    evaluation_schedule: List[ScheduleItem] = Field(default_factory=list)
+    evaluation_methodology: Dict[str, Any] = Field(default_factory=dict)  # {"compliance_criteria":[...], "required_criteria":[...], "rating_scale":[...]}
+    returnable_scoring: Dict[str, ScoringRubric] = Field(default_factory=dict)  # per-criterion rubrics
+    pricing: Dict[str, Any] = Field(default_factory=dict)  # {"model": {...}, "local_preference_policy": {...}, "value_for_money":[...]}
+    interviews_presentations: List[str] = Field(default_factory=list)
+    shortlisting_alternatives: List[str] = Field(default_factory=list)
+    evaluation_report: List[str] = Field(default_factory=list)
+    contract_negotiations: List[str] = Field(default_factory=list)
+    debriefing: List[str] = Field(default_factory=list)
+    contract_management: List[str] = Field(default_factory=list)
+    critical_dates: List[str] = Field(default_factory=list)
+
+# -------------------- NEW: Structured Returnables (Schedules 1–16) --------------------
+class RS_Referee(BaseModel):
+    council_client: Optional[str] = None
+    project: Optional[str] = None
+    years_serviced: Optional[str] = None
+    contact_name: Optional[str] = None
+    telephone: Optional[str] = None
+    email: Optional[str] = None
+
+class RS_KeyPerson(BaseModel):
+    name: Optional[str] = None
+    role: Optional[str] = None
+    quals_licences: List[str] = Field(default_factory=list)
+    cv_included: Optional[bool] = None
+
+class RS_Insurance(BaseModel):
+    type: Optional[str] = None
+    sum_insured: Optional[str] = None
+    expiry: Optional[str] = None
+    certificate_attached: Optional[bool] = None
+
+class RS_Experience(BaseModel):
+    project: Optional[str] = None
+    client: Optional[str] = None
+    year: Optional[str] = None
+    value: Optional[str] = None
+    scope: Optional[str] = None
+
+class RS_DeliveryMilestone(BaseModel):
+    milestone: str
+    start: Optional[str] = None
+    end: Optional[str] = None
+
+class RS_Subcontractor(BaseModel):
+    company: Optional[str] = None
+    role: Optional[str] = None
+    docs: List[str] = Field(default_factory=list)
+    performance_notes: Optional[str] = None
+
+class RS_PriceLine(BaseModel):
+    item_no: str
+    details: str
+    price_ex_gst: Optional[float] = None
+    gst: Optional[float] = None
+    price_inc_gst: Optional[float] = None
+
+class RS_ChillerPerformance(BaseModel):
+    type: Optional[str] = None
+    refrigerant: Optional[str] = None
+    compressors: Optional[str] = None
+    start_method: Optional[str] = None
+    chilled_water_flow_ls: Optional[float] = None
+    chilled_water_temp_in_out: Optional[str] = None
+    ambient_db_summer_c: Optional[float] = None
+    evaporator_fluid: Optional[str] = None
+    heating_capacity_kwr: Optional[float] = None
+    condenser_flow_ls: Optional[float] = None
+    condenser_temp_in_out: Optional[str] = None
+    ambient_db_winter_c: Optional[float] = None
+    control: Optional[str] = None
+    pumps_vsds: Optional[str] = None
+    basis_of_design: Optional[str] = None
+    quantity: Optional[int] = None
+    alternative_spec: Optional[str] = None
+
+class ReturnableStructured(BaseModel):
+    header: Dict[str, Any] = Field(default_factory=dict)
+
+    schedule_1_corporate: Dict[str, Any] = Field(default_factory=dict)
+    schedule_2_financial: Dict[str, Any] = Field(default_factory=dict)
+    schedule_3_confidentiality_conflict: Dict[str, Any] = Field(default_factory=dict)
+    schedule_4_key_personnel: List[RS_KeyPerson] = Field(default_factory=list)
+    schedule_5_insurance: List[RS_Insurance] = Field(default_factory=list)
+    schedule_6_previous_experience: List[RS_Experience] = Field(default_factory=list)
+    schedule_7_current_council_clients: List[Dict[str, Any]] = Field(default_factory=list)
+    schedule_8_referees: List[RS_Referee] = Field(default_factory=list)
+
+    schedule_9_delivery_performance: Dict[str, Any] = Field(default_factory=dict)
+    schedule_9_milestones: List[RS_DeliveryMilestone] = Field(default_factory=list)
+    schedule_9_subcontractors: List[RS_Subcontractor] = Field(default_factory=list)
+    schedule_9_questions: Dict[str, Any] = Field(default_factory=dict)
+
+    schedule_10_fee_structure: Dict[str, Any] = Field(default_factory=dict)
+    schedule_10_chiller_performance: RS_ChillerPerformance = Field(default_factory=RS_ChillerPerformance)
+    schedule_10_pricing: List[RS_PriceLine] = Field(default_factory=list)
+
+    schedule_11_csr: List[str] = Field(default_factory=list)
+    schedule_12_sustainability: List[str] = Field(default_factory=list)
+    schedule_13_eeo_fair: List[str] = Field(default_factory=list)
+    schedule_14_whs: Dict[str, Any] = Field(default_factory=dict)
+    schedule_15_modern_slavery: Dict[str, Any] = Field(default_factory=dict)
+    schedule_16_addenda_ack: Dict[str, Any] = Field(default_factory=dict)
+
+    supporting_documents_checklist: List[str] = Field(default_factory=list)
+
+class Record(BaseModel):
+    id: str
+    created_at: str
+    updated_at: str
+    file_name: str
+    source_type: str
+    vs_backend: str
+    vs_location: str
+    spec_summary: SpecSummary
+    returnable: ReturnableScheduleDoc
+    rft: RFTDoc
+    tepp: TEPPDoc
+    citations: Dict[str, List[str]] = Field(default_factory=dict)
+    status: str = "draft"
+    raw_excerpt: Optional[str] = None  # first N chars of raw spec for debug
+    returnable_structured: Optional[ReturnableStructured] = None
+
+# -------------------- Helpers --------------------
+
+def _add_unique_line(lst: List[str], line: Optional[str]):
+    if not line: 
+        return
+    norm = re.sub(r"\s+", " ", line.strip().lower())
+    if not norm: 
+        return
+    for x in lst:
+        if re.sub(r"\s+", " ", x.strip().lower()) == norm:
+            return
+    lst.append(line.strip())
+
+def _extend_unique(lst: List[str], lines: List[str]):
+    for ln in lines or []:
+        _add_unique_line(lst, ln)
+
+def _llm(json_mode: bool = False):
+    if LLM_PROVIDER.lower() == "ollama":
+        kwargs = {"temperature": 0}
+        if json_mode:
+            kwargs["format"] = "json"
+        return ChatOllama(base_url=OLLAMA_BASE_URL, model=OLLAMA_MODEL, **kwargs)
+    if json_mode:
+        return ChatOpenAI(
+            model=OPENAI_MODEL, temperature=0, base_url=OPENAI_BASE_URL,
+            model_kwargs={"response_format": {"type": "json_object"}},
+        )
+    return ChatOpenAI(model=OPENAI_MODEL, temperature=0, base_url=OPENAI_BASE_URL)
+
+def _clean_json(s: str) -> str:
+    s = s.strip()
+    if s.startswith("```"):
+        s = re.sub(r"^```json|^```", "", s).strip()
+        s = re.sub(r"```$", "", s).strip()
+    return s
+
+def _extract_text(tmp: Path) -> str:
+    ext = tmp.suffix.lower()
+    if ext == ".pdf":
+        doc = fitz.open(tmp)
+        return "\n".join([doc.load_page(i).get_text("text") for i in range(len(doc))])
+    if ext in (".docx",):
+        return docx2txt.process(str(tmp)) or ""
+    if ext in (".txt",):
+        return tmp.read_text(encoding="utf-8", errors="ignore")
+    raise HTTPException(400, "Unsupported file type. Upload PDF, DOCX, or TXT.")
+
+def _chunks(text: str) -> List[str]:
+    return SPLITTER.split_text(text)
+
+def _faiss_path(doc_id: str) -> Path:
+    return FAISS_DIR / f"{doc_id}"
+
+def _chroma_name(doc_id: str) -> str:
+    return f"spec-{doc_id}"
+
+# -------------------- Vector store --------------------
+def build_index(doc_id: str, chunks: List[str]):
+    if VECTOR_BACKEND == "faiss_gpu":
+        if not _FAISS_OK:
+            raise HTTPException(500, "FAISS-GPU not available. Install faiss-gpu via conda.")
+        vs = LCFAISS.from_texts(texts=chunks, embedding=EMBED)
+        vs.save_local(str(_faiss_path(doc_id)))
+        return
+    Chroma.from_texts(
+        texts=chunks, embedding=EMBED, persist_directory=str(INDEX_DIR),
+        collection_name=_chroma_name(doc_id), client_settings=CHROMA_SETTINGS
+    )
+
+def get_vs(doc_id: str):
+    if VECTOR_BACKEND == "faiss_gpu":
+        if not _FAISS_OK:
+            raise HTTPException(500, "FAISS-GPU not available.")
+        vs = LCFAISS.load_local(
+            str(_faiss_path(doc_id)), embeddings=EMBED, allow_dangerous_deserialization=True,
+        )
+        res = faiss.StandardGpuResources()
+        vs.index = faiss.index_cpu_to_gpu(res, 0, vs.index)
+        return vs
+    return Chroma(
+        embedding_function=EMBED, persist_directory=str(INDEX_DIR),
+        collection_name=_chroma_name(doc_id), client_settings=CHROMA_SETTINGS,
+    )
+
+def _similar(vs, query: str, k: int = 6) -> List[str]:
+    try:
+        docs = vs.similarity_search(query, k=k)
+        return [d.page_content for d in docs]
+    except Exception:
+        return []
+
+def _try_parse_json(response: str) -> Any:
+    s = _clean_json(response)
+    try:
+        return json.loads(s)
+    except Exception:
+        m = re.search(r"\{[\s\S]*\}$", response.strip())
+        if not m:
+            raise
+        return json.loads(m.group(0))
+
+# -------------------- LLM prompts --------------------
+SPEC_SUMMARY_PROMPT = """You summarise government engineering tender specifications.
+Return ONLY strict JSON with fields:
+{
+  "title": null|string,
+  "tender_no": null|string,
+  "contract_no": null|string,
+  "closing_datetime": null|string,
+  "contact": {"name": null|string, "email": null|string, "phone": null|string},
+  "scope": [string,...],
+  "location": null|string,
+  "safety_standards": [string,...]
+}
+Use ONLY the provided context. If unknown, set null or [].
+"""
+
+# Deterministic tech parse will populate structured info we can map onto forms
+TECH_PARSE_PROMPT = """(unused in code path – kept for reference)"""
+
+RETURNABLE_PROMPT = """Generate Returnable Schedules populated from the technical context.
+Return ONLY JSON:
+{
+  "schedules": [
+    {"title": "Schedule – Company Details", "items": [string,...]},
+    {"title": "Schedule – Technical Requirements", "items": [string,...]},
+    {"title": "Schedule – Delivery Performance", "items": [string,...]},
+    {"title": "Schedule – WHS & Safety", "items": [string,...]},
+    {"title": "Schedule – Quality Management", "items": [string,...]},
+    {"title": "Schedule – Warranty & Maintenance", "items": [string,...]},
+    {"title": "Schedule – Testing & Commissioning", "items": [string,...]}
+  ]
+}
+Guidelines:
+- Use bullet lines LIFTED from the spec or faithful paraphrases.
+- Populate items with concrete requirements (equipment counts, standards, tests, durations).
+- Do NOT invent anything; if a subsection is not in context, return an empty array for that schedule.
+"""
+
+# --- Policy-aware TEPP prompt (uses spec + Council template/manual if present) ---
+TEPP_PROMPT = """You are generating a Tender Evaluation & Probity Plan (TEPP) that mirrors Council’s template and methodology.
+Use ONLY the provided context from: (a) the technical specification, (b) the Council TEPP template, (c) the evaluation manual.
+Populate policy-driven sections from template/manual; populate technical details (WHS/tests/warranty/scope) from the spec.
+If unknown, leave null or [] (do NOT invent). Return STRICT JSON with the following shape:
+
+{
+  "header": { "project_title": null|string, "tender_no": null|string, "panel_roles": [string,...] },
+
+  "aim": [string,...],
+
+  "description": {
+    "summary": [string,...],
+    "desired_outcomes": [string,...],
+    "purpose_rft": [string,...]
+  },
+
+  "probity_and_accountability": {
+    "authorised_contact_officer": {"name": null|string, "title": null|string, "email": null|string, "phone": null|string},
+    "receipt_of_tenders": [string,...],
+    "late_tenders": [string,...],
+    "clarifications": [string,...],
+    "risks": [{"issue": string, "consequence": string, "action": string}, ...]
+  },
+
+  "evaluation_committee": [{"name": null|string, "title": null|string, "branch": null|string, "role": null|string}, ...],
+
+  "evaluation_schedule": [{"task": string, "responsible": string|null, "due": string|null}, ...],
+
+  "evaluation_methodology": {
+    "compliance_criteria": [string,...],
+    "required_criteria": [
+      {"name": "Pricing (Total Cost & Life-Cycle Costs)", "weight": 50, "description": "", "mandatory": false},
+      {"name": "Relevant Experience", "weight": 12.5, "description": "", "mandatory": false},
+      {"name": "Capability", "weight": 12.5, "description": "", "mandatory": false},
+      {"name": "Management Skills, Qualifications & Financial Capacity", "weight": 10, "description": "", "mandatory": false},
+      {"name": "Sustainability and EEO & Fair Employment", "weight": 5, "description": "", "mandatory": false},
+      {"name": "Quality Management", "weight": 5, "description": "Quality plan incl. ITPs; as-built docs; performance verification", "mandatory": false},
+      {"name": "Work Health & Safety (WHS)", "weight": 5, "description": "", "mandatory": true}
+    ],
+    "rating_scale": [string,...]
+  },
+
+  "returnable_scoring": {
+    "relevant_experience": {"levels":[{"level":"Exceptional","requirement":"20–15 years’ experience","score":5},{"level":"Superior","requirement":"15–10 years’ experience","score":4},{"level":"Good","requirement":"10–5 years’ experience","score":3},{"level":"Adequate","requirement":"5–3 years’ experience","score":2},{"level":"Poor to deficient","requirement":"3–1 years’ experience","score":1},{"level":"Unacceptable","requirement":"No experience","score":0}]},
+    "capability": {"levels":[{"level":"Outstanding","requirement":"program, resources, and past performance present no risk","score":5},{"level":"Strong","requirement":"minor risks, strong methodology","score":4},{"level":"Sound","requirement":"adequate methodology/resources","score":3},{"level":"Limited","requirement":"gaps/risks in program/resources","score":2},{"level":"Deficient","requirement":"major gaps or risks","score":1}]},
+    "quality": {"levels":[{"level":"Comprehensive QMS incl. ITPs","score":5},{"level":"Sound QMS","score":4},{"level":"Basic QMS","score":3},{"level":"Ad-hoc QMS","score":2},{"level":"No QMS evidence","score":1}]},
+    "whs": {"levels":[{"level":"Certified WHS, comprehensive plans & PPE; zero incidents","score":5},{"level":"Strong WHS evidence","score":4},{"level":"Adequate WHS","score":3},{"level":"Gaps in WHS","score":2},{"level":"Non-compliant","score":1}]}
+  },
+
+  "pricing": {
+    "model": {
+      "variables": ["Pc (Total Net Cost)","Pav (Average of Total Net Costs)","Ps (Price Score)","Pn (Normalised Price Score)","Pw (Weighted Price Score)"],
+      "formulae": ["Ps = 200 – (Pc / Pav × 100)", "Pn = Ps / 200", "Pw = Pn × 50"]
+    },
+    "local_preference_policy": {
+      "blacktown_lga_discount": "5% capped at $50,000",
+      "western_sydney_discount": "2.5% capped at $25,000",
+      "notes": [string,...]
+    },
+    "value_for_money": [string,...]
+  },
+
+  "interviews_presentations": [string,...],
+  "shortlisting_alternatives": [string,...],
+  "evaluation_report": [string,...],
+  "contract_negotiations": [string,...],
+  "debriefing": [string,...],
+  "contract_management": [string,...],
+  "critical_dates": [string,...],
+
+  "evaluation_criteria": [],
+  "probity": {},
+  "milestones": []
+}
+"""
+
+# -------------------- NEW: Returnables prompt (template-aware like TEPP) --------------------
+RETURNABLE_TEPP_PROMPT = """You are generating Council 'Part 5 – Returnable Schedules' using:
+(a) the technical specification; and
+(b) the Council Returnable Schedules template (Schedules 1–16; Fee Structure; checklists).
+
+Use ONLY the provided context. Never invent specifics. Leave null/[] if unknown.
+Return STRICT JSON matching the ReturnableStructured model described below. Fill wording that is policy/template-driven from the template; fill technical quantities from the spec (fans/coils/chillers/BACnet/warranty/schedule-of-performances).
+
+JSON shape (keys):
+header, schedule_1_corporate, schedule_2_financial, schedule_3_confidentiality_conflict,
+schedule_4_key_personnel, schedule_5_insurance, schedule_6_previous_experience, schedule_7_current_council_clients, schedule_8_referees,
+schedule_9_delivery_performance, schedule_9_milestones, schedule_9_subcontractors, schedule_9_questions,
+schedule_10_fee_structure, schedule_10_chiller_performance, schedule_10_pricing,
+schedule_11_csr, schedule_12_sustainability, schedule_13_eeo_fair,
+schedule_14_whs, schedule_15_modern_slavery, schedule_16_addenda_ack,
+supporting_documents_checklist.
+"""
+
+def rag_json(vs, prompt: str, field_queries: List[str], max_ctx: int = 6) -> Any:
+    ctx_blocks = []
+    for q in field_queries:
+        snips = _similar(vs, q, k=max_ctx)
+        if snips:
+            ctx_blocks.append(f"[{q}]\n" + "\n---\n".join(snips))
+    context = "\n\n".join(ctx_blocks) if ctx_blocks else "NO_CONTEXT"
+
+    messages = [
+        SystemMessage(content=prompt),
+        HumanMessage(content=f"Context:\n{context}\n\nReturn ONLY the JSON object.")
+    ]
+    resp = _llm(json_mode=True).invoke(messages).content
+    try:
+        return _try_parse_json(resp)
+    except Exception:
+        repair = messages + [HumanMessage(content="Respond again as STRICT JSON only. No prose.")]
+        resp2 = _llm(json_mode=True).invoke(repair).content
+        return _try_parse_json(resp2)
+
+# -------------------- Deterministic spec parsing (regex/heuristics) --------------------
+NUM = r"(?:\d+(?:\.\d+)?)"
+def _findall_lines(text: str, header_regex: str, stop_regex: str) -> List[str]:
+    """Grab lines under a section header until stop section."""
+    lines = text.splitlines()
+    out, capture = [], False
+    hdr = re.compile(header_regex, re.I)
+    stp = re.compile(stop_regex, re.I)
+    for ln in lines:
+        if not capture and hdr.search(ln):
+            capture = True
+            continue
+        if capture and stp.search(ln):
+            break
+        if capture:
+            out.append(ln)
+    return [l.rstrip() for l in out]
+
+def _harvest_numbered(lines: List[str]) -> List[str]:
+    items = []
+    for l in lines:
+        if re.match(r"^\s*(?:\d+[\).]|[a-z][\).]|•|-)\s+", l.strip(), re.I) or l.strip():
+            items.append(l.strip(" -•\t"))
+    return [x for x in (s.strip() for s in items) if x]
+
+def parse_spec(text: str) -> Dict[str, Any]:
+    # 1. General > bullet list
+    general = _harvest_numbered(_findall_lines(text, r"^\s*1\.\s*GENERAL REQUIREMENTS", r"^\s*2\.\s*DESCRIPTION OF WORKS"))
+    # 2.2.* subsections
+    each_ahu = _harvest_numbered(_findall_lines(text, r"2\.2\.1\s+Each AHU Plenums", r"2\.2\.2"))
+    mech = _harvest_numbered(_findall_lines(text, r"2\.2\.2\s+Mechanical", r"2\.2\.3"))
+    bmcs = _harvest_numbered(_findall_lines(text, r"2\.2\.3\s+Upgrade of Building Management Control System", r"2\.2\.4"))
+    chiller_inst = _harvest_numbered(_findall_lines(text, r"2\.2\.4\s+Chiller installation", r"2\.2\.5"))
+    water_tx = _harvest_numbered(_findall_lines(text, r"2\.2\.5\s+Water Treatment", r"2\.2\.6"))
+    electrical = _harvest_numbered(_findall_lines(text, r"2\.2\.6\s+Electrical", r"2\.2\.7"))
+    general_works = _harvest_numbered(_findall_lines(text, r"2\.2\.7\s+General", r"^\s*3\."))
+
+    # Equipment patterns
+    chillers = []
+    m = re.search(r"(Carrier\s*61WG190A).*?(\b212\b)\s*kW", text, re.I)
+    if m:
+        chillers.append({"make_model": m.group(1).strip(), "count": 2, "heating_capacity_kw": float(m.group(2))})
+    else:
+        if re.search(r"water[-\s]cooled heat pump chiller", text, re.I):
+            chillers.append({"make_model": None, "count": 2, "heating_capacity_kw": None})
+
+    ec_fans_count = 0
+    m2 = re.search(r"(?:eight|\(8\)|\b8\b)\s+EC\s+plug", text, re.I)
+    if m2: ec_fans_count = 8
+
+    evaps = 0
+    conds = 0
+    hr_sets = 0
+    m3 = re.search(r"four\s*\(\s*4\s*\)\s*new evaporator coils", text, re.I)
+    if m3: evaps = 4
+    m4 = re.search(r"two\s*\(\s*2\s*\)\s*condenser coils", text, re.I)
+    if m4: conds = 2
+    m5 = re.search(r"two\s*\(\s*2\s*\)\s*sets of new run[-\s]around heat recovery coils\s*\(4 in total\)", text, re.I)
+    if m5: hr_sets = 2
+
+    # Tests & commissioning (sec 10)
+    tests = _harvest_numbered(_findall_lines(text, r"^\s*10\.\s*TESTING\s*&\s*COMMISSIONING", r"^\s*11\.\s*WARRANTY"))
+    # Warranty (sec 11)
+    warranty = None
+    m6 = re.search(r"Warrant(?:y|ies).*?(\d+)\s*months?", text, re.I)
+    if m6: warranty = int(m6.group(1))
+    # Maintenance (sec 12)
+    maintenance = _harvest_numbered(_findall_lines(text, r"^\s*12\.\s*MAINTENANCE\s*&\s*SERVICE", r"^\s*13\."))
+
+    # WHS/PPE/Standards
+    whs = []
+    if re.search(r"WorkSafe\s*NSW|SafeWork\s*NSW", text, re.I): whs.append("Comply with SafeWork NSW / Council WHS")
+    if re.search(r"PPE|personal protective equipment", text, re.I): whs.append("Provide PPE for all on-site workers")
+    if re.search(r"AS/?NZS\s*3000|AS3000", text, re.I): whs.append("Electrical work to AS/NZS 3000")
+    if re.search(r"ISO\s*9001", text, re.I): whs.append("Quality management to ISO 9001:2015")
+
+    # Schedule of performances (sec 13)
+    duty_flow = None; duty_head = None; voltage = None; pump_count = None
+    m7 = re.search(r"Duty\s*Flow\s*([0-9.]+)\s*L/S", text, re.I)
+    if m7: duty_flow = float(m7.group(1))
+    m8 = re.search(r"Duty\s*Head\s*([0-9.]+)\s*M", text, re.I)
+    if m8: duty_head = float(m8.group(1))
+    m9 = re.search(r"(?:Power\s*Supply|Phase).*?(\d{3}/\d/\d{2})", text, re.I)
+    if m9: voltage = m9.group(1)
+    m10 = re.search(r"Number of Pumps\s*(\d+)", text, re.I)
+    if m10: pump_count = int(m10.group(1))
+
+    ec_table = []
+    for row in re.findall(r"EF\s*\d-\d.*", text):
+        vol = re.search(r"(\d{3,5})\s*(?:L/?s|\bLs\b)", row, re.I)
+        stat = re.search(r"(\d{2,4})\s*Pa", row, re.I)
+        volt = re.search(r"(?:3Ph/\s*\d{3}-\d{3}V|[23]Ph/\s*\d{3}-\d{3}V)", row, re.I)
+        ec_table.append({
+            "desc": row.strip(),
+            "volume_ls": float(vol.group(1)) if vol else None,
+            "static_pa": float(stat.group(1)) if stat else None,
+            "voltage": volt.group(0) if volt else None
+        })
+
+    parsed = {
+        "equipment": {
+            "chillers": chillers,
+            "ec_fans": {"count": ec_fans_count or None, "per_ahu": 4 if ec_fans_count==8 else None},
+            "coils": {"evaporator_count": evaps or None, "condenser_count": conds or None, "heat_recovery_sets": hr_sets or None}
+        },
+        "bmcs": {"integration": bool(bmcs), "protocols": ["BACnet"] if re.search(r"BACnet|HLI", text, re.I) else []},
+        "tests": [t for t in tests if t],
+        "warranty_months": warranty,
+        "maintenance": [m for m in maintenance if m],
+        "whs": whs,
+        "works_breakdown": {
+            "decommission": [x for x in general if re.search(r"Removal|dispose|decommission", x, re.I)] + each_ahu,
+            "mechanical": mech,
+            "electrical": electrical,
+            "ductwork": [x for x in general if re.search(r"duct", x, re.I)],
+            "pipework": [x for x in general if re.search(r"pipe", x, re.I)],
+            "cranage": [x for x in general if re.search(r"Cranage|Hoisting|lifting", x, re.I)] + chiller_inst,
+            "general": general_works
+        },
+        "schedule_of_performances": {
+            "pump": {"duty_flow_ls": duty_flow, "duty_head_m": duty_head, "voltage": voltage, "count": pump_count},
+            "ec_fan": ec_table
+        }
+    }
+    return parsed
+
+# -------------------- Composition helpers --------------------
+def _unique_keep_order(items: List[str]) -> List[str]:
+    seen = set(); out = []
+    for it in items:
+        key = re.sub(r"\s+", " ", it.strip().lower())
+        if key and key not in seen:
+            seen.add(key); out.append(it.strip())
+    return out
+
+def compose_returnables(parsed: Dict[str, Any]) -> ReturnableScheduleDoc:
+    eq = parsed.get("equipment", {})
+    whs = parsed.get("whs", [])
+    tests = parsed.get("tests", [])
+    maint = parsed.get("maintenance", [])
+    works = parsed.get("works_breakdown", {})
+    perf = parsed.get("schedule_of_performances", {})
+
+    tech_items = []
+    if eq.get("chillers"):
+        for ch in eq["chillers"]:
+            mm = ch.get("make_model") or "Water-cooled heat pump chiller"
+            cap = f"{int(ch['heating_capacity_kw'])} kW" if ch.get("heating_capacity_kw") else ""
+            cnt = f"x{ch.get('count')}" if ch.get("count") else ""
+            tech_items.append(f"Supply & install {cnt} {mm} {cap}".strip())
+    coils = eq.get("coils", {})
+    if coils.get("evaporator_count"): tech_items.append(f"{coils['evaporator_count']} new evaporator coils")
+    if coils.get("condenser_count"): tech_items.append(f"{coils['condenser_count']} condenser coils")
+    if coils.get("heat_recovery_sets"): tech_items.append(f"{coils['heat_recovery_sets']} sets of run-around heat recovery coils with pumps/VSDs")
+    if eq.get("ec_fans", {}).get("count"):
+        tech_items.append(f"{eq['ec_fans']['count']} EC plug exhaust fans (≈{eq['ec_fans'].get('per_ahu') or '?'} per AHU)")
+
+    p = perf.get("pump") or {}
+    if p.get("duty_flow_ls"): tech_items.append(f"Pump duty flow: {p['duty_flow_ls']} L/s")
+    if p.get("duty_head_m"): tech_items.append(f"Pump duty head: {p['duty_head_m']} m")
+    if p.get("voltage"): tech_items.append(f"Pump power supply: {p['voltage']}")
+    for efr in perf.get("ec_fan", []):
+        if efr.get("volume_ls"): tech_items.append(f"EC fan volume {int(efr['volume_ls'])} L/s")
+        if efr.get("static_pa"): tech_items.append(f"EC fan static pressure {int(efr['static_pa'])} Pa")
+
+    delivery_items = _unique_keep_order(
+        (works.get("decommission") or []) +
+        (works.get("mechanical") or []) +
+        (works.get("electrical") or []) +
+        (works.get("ductwork") or []) +
+        (works.get("pipework") or []) +
+        (works.get("cranage") or []) +
+        (works.get("general") or [])
+    )
+
+    whs_items = _unique_keep_order(whs)
+    quality_items = []
+    if "ISO 9001:2015" in " ".join(whs):
+        quality_items.append("Comply with ISO 9001:2015 quality management standards")
+    if any(re.search(r"test|commission", t, re.I) for t in tests):
+        quality_items.append("Provide Quality Plan incl. ITPs and commissioning records")
+
+    warranty_items = []
+    if parsed.get("warranty_months"):
+        warranty_items.append(f"Minimum warranty: {parsed['warranty_months']} months on equipment & workmanship")
+    warranty_items += maint
+
+    tc_items = _unique_keep_order(tests)
+
+    schedules = [
+        Section(title="Schedule – Company Details", items=[]),
+        Section(title="Schedule – Technical Requirements", items=_unique_keep_order(tech_items)),
+        Section(title="Schedule – Delivery Performance", items=delivery_items[:50]),
+        Section(title="Schedule – WHS & Safety", items=whs_items),
+        Section(title="Schedule – Quality Management", items=_unique_keep_order(quality_items)),
+        Section(title="Schedule – Warranty & Maintenance", items=_unique_keep_order(warranty_items)),
+        Section(title="Schedule – Testing & Commissioning", items=tc_items),
+    ]
+    return ReturnableScheduleDoc(schedules=schedules)
+
+def compose_rft(spec_summary: SpecSummary, parsed: Dict[str, Any]) -> RFTDoc:
+    overview = []
+    if spec_summary.title: overview.append(spec_summary.title)
+    if spec_summary.location: overview.append(f"Location: {spec_summary.location}")
+    if parsed.get("equipment", {}).get("chillers"):
+        overview.append("Includes new/replacement heat pump chillers and AHU refurbishments")
+
+    rs = compose_returnables(parsed)
+    tech = [it for s in rs.schedules if "Technical Requirements" in s.title for it in s.items]
+
+    resp_req = [
+        "Complete all Returnable Schedules in the provided format",
+        "Provide product data/catalogues & technical sheets for all proposed equipment",
+        "Provide draft layout and connection diagrams",
+        "Provide methodology/program and risk controls",
+        "Provide warranty terms and service schedules"
+    ]
+
+    submission = []
+    if spec_summary.closing_datetime:
+        submission.append(f"Closing date and time: {spec_summary.closing_datetime}")
+
+    header = {
+        "tender_title": spec_summary.title,
+        "tender_no": spec_summary.tender_no,
+        "contract_no": spec_summary.contract_no,
+        "closing_datetime": spec_summary.closing_datetime,
+        "contact": (spec_summary.contact.model_dump() if spec_summary.contact else {"name": None, "email": None, "phone": None}),
+        "lodgement_instructions": None
+    }
+    sections = [
+        Section(title="Overview", items=_unique_keep_order(overview)),
+        Section(title="Technical Scope Summary", items=tech[:80]),
+        Section(title="Response Requirements", items=resp_req),
+        Section(title="Submission & Closing", items=submission),
+    ]
+    return RFTDoc(header=header, sections=sections)
+
+# -------------------- Policy support & dual-RAG --------------------
+def _build_ephemeral_vs(texts: List[str]):
+    """In-memory FAISS for policy/guideline docs (no persist)."""
+    if not texts:
+        return None
+    return LCFAISS.from_texts(texts=texts, embedding=EMBED)
+
+def _scan_policy_files() -> List[Path]:
+    """Auto-pick up TEPP/Returnables/Evaluation docs from ./data (and /mnt/data if present)."""
+    pats = ["tepp", "evaluation", "eval", "manual", "quotation", "returnable", "schedule", "part 5", "fee structure", "pricing"]
+    roots = [DATA_DIR]
+    try:
+        mnt = Path("/mnt/data")
+        if mnt.exists():
+            roots.append(mnt)
+    except Exception:
+        pass
+    out = []
+    for root in roots:
+        for p in root.glob("*"):
+            name = p.name.lower()
+            if any(k in name for k in pats) and p.suffix.lower() in (".pdf", ".docx", ".txt"):
+                out.append(p)
+    return out
+
+def _extract_many(paths: List[Path]) -> List[str]:
+    out = []
+    for p in paths:
+        try:
+            out.append(_extract_text(p))
+        except Exception:
+            continue
+    return out
+
+def rag_json_plus(vs_primary, prompt: str, field_queries: List[str], extra_vss: Optional[List[Any]] = None, max_ctx: int = 6) -> Any:
+    """RAG using primary VS + optional extra VSs (policy/guidelines)."""
+    ctx_blocks = []
+    for q in field_queries:
+        snips = []
+        snips += _similar(vs_primary, q, k=max_ctx)
+        if extra_vss:
+            for evs in extra_vss:
+                try:
+                    snips += _similar(evs, q, k=max(2, max_ctx // 2))
+                except Exception:
+                    pass
+        if snips:
+            ctx_blocks.append(f"[{q}]\n" + "\n---\n".join(snips))
+    context = "\n\n".join(ctx_blocks) if ctx_blocks else "NO_CONTEXT"
+
+    messages = [
+        SystemMessage(content=prompt),
+        HumanMessage(content=f"Context:\n{context}\n\nReturn ONLY the JSON object.")
+    ]
+    resp = _llm(json_mode=True).invoke(messages).content
+    try:
+        return _try_parse_json(resp)
+    except Exception:
+        repair = messages + [HumanMessage(content="Respond again as STRICT JSON only. No prose.")]
+        resp2 = _llm(json_mode=True).invoke(repair).content
+        return _try_parse_json(resp2)
+    
+
+def enrich_tepp_with_spec(tepp_json: Dict[str, Any], spec_summary: SpecSummary, parsed: Dict[str, Any]) -> Dict[str, Any]:
+    tepp_json.setdefault("evaluation_methodology", {})
+    tepp_json["evaluation_methodology"].setdefault("compliance_criteria", [])
+    tepp_json["evaluation_methodology"].setdefault("required_criteria", [])
+    tepp_json.setdefault("pricing", {})
+    tepp_json["pricing"].setdefault("value_for_money", [])
+    tepp_json.setdefault("probity_and_accountability", {})
+    tepp_json["probity_and_accountability"].setdefault("risks", [])
+    tepp_json.setdefault("evaluation_schedule", [])
+    tepp_json.setdefault("critical_dates", [])
+    tepp_json.setdefault("description", {"summary": [], "desired_outcomes": [], "purpose_rft": []})
+
+    whs = parsed.get("whs", [])
+    tests = parsed.get("tests", [])
+    warranty_months = parsed.get("warranty_months")
+    maintenance = parsed.get("maintenance", [])
+    bmcs = parsed.get("bmcs", {})
+    equip = parsed.get("equipment", {})
+
+    # --- Description: inject a concise technical one-liner
+    headline_bits = []
+    if equip.get("chillers"):
+        headline_bits.append("Replacement/upgrade of water-cooled heat pump chillers")
+    if equip.get("coils", {}).get("evaporator_count") or equip.get("coils", {}).get("condenser_count"):
+        headline_bits.append("AHU coil refurbishments")
+    if equip.get("ec_fans", {}).get("count"):
+        headline_bits.append(f"{equip['ec_fans']['count']} EC plug fans")
+    if bmcs.get("integration"):
+        headline_bits.append("BMCS integration (e.g., BACnet HLI)")
+    summary_line = "Scope includes: " + "; ".join(headline_bits) if headline_bits else None
+    if summary_line:
+        _add_unique_line(tepp_json["description"]["summary"], summary_line)
+
+    # --- Methodology: compliance criteria from WHS/tests
+    for w in whs:
+        _add_unique_line(tepp_json["evaluation_methodology"]["compliance_criteria"], w)
+    if tests:
+        _add_unique_line(tepp_json["evaluation_methodology"]["compliance_criteria"], "Provide commissioning plan and evidence of tests per Section 10")
+
+    # --- Required criteria: enrich Methodology, WHS, Quality descriptions
+    req = tepp_json["evaluation_methodology"]["required_criteria"]
+    # map for quick find-or-create
+    def _get_req(name_prefix: str, default_weight: float, mandatory: bool=False):
+        for r in req:
+            if r.get("name","").lower().startswith(name_prefix.lower()):
+                return r
+        r = {"name": name_prefix, "weight": default_weight, "description": "", "mandatory": mandatory}
+        req.append(r)
+        return r
+
+    meth = _get_req("Methodology", 12.5)
+    qms  = _get_req("Quality", 5.0)
+    whs_c = _get_req("Work Health & Safety", 5.0, mandatory=True)
+
+    # Methodology description: tests + BMCS + staging
+    meth_lines = []
+    if tests: 
+        meth_lines.append("Commissioning plan covering: " + "; ".join(tests[:6]) + ("…" if len(tests) > 6 else ""))
+    if bmcs.get("integration"):
+        proto = ", ".join(bmcs.get("protocols") or [])
+        meth_lines.append(f"BMCS integration/HLI ({proto}) with IO schedules and point lists")
+    if warranty_months:
+        meth_lines.append(f"Program includes defects liability / warranty of {warranty_months} months")
+    if maintenance:
+        meth_lines.append("Provision for service/maintenance handover & schedules")
+    meth["description"] = "; ".join([s for s in meth_lines if s])
+
+    # Quality description (ITPs + performance)
+    qms_desc = qms.get("description") or ""
+    _extend_unique(tepp_json["evaluation_methodology"]["compliance_criteria"], ["Quality plan incl. ITPs"])
+    qms_desc_bits = [qms_desc] if qms_desc else []
+    qms_desc_bits.append("Quality plan incl. ITPs; as-built docs; performance verification")
+    qms["description"] = "; ".join(_unique_keep_order(qms_desc_bits))
+
+    # WHS description
+    if whs:
+        whs_c["mandatory"] = True
+        whs_c["description"] = "; ".join(_unique_keep_order(whs))
+
+    # --- Pricing / Value for Money
+    if maintenance or warranty_months:
+        _add_unique_line(tepp_json["pricing"]["value_for_money"], "Consider whole-of-life costs incl. maintenance and warranty obligations")
+    if equip.get("chillers"):
+        _add_unique_line(tepp_json["pricing"]["value_for_money"], "Energy efficiency and control strategy for chillers/AHUs")
+
+    # --- Risks (deterministic seeds)
+    risks = tepp_json["probity_and_accountability"]["risks"]
+    def _risk(issue, consequence, action):
+        risks.append({"issue": issue, "consequence": consequence, "action": action})
+    if bmcs.get("integration"):
+        _risk("BMCS integration failure", "Loss of monitoring/control", "Factory acceptance test; point-to-point I/O test; SAT with witness")
+    if equip.get("ec_fans", {}).get("count"):
+        _risk("EC fan performance shortfall", "Insufficient airflow/pressure", "Verify duty against schedule; commissioning with TAB report")
+    if warranty_months:
+        _risk("Warranty service response", "Extended downtime", "Specify response/rectification times and contacts in contract")
+
+    # --- Evaluation schedule (seed from spec items)
+    sched = tepp_json["evaluation_schedule"]
+    def _sched(task):
+        sched.append({"task": task, "responsible": None, "due": None})
+    if tests:
+        _sched("Review Testing & Commissioning plan and witness tests")
+    if maintenance:
+        _sched("Review maintenance schedules and O&M handover")
+    if bmcs.get("integration"):
+        _sched("Review BMCS HLI/point list and integration test records")
+
+    # --- Critical dates
+    if spec_summary and spec_summary.closing_datetime:
+        _add_unique_line(tepp_json["critical_dates"], f"RFT Closing: {spec_summary.closing_datetime}")
+
+    return tepp_json
+
+
+# -------------------- TEPP composer (policy + spec) --------------------
+def compose_tepp(spec_summary: SpecSummary, parsed: Dict[str, Any], vs_spec, extra_vss: Optional[List[Any]]) -> TEPPDoc:
+    tepp_json = rag_json_plus(
+        vs_spec,
+        TEPP_PROMPT,
+field_queries=[
+    # pull SPEC by exact section keys used in your docs
+    "10. TESTING & COMMISSIONING", "11. WARRANTY", "12. MAINTENANCE & SERVICE",
+    "WHS PPE ISO", "BACnet High Level Interface BMCS integration",
+    "2. DESCRIPTION OF WORKS", "2.2 Mechanical Electrical Cranage General",
+    "13. SCHEDULE OF PERFORMANCES EC fans pumps voltage",
+
+    # pull POLICY/TEMPLATE shape
+    "TEPP Aim", "Description of Requirement", "Desired Outcomes", "Purpose of RFT",
+    "Probity and Accountability", "Authorised Contact Officer", "Receipt of tenders",
+    "Late tenders", "Requests for Clarification", "Critical issues or risks",
+    "Evaluation Committee", "Evaluation Schedule",
+    "Evaluation Methodology compliance criteria required criteria rating scale",
+    "Returnable schedules scoring Relevant Experience Capability Quality WHS",
+    "Pricing model normalised price score weighted price score",
+    "Local preference policy Blacktown LGA Western Sydney",
+    "Value for Money", "Interviews and Presentations", "Short-listing", "Alternative Tenders",
+    "Tenderer Presentations", "Evaluation Report", "Contract Negotiations",
+    "Debriefing of unsuccessful tenderers", "Contract Management", "Critical dates"
+],
+
+        extra_vss=extra_vss,
+        max_ctx=8
+    )
+
+    # Fill header defaults from spec summary
+    tepp_json.setdefault("header", {})
+    tepp_json["header"].setdefault("project_title", spec_summary.title)
+    tepp_json["header"].setdefault("tender_no", spec_summary.tender_no)
+
+    # <<< NEW: harden with deterministic spec enrichment >>>
+    tepp_json = enrich_tepp_with_spec(tepp_json, spec_summary, parsed)
+
+    # Back-compat mirrors
+    tepp_json.setdefault("evaluation_criteria", tepp_json.get("evaluation_methodology", {}).get("required_criteria", []))
+    tepp_json.setdefault("probity", tepp_json.get("probity_and_accountability", {}))
+    tepp_json.setdefault("milestones", tepp_json.get("critical_dates", []))
+
+    return TEPPDoc.model_validate(tepp_json)
+
+# -------------------- NEW: Structured Returnables composer + summary --------------------
+def compose_returnables_tepp(spec_summary: SpecSummary, parsed: Dict[str, Any], vs_spec, extra_vss: Optional[List[Any]]) -> ReturnableStructured:
+    rs_json = rag_json_plus(
+        vs_spec,
+        RETURNABLE_TEPP_PROMPT,
+        field_queries=[
+            "Returnable Schedules Schedule 1 Corporate information & Declaration",
+            "Schedule 2 Financial capacity",
+            "Schedule 3 Confidentiality and Conflict of Interest",
+            "Schedule 4 Key personnel",
+            "Schedule 5 Insurance",
+            "Schedule 6 Previous experience",
+            "Schedule 7 Current council clients",
+            "Schedule 8 Referees",
+            "Schedule 9 Delivery performance milestones subcontractors questions",
+            "Schedule 10 Fee structure pricing tables Schedule of Performance Heat Pump Chillers",
+            "Schedule 11 Corporate social responsibility",
+            "Schedule 12 Sustainability",
+            "Schedule 13 EEO & fair employment",
+            "Schedule 14 Work, health & safety (WHS) forms appendices",
+            "Schedule 15 Modern Slavery",
+            "Schedule 16 Acknowledgement receipt of addenda and tenderer’s declaration",
+            "Supporting documents checklist",
+            # Spec technical anchors
+            "BACnet HLI gateway BMCS integration",
+            "Testing & Commissioning",
+            "Warranty Maintenance Service 12 months",
+            "Schedule of Performances pump EC fan coil",
+            "Carrier 61WG190A 212 kW",
+        ],
+        extra_vss=extra_vss,
+        max_ctx=10
+    )
+
+    rs = ReturnableStructured.model_validate(rs_json)
+
+    # ---- Header seeding ----
+    rs.header.setdefault("tender_title", spec_summary.title)
+    rs.header.setdefault("tender_no", spec_summary.tender_no)
+    rs.header.setdefault("contract_no", spec_summary.contract_no)
+
+    # ---- Schedule 9 milestones (template seeds) ----
+    template_ms = [
+        "Site establishment, safety and access preparation",
+        "Removal of redundant equipment (fans, exchangers etc.)",
+        "Pouring and curing of concrete plinths for chillers",
+        "Delivery and installation of new chillers",
+        "AHU 1 & 3 internal plenum modification",
+        "Installation of coils, drift eliminators, and sumps",
+        "Supply & install EC fans and new access panels",
+        "Pipework and ductwork modifications",
+        "Electrical upgrades and cabling works",
+        "BMS integration and BACnet configuration",
+        "Testing and commissioning",
+        "Handover, documentation, and practical completion",
+        "12-month defect liability and maintenance period begins",
+    ]
+    have = {m.milestone.strip().lower() for m in rs.schedule_9_milestones or [] if m.milestone}
+    for m in template_ms:
+        if m.strip().lower() not in have:
+            rs.schedule_9_milestones.append(RS_DeliveryMilestone(milestone=m))
+
+    # Critical date seed
+    if "critical_dates" not in rs.schedule_9_delivery_performance:
+        rs.schedule_9_delivery_performance["critical_dates"] = []
+    _add_unique_line(rs.schedule_9_delivery_performance["critical_dates"], "Start of operation: 25 Aug 2025")
+
+    # ---- Schedule 10 – performance/pricing enrichment ----
+    ch = rs.schedule_10_chiller_performance
+    eq = parsed.get("equipment", {})
+    if eq.get("chillers"):
+        c0 = eq["chillers"][0]
+        if c0.get("make_model"):
+            ch.basis_of_design = c0["make_model"]
+        if c0.get("count"):
+            ch.quantity = c0["count"]
+        if c0.get("heating_capacity_kw"):
+            ch.heating_capacity_kwr = float(c0["heating_capacity_kw"])
+    ch.type = ch.type or "Water source heat pump chiller"
+    ch.refrigerant = ch.refrigerant or "R410a"
+    ch.compressors = ch.compressors or "Four (4) off scroll compressors"
+    ch.start_method = ch.start_method or "‘Soft’ start with phase loss sensing"
+    ch.chilled_water_flow_ls = ch.chilled_water_flow_ls or 5.75
+    ch.chilled_water_temp_in_out = ch.chilled_water_temp_in_out or "12.2/5.6 °C"
+    ch.ambient_db_summer_c = ch.ambient_db_summer_c or 35.0
+    ch.evaporator_fluid = ch.evaporator_fluid or "Fresh Water"
+    ch.condenser_flow_ls = ch.condenser_flow_ls or 10.2
+    ch.condenser_temp_in_out = ch.condenser_temp_in_out or "45/50 °C"
+    ch.ambient_db_winter_c = ch.ambient_db_winter_c or 7.0
+    if not ch.control and parsed.get("bmcs", {}).get("integration"):
+        ch.control = "Must be fitted with BACnet over IP gateway"
+
+    if not rs.schedule_10_pricing:
+        base_lines = [
+            ("1.0", "Removal and disposal of redundant services including fans and exchangers"),
+            ("2.0", "Supply, deliver and install (2) water-cooled chillers with inbuilt pumps and BACnet HLI card"),
+            ("3.0", "Supply, deliver and install (8) EC fans, doors, panels, louvres"),
+            ("4.0", "Supply and install coils: evaporator (4), condenser (2), run-around (4), and pumps (2)"),
+            ("5.0", "Supply and install insulated copper pipes & fittings with metal cladding and all associated valves"),
+            ("6.0", "Modify, supply and install exhaust ductwork"),
+            ("7.0", "Modify and make good AHUs’ internal plenum, rust treatment, patching"),
+            ("8.0", "All electrical works in Plantroom 1 for AHU 1 & 3 upgrades"),
+            ("9.0", "Project preliminaries and documentation"),
+            ("10.0", "Maintenance for twelve months"),
+        ]
+        rs.schedule_10_pricing = [RS_PriceLine(item_no=i, details=d) for i, d in base_lines]
+
+    rs.schedule_14_whs.setdefault("forms_required", ["Appendix 1–3 WHS forms as per template"])
+    rs.schedule_10_fee_structure.setdefault("terms", [
+        "Prices in AUD; same regardless of payment mode; lump sum basis",
+        "Prices available for acceptance during Validity Period",
+        "Include GST, levies, duties, out-of-pocket expenses within NSW",
+    ])
+    if parsed.get("warranty_months"):
+        _add_unique_line(rs.schedule_10_fee_structure.setdefault("notes", []),
+                         f"Warranty: minimum {parsed['warranty_months']} months (equipment & installation)")
+    if parsed.get("maintenance"):
+        _add_unique_line(rs.schedule_10_fee_structure.setdefault("notes", []),
+                         "Include 12 monthly maintenance visits during DLP")
+
+    rs.supporting_documents_checklist = rs.supporting_documents_checklist or [
+        "Certificates of currency for insurances",
+        "CVs for key personnel; licences/tickets",
+        "Financial statements (last 3 years)",
+        "Certificates of third-party accreditation",
+        "Quality Management Plan + ITPs",
+        "WHS policy/plan + SWMS + checklists",
+        "Environmental policy & plan",
+        "EEO policy & industrial awards",
+    ]
+    return rs
+
+def _structured_to_sections(rs: ReturnableStructured) -> ReturnableScheduleDoc:
+    """Summarise the structured Returnables into the simple list-of-sections for the current UI."""
+    items = []
+
+    ms = [f"{m.milestone}" for m in (rs.schedule_9_milestones or [])]
+    if ms:
+        items.append(Section(title="Schedule 9 – Delivery performance (milestones)", items=ms))
+
+    price_lines = [f"{pl.item_no}. {pl.details}" for pl in (rs.schedule_10_pricing or [])]
+    if price_lines:
+        items.append(Section(title="Schedule 10 – Fee Structure (pricing items)", items=price_lines))
+
+    ch = rs.schedule_10_chiller_performance
+    ch_short = []
+    if ch.quantity: ch_short.append(f"Quantity: {ch.quantity}")
+    if ch.basis_of_design: ch_short.append(f"Basis of design: {ch.basis_of_design}")
+    if ch.heating_capacity_kwr: ch_short.append(f"Heating capacity: {int(ch.heating_capacity_kwr)} kWr")
+    if ch.control: ch_short.append(ch.control)
+    if ch_short:
+        items.append(Section(title="Schedule 10 – Chiller performance (key data)", items=ch_short))
+
+    if rs.schedule_14_whs:
+        items.append(Section(title="Schedule 14 – WHS", items=list(rs.schedule_14_whs.keys())))
+    if rs.supporting_documents_checklist:
+        items.append(Section(title="Supporting documents checklist", items=rs.supporting_documents_checklist))
+
+    return ReturnableScheduleDoc(schedules=items or [Section(title="Returnables", items=[])])
+
+# -------------------- Extraction orchestrator --------------------
+def extract_all(doc_id: str, raw_text: str) -> Tuple[SpecSummary, ReturnableScheduleDoc, RFTDoc, TEPPDoc, Dict[str, List[str]], ReturnableStructured]:
+    vs = get_vs(doc_id)
+
+    summary = rag_json(
+        vs, SPEC_SUMMARY_PROMPT,
+        [
+            "tender title or document title",
+            "tender number or contract number",
+            "closing date and time",
+            "contact name email phone",
+            "scope of works",
+            "location site",
+            "safety standards ADR WHS ISO Australian Standards"
+        ],
+    )
+    spec_summary = SpecSummary.model_validate(summary)
+
+    parsed = parse_spec(raw_text)
+
+    # Policy/template context for TEPP & Returnables (auto-scan ./data and /mnt/data)
+    policy_files = _scan_policy_files()
+    policy_texts = _extract_many(policy_files)
+    policy_chunks = []
+    for t in policy_texts:
+        policy_chunks.extend(_chunks(t))
+    vs_policy = _build_ephemeral_vs(policy_chunks) if policy_chunks else None
+    extra_vss = [vs_policy] if vs_policy else []
+
+    # --- NEW: structured returnables via TEPP-like RAG + enrichment
+    rs_structured = compose_returnables_tepp(spec_summary, parsed, vs, extra_vss)
+
+    # Keep the old section list for existing UI (summary from structured)
+    returnable = _structured_to_sections(rs_structured)
+
+    rft = compose_rft(spec_summary, parsed)
+    tepp = compose_tepp(spec_summary, parsed, vs, extra_vss)
+
+    # Citations / sample snippets for traceability (simple)
+    cits = {
+        "testing_commissioning": _similar(vs, "TESTING & COMMISSIONING", 3),
+        "warranty": _similar(vs, "WARRANTY 12 months", 2),
+        "bmcs": _similar(vs, "BACnet High Level Interface", 2),
+        "equipment": _similar(vs, "EC plug fans Carrier 61WG190A chiller", 4),
+        "schedule_of_performances": _similar(vs, "SCHEDULE OF PERFORMANCES", 3),
+    }
+
+    # Debug: ensure TEPP contains spec-derived content
+    if not tepp.evaluation_methodology.get("compliance_criteria"):
+        print("[TEPP] Warning: no compliance_criteria after enrichment")
+    if not tepp.evaluation_schedule:
+        print("[TEPP] Info: no evaluation_schedule seeds found")
+    return spec_summary, returnable, rft, tepp, cits, rs_structured
+
+# -------------------- Persistence --------------------
+def save_record(rec: Record):
+    p = DATA_DIR / f"{rec.id}.json"
+    with open(p, "w") as f:
+        json.dump(rec.model_dump(), f, indent=2)
+
+def load_record(rec_id: str) -> Record:
+    p = DATA_DIR / f"{rec_id}.json"
+    if not p.exists():
+        raise HTTPException(404, "Record not found")
+    with open(p) as f:
+        return Record.model_validate(json.load(f))
+
+# -------------------- API --------------------
+@app.post("/upload", response_model=Record)
+async def upload(file: UploadFile = File(...)):
+    doc_id = str(uuid.uuid4())
+    suffix = Path(file.filename).suffix
+    tmp = DATA_DIR / f"{doc_id}{suffix}"
+    with open(tmp, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+
+    text = _extract_text(tmp)
+    if not text.strip():
+        raise HTTPException(400, "Could not read text from the document.")
+    chunks = _chunks(text)
+    build_index(doc_id, chunks)
+
+    spec_summary, returnable, rft, tepp, cits, rs_structured = extract_all(doc_id, text)
+
+    now = datetime.utcnow().isoformat()
+    rec = Record(
+        id=doc_id,
+        created_at=now, updated_at=now,
+        file_name=file.filename,
+        source_type=suffix.lower(),
+        vs_backend=VECTOR_BACKEND,
+        vs_location=str(_faiss_path(doc_id) if VECTOR_BACKEND=="faiss_gpu" else _chroma_name(doc_id)),
+        spec_summary=spec_summary,
+        returnable=returnable,
+        rft=rft,
+        tepp=tepp,
+        citations=cits,
+        status="draft",
+        raw_excerpt=text[:2000],
+        returnable_structured=rs_structured,
+    )
+    save_record(rec)
+    return rec
+
+@app.get("/records/{rec_id}", response_model=Record)
+def get_record(rec_id: str):
+    return load_record(rec_id)
+
+@app.get("/records/{rec_id}/returnable", response_model=ReturnableScheduleDoc)
+def get_returnable(rec_id: str):
+    return load_record(rec_id).returnable
+
+@app.get("/records/{rec_id}/returnable_structured", response_model=ReturnableStructured)
+def get_returnable_structured(rec_id: str):
+    rec = load_record(rec_id)
+    if rec.returnable_structured is None:
+        return ReturnableStructured()
+    return rec.returnable_structured
+
+@app.get("/records/{rec_id}/rft", response_model=RFTDoc)
+def get_rft(rec_id: str):
+    return load_record(rec_id).rft
+
+@app.get("/records/{rec_id}/tepp", response_model=TEPPDoc)
+def get_tepp(rec_id: str):
+    return load_record(rec_id).tepp
+
+# edits
+class PatchPayload(BaseModel):
+    data: Dict[str, Any]
+    status: Optional[str] = None
+
+def _merge(a: Any, b: Any) -> Any:
+    if isinstance(a, dict) and isinstance(b, dict):
+        out = a.copy(); out.update(b); return out
+    return b
+
+@app.patch("/records/{rec_id}/returnable", response_model=ReturnableScheduleDoc)
+def patch_returnable(rec_id: str, payload: PatchPayload):
+    rec = load_record(rec_id)
+    rec.returnable = ReturnableScheduleDoc.model_validate(_merge(rec.returnable.model_dump(), payload.data))
+    if payload.status: rec.status = payload.status
+    rec.updated_at = datetime.utcnow().isoformat()
+    save_record(rec)
+    return rec.returnable
+
+@app.patch("/records/{rec_id}/returnable_structured", response_model=ReturnableStructured)
+def patch_returnable_structured(rec_id: str, payload: PatchPayload):
+    rec = load_record(rec_id)
+    merged = _merge(rec.returnable_structured.model_dump() if rec.returnable_structured else {}, payload.data)
+    rec.returnable_structured = ReturnableStructured.model_validate(merged)
+    if payload.status:
+        rec.status = payload.status
+    rec.updated_at = datetime.utcnow().isoformat()
+    save_record(rec)
+    return rec.returnable_structured
+
+@app.patch("/records/{rec_id}/rft", response_model=RFTDoc)
+def patch_rft(rec_id: str, payload: PatchPayload):
+    rec = load_record(rec_id)
+    rec.rft = RFTDoc.model_validate(_merge(rec.rft.model_dump(), payload.data))
+    if payload.status: rec.status = payload.status
+    rec.updated_at = datetime.utcnow().isoformat()
+    save_record(rec)
+    return rec.rft
+
+@app.patch("/records/{rec_id}/tepp", response_model=TEPPDoc)
+def patch_tepp(rec_id: str, payload: PatchPayload):
+    rec = load_record(rec_id)
+    rec.tepp = TEPPDoc.model_validate(_merge(rec.tepp.model_dump(), payload.data))
+    if payload.status: rec.status = payload.status
+    rec.updated_at = datetime.utcnow().isoformat()
+    save_record(rec)
+    return rec.tepp
+
+# -------------------- GPU health & simple UI --------------------
+@app.get("/gpu")
+def gpu_health():
+    info = {
+        "torch_cuda_available": bool(torch.cuda.is_available()),
+        "torch_cuda_device_count": torch.cuda.device_count() if torch.cuda.is_available() else 0,
+        "faiss_available": _FAISS_OK,
+        "faiss_num_gpus": faiss.get_num_gpus() if _FAISS_OK else 0,
+        "llm_provider": LLM_PROVIDER,
+        "ollama_base_url": OLLAMA_BASE_URL,
+        "ollama_model": OLLAMA_MODEL,
+        "vector_backend": VECTOR_BACKEND,
+    }
+    return info
+
+# -------------------- UI (Home + Editors with Back carrying recId) --------------------
+HOME = r"""
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Spec → Returnable + RFT + TEPP (CUDA)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:1100px;margin:22px auto;padding:0 16px}
+  .card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:10px 0}
+  .btn{padding:9px 14px;border:0;border-radius:10px;background:#111;color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
+  .ok{color:#0a7;font-weight:600}.err{color:#c33;font-weight:600}
+  input[type=text], textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px}
+  pre{background:#f7f7f7;padding:10px;border-radius:8px;overflow:auto}
+</style>
+</head>
+<body>
+  <h2>Specification → Three Outputs</h2>
+  <div class="card">
+    <form id="up">
+      <label>Upload specification (PDF/DOCX/TXT)</label>
+      <input type="file" id="f" required/>
+      <button class="btn">Generate</button>
+      <span id="msg"></span>
+    </form>
+  </div>
+
+  <div id="links" class="card" style="display:none">
+    <h3>Outputs</h3>
+    <div>Record ID: <span id="rid"></span></div>
+    <div style="margin-top:10px">
+      <a id="a_rs" class="btn" href="#">Open Returnable Schedule</a>
+      <a id="a_rs2" class="btn" href="#">Open Returnables (Structured)</a>
+      <a id="a_rft" class="btn" href="#">Open RFT</a>
+      <a id="a_tepp" class="btn" href="#">Open TEPP</a>
+    </div>
+    <details style="margin-top:10px">
+      <summary>Spec summary & citations</summary>
+      <pre id="summary"></pre>
+    </details>
+  </div>
+
+<script>
+let rec = null;
+
+async function hydrate(recId){
+  try{
+    const r = await fetch('/records/'+recId);
+    if(!r.ok) return false;
+    rec = await r.json();
+    document.getElementById('links').style.display = 'block';
+    document.getElementById('rid').textContent = rec.id;
+    document.getElementById('summary').textContent =
+      JSON.stringify(rec.spec_summary, null, 2) +
+      "\\n\\nCitations (sample):\\n" + JSON.stringify(rec.citations, null, 2);
+    document.getElementById('a_rs').href = '/ui/returnable/' + rec.id;
+    document.getElementById('a_rs2').href = '/ui/returnable2/' + rec.id;
+    document.getElementById('a_rft').href = '/ui/rft/' + rec.id;
+    document.getElementById('a_tepp').href = '/ui/tepp/' + rec.id;
+    return true;
+  }catch(e){ return false; }
+}
+
+async function initFromQueryOrStorage(){
+  const params = new URLSearchParams(location.search);
+  const qid = params.get('recId');
+  if(qid && await hydrate(qid)){
+    localStorage.setItem('lastRecId', qid);
+    return;
+  }
+  const last = localStorage.getItem('lastRecId');
+  if(last) await hydrate(last);
+}
+
+document.getElementById('up').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const file = document.getElementById('f').files[0];
+  if(!file) return;
+  document.getElementById('msg').textContent = 'Uploading & generating…';
+  const fd = new FormData();
+  fd.append('file', file);
+  try{
+    const r = await fetch('/upload', {method:'POST', body:fd});
+    if(!r.ok) throw new Error(await r.text());
+    rec = await r.json();
+    document.getElementById('msg').innerHTML = '<span class="ok">Done.</span>';
+    document.getElementById('links').style.display = 'block';
+    document.getElementById('rid').textContent = rec.id;
+    document.getElementById('summary').textContent = JSON.stringify(rec.spec_summary, null, 2)
+      + "\\n\\nCitations (sample):\\n" + JSON.stringify(rec.citations, null, 2);
+    document.getElementById('a_rs').href = '/ui/returnable/' + rec.id;
+    document.getElementById('a_rs2').href = '/ui/returnable2/' + rec.id;
+    document.getElementById('a_rft').href = '/ui/rft/' + rec.id;
+    document.getElementById('a_tepp').href = '/ui/tepp/' + rec.id;
+    localStorage.setItem('lastRecId', rec.id);
+    if(history && history.replaceState){
+      const url = new URL(location.href);
+      url.searchParams.set('recId', rec.id);
+      history.replaceState(null, '', url.toString());
+    }
+  }catch(err){
+    document.getElementById('msg').innerHTML = '<span class="err">'+err+'</span>';
+  }
+});
+
+initFromQueryOrStorage();
+</script>
+</body>
+</html>
+"""
+
+EDITOR_RS = r"""
+<!doctype html><html><head><meta charset="utf-8"/>
+<title>Returnable Schedule</title><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<style>
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:1100px;margin:22px auto;padding:0 16px}
+.card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:10px 0}
+.btn{padding:8px 12px;border:0;border-radius:10px;background:#111;color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
+input[type=text], textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px}
+h3{margin:0 0 10px}
+.nav{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+</style></head><body>
+<div class="nav">
+  <a id="back" class="btn" href="#">← Back</a>
+  <h2 style="margin:0">Returnable Schedule</h2>
+</div>
+<div id="root"></div>
+<script>
+const recId = location.pathname.split('/').pop();
+document.getElementById('back').href = '/?recId=' + encodeURIComponent(recId);
+
+let data=null;
+function row(idx, s){
+  return `
+  <div class="card">
+    <h3 contenteditable oninput="editTitle(${idx}, this.innerText)">${s.title || 'Untitled Schedule'}</h3>
+    <textarea oninput="editItems(${idx}, this.value)" rows="8">${(s.items||[]).join('\\n')}</textarea>
+  </div>`;
+}
+function render(){
+  const r = data.schedules.map((s,i)=>row(i,s)).join('');
+  document.getElementById('root').innerHTML = `
+    <div style="margin:8px 0">
+      <button class="btn" onclick="save()">Save</button>
+      <a class="btn" href="/?recId=${recId}">Back to Home</a>
+      <button class="btn" style="background:#555" onclick="add()">Add Schedule</button>
+    </div>
+    ${r}
+  `;
+}
+function editTitle(i, v){ data.schedules[i].title = v.trim(); }
+function editItems(i, v){ data.schedules[i].items = v.split('\\n').map(x=>x.trim()).filter(Boolean); }
+
+async function load(){
+  const r = await fetch('/records/'+recId+'/returnable');
+  data = await r.json();
+  render();
+}
+function add(){ data.schedules.push({title:"New Schedule", items:[]}); render(); }
+async function save(){
+  await fetch('/records/'+recId+'/returnable', {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({data})
+  });
+  alert('Saved');
+}
+load();
+</script></body></html>
+"""
+
+EDITOR_RFT = r"""
+<!doctype html><html><head><meta charset="utf-8"/>
+<title>RFT</title><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<style>
+body{font-family:system-ui;-apple-system,Segoe UI,Roboto,sans-serif;max-width:1100px;margin:22px auto;padding:0 16px}
+.card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:10px 0}
+.btn{padding:8px 12px;border:0;border-radius:10px;background:#111;color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
+input[type=text], textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px}
+h3{margin:0 0 10px}
+.nav{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+</style></head><body>
+<div class="nav">
+  <a id="back" class="btn" href="#">← Back</a>
+  <h2 style="margin:0">Request for Tender (RFT)</h2>
+</div>
+<div class="card">
+  <h3>Header</h3>
+  <label>Title</label><input id="t_title" type="text"/>
+  <label>Tender No</label><input id="t_no" type="text"/>
+  <label>Contract No</label><input id="c_no" type="text"/>
+  <label>Closing Datetime</label><input id="close" type="text" placeholder="YYYY-MM-DDTHH:MM:SS+TZ"/>
+  <label>Contact Name</label><input id="c_name" type="text"/>
+  <label>Contact Email</label><input id="c_email" type="text"/>
+  <label>Contact Phone</label><input id="c_phone" type="text"/>
+  <label>Lodgement Instructions</label><input id="lodgement" type="text"/>
+</div>
+<div id="sections"></div>
+<div style="margin:8px 0">
+  <button class="btn" onclick="save()">Save</button>
+  <a class="btn" href="#" id="homeLink">Back to Home</a>
+  <button class="btn" style="background:#555" onclick="add()">Add Section</button>
+</div>
+<script>
+const recId = location.pathname.split('/').pop();
+document.getElementById('back').href = '/?recId=' + encodeURIComponent(recId);
+document.getElementById('homeLink').href = '/?recId=' + encodeURIComponent(recId);
+
+let data=null;
+function secRow(i,s){
+  return `<div class="card">
+    <h3 contenteditable oninput="ttl(${i},this.innerText)">${s.title||'Section'}</h3>
+    <textarea rows="8" oninput="itm(${i},this.value)">${(s.items||[]).join('\\n')}</textarea>
+  </div>`;
+}
+function render(){
+  const s = data.sections.map((x,i)=>secRow(i,x)).join('');
+  document.getElementById('sections').innerHTML = s;
+  const h = data.header||{};
+  t('t_title',h.tender_title); t('t_no',h.tender_no); t('c_no',h.contract_no);
+  t('close',h.closing_datetime); t('c_name',h.contact?.name); t('c_email',h.contact?.email);
+  t('c_phone',h.contact?.phone); t('lodgement',h.lodgement_instructions);
+}
+function t(id,v){ document.getElementById(id).value = v||''; }
+function ttl(i,v){ data.sections[i].title=v.trim(); }
+function itm(i,v){ data.sections[i].items = v.split('\\n').map(x=>x.trim()).filter(Boolean); }
+function add(){ data.sections.push({title:"New Section",items:[]}); render(); }
+async function load(){ const r=await fetch('/records/'+recId+'/rft'); data=await r.json(); render(); }
+async function save(){
+  data.header = {
+    tender_title: v('t_title'), tender_no: v('t_no'), contract_no: v('c_no'),
+    closing_datetime: v('close'), contact:{name:v('c_name'),email:v('c_email'),phone:v('c_phone')},
+    lodgement_instructions: v('lodgement')
+  };
+  await fetch('/records/'+recId+'/rft',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({data})});
+  alert('Saved');
+}
+function v(id){return document.getElementById(id).value.trim();}
+load();
+</script></body></html>
+"""
+
+EDITOR_TEPP = r"""
+<!doctype html><html><head><meta charset="utf-8"/>
+<title>TEPP</title><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<style>
+body{font-family:system-ui;-apple-system,Segoe UI,Roboto,sans-serif;max-width:1100px;margin:22px auto;padding:0 16px}
+.card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:10px 0}
+.btn{padding:8px 12px;border:0;border-radius:10px;background:#111;color:#fff;cursor:pointer}
+input[type=text], textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+td,th{border:1px solid #ddd;padding:8px}
+h2{display:flex;align-items:center;gap:12px}
+a.btnlink{padding:8px 12px;border-radius:10px;border:1px solid #111;text-decoration:none;color:#111}
+.small{font-size:12px;color:#666}
+.flex{display:flex;gap:10px;flex-wrap:wrap}
+.flex>div{flex:1 1 280px}
+</style></head><body>
+<h2>
+  <a class="btnlink" id="backlink" href="/">← Back</a>
+  Tender Evaluation & Probity Plan (TEPP)
+</h2>
+
+<div class="card">
+  <h3>Header</h3>
+  <div class="flex">
+    <div><label>Project Title</label><input id="p_title" type="text"/></div>
+    <div><label>Tender No</label><input id="t_no" type="text"/></div>
+    <div><label>Panel Roles (comma-separated)</label><input id="roles" type="text"/></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Aim & Description</h3>
+  <label>Aim (one per line)</label><textarea id="aim" rows="4"></textarea>
+  <label>Description – Summary (one per line)</label><textarea id="desc_summary" rows="5"></textarea>
+  <div class="flex">
+    <div><label>Desired Outcomes (one per line)</label><textarea id="desired" rows="6"></textarea></div>
+    <div><label>Purpose of RFT (one per line)</label><textarea id="purpose" rows="6"></textarea></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Probity & Accountability</h3>
+  <div class="flex">
+    <div><label>Contact Officer – Name</label><input id="co_name" type="text"/></div>
+    <div><label>Title</label><input id="co_title" type="text"/></div>
+    <div><label>Email</label><input id="co_email" type="text"/></div>
+    <div><label>Phone</label><input id="co_phone" type="text"/></div>
+  </div>
+  <label>Receipt of Tenders (one per line)</label><textarea id="receipt" rows="3"></textarea>
+  <label>Late Tenders (one per line)</label><textarea id="late" rows="3"></textarea>
+  <label>Requests for Clarification (one per line)</label><textarea id="clar" rows="3"></textarea>
+
+  <h4>Critical Issues / Risks</h4>
+  <table id="risks">
+    <tr><th>Issue</th><th>Consequence</th><th>Action</th><th></th></tr>
+  </table>
+  <button class="btn" onclick="addRisk()">Add Risk</button>
+</div>
+
+<div class="card">
+  <h3>Evaluation Committee</h3>
+  <table id="committee">
+    <tr><th>Name</th><th>Title</th><th>Branch</th><th>Role</th><th></th></tr>
+  </table>
+  <button class="btn" onclick="addMember()">Add Member</button>
+</div>
+
+<div class="card">
+  <h3>Evaluation Schedule</h3>
+  <table id="sched">
+    <tr><th>Task</th><th>Responsible</th><th>Due</th><th></th></tr>
+  </table>
+  <button class="btn" onclick="addSched()">Add Schedule Item</button>
+</div>
+
+<div class="card">
+  <h3>Evaluation Methodology</h3>
+  <label>Compliance Criteria (unweighted, one per line)</label><textarea id="comp" rows="5"></textarea>
+
+  <h4>Required Criteria (weighted)</h4>
+  <table id="reqc">
+    <tr><th>Name</th><th>Weight</th><th>Description</th><th>Mandatory</th><th></th></tr>
+  </table>
+  <button class="btn" onclick="addReq()">Add Criterion</button>
+
+  <label>Rating Scale (one per line)</label><textarea id="scale" rows="4"></textarea>
+</div>
+
+<div class="card">
+  <h3>Returnable Schedules Scoring</h3>
+  <p class="small">Edit scoring rubrics (each line like "Level | Requirement | Score").</p>
+  <div class="flex">
+    <div><label>Relevant Experience</label><textarea id="rs_exp" rows="6"></textarea></div>
+    <div><label>Capability</label><textarea id="rs_cap" rows="6"></textarea></div>
+  </div>
+  <div class="flex">
+    <div><label>Quality</label><textarea id="rs_qm" rows="6"></textarea></div>
+    <div><label>WHS</label><textarea id="rs_whs" rows="6"></textarea></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Pricing</h3>
+  <label>Formulae (one per line)</label><textarea id="price_formulae" rows="4"></textarea>
+  <label>Variables (comma-separated)</label><input id="price_vars" type="text"/>
+
+  <h4>Local Preference Policy</h4>
+  <div class="flex">
+    <div><label>Blacktown LGA</label><input id="lp_bcc" type="text" placeholder="e.g. 5% capped at $50,000"/></div>
+    <div><label>Western Sydney</label><input id="lp_ws" type="text" placeholder="e.g. 2.5% capped at $25,000"/></div>
+  </div>
+  <label>Notes (one per line)</label><textarea id="lp_notes" rows="3"></textarea>
+
+  <label>Value for Money (one per line)</label><textarea id="vfm" rows="3"></textarea>
+</div>
+
+<div class="card">
+  <h3>Other Sections</h3>
+  <label>Interviews / Presentations (one per line)</label><textarea id="ip" rows="3"></textarea>
+  <label>Short-listing / Alternatives (one per line)</label><textarea id="short" rows="3"></textarea>
+  <label>Evaluation Report (one per line)</label><textarea id="erep" rows="3"></textarea>
+  <label>Contract Negotiations (one per line)</label><textarea id="neg" rows="3"></textarea>
+  <label>Debriefing (one per line)</label><textarea id="deb" rows="3"></textarea>
+  <label>Contract Management (one per line)</label><textarea id="cm" rows="3"></textarea>
+  <label>Critical Dates (one per line)</label><textarea id="cdates" rows="3"></textarea>
+</div>
+
+<div>
+  <button class="btn" onclick="save()">Save</button>
+  <a class="btn" id="homeLink" href="/">Back to Home</a>
+</div>
+
+<script>
+const recId = location.pathname.split('/').pop();
+document.getElementById('backlink').href = '/?recId=' + encodeURIComponent(recId);
+document.getElementById('homeLink').href = '/?recId=' + encodeURIComponent(recId);
+
+let data=null;
+
+function T(id,v){document.getElementById(id).value = v||'';}
+function V(id){return document.getElementById(id).value.trim();}
+function L(id){return V(id)? V(id).split('\\n').map(x=>x.trim()).filter(Boolean):[];}
+
+function renderCommittee(){
+  const tb=document.getElementById('committee'); tb.innerHTML='<tr><th>Name</th><th>Title</th><th>Branch</th><th>Role</th><th></th></tr>';
+  (data.evaluation_committee||[]).forEach((m,i)=>{
+    const r=tb.insertRow();
+    r.insertCell().innerHTML=`<input value="${m.name||''}" oninput="setMember(${i},'name',this.value)" />`;
+    r.insertCell().innerHTML=`<input value="${m.title||''}" oninput="setMember(${i},'title',this.value)" />`;
+    r.insertCell().innerHTML=`<input value="${m.branch||''}" oninput="setMember(${i},'branch',this.value)" />`;
+    r.insertCell().innerHTML=`<input value="${m.role||''}" oninput="setMember(${i},'role',this.value)" />`;
+    r.insertCell().innerHTML=`<button onclick="delMember(${i})">Delete</button>`;
+  });
+}
+function addMember(){ (data.evaluation_committee = data.evaluation_committee||[]).push({}); renderCommittee(); }
+function setMember(i,k,v){ data.evaluation_committee[i][k]=v; }
+function delMember(i){ data.evaluation_committee.splice(i,1); renderCommittee(); }
+
+function renderSched(){
+  const tb=document.getElementById('sched'); tb.innerHTML='<tr><th>Task</th><th>Responsible</th><th>Due</th><th></th></tr>';
+  (data.evaluation_schedule||[]).forEach((m,i)=>{
+    const r=tb.insertRow();
+    r.insertCell().innerHTML=`<input value="${m.task||''}" oninput="setSched(${i},'task',this.value)" />`;
+    r.insertCell().innerHTML=`<input value="${m.responsible||''}" oninput="setSched(${i},'responsible',this.value)" />`;
+    r.insertCell().innerHTML=`<input value="${m.due||''}" oninput="setSched(${i},'due',this.value)" />`;
+    r.insertCell().innerHTML=`<button onclick="delSched(${i})">Delete</button>`;
+  });
+}
+function addSched(){ (data.evaluation_schedule=data.evaluation_schedule||[]).push({task:''}); renderSched(); }
+function setSched(i,k,v){ data.evaluation_schedule[i][k]=v; }
+function delSched(i){ data.evaluation_schedule.splice(i,1); renderSched(); }
+
+function renderReq(){
+  const tb=document.getElementById('reqc'); tb.innerHTML='<tr><th>Name</th><th>Weight</th><th>Description</th><th>Mandatory</th><th></th></tr>';
+  const rc=(data.evaluation_methodology?.required_criteria)||[];
+  rc.forEach((c,i)=>{
+    const r=tb.insertRow();
+    r.insertCell().innerHTML=`<input value="${c.name||''}" oninput="setReq(${i},'name',this.value)" />`;
+    r.insertCell().innerHTML=`<input value="${c.weight??''}" oninput="setReq(${i},'weight',this.value)" />`;
+    r.insertCell().innerHTML=`<input value="${c.description||''}" oninput="setReq(${i},'description',this.value)" />`;
+    r.insertCell().innerHTML=`<input type="checkbox" ${c.mandatory?'checked':''} onchange="setReq(${i},'mandatory',this.checked)" />`;
+    r.insertCell().innerHTML=`<button onclick="delReq(${i})">Delete</button>`;
+  });
+}
+function addReq(){ const rc=(data.evaluation_methodology.required_criteria=data.evaluation_methodology.required_criteria||[]); rc.push({name:'New',weight:0,description:'',mandatory:false}); renderReq(); }
+function setReq(i,k,v){ if(k==='weight') v=parseFloat(v)||0; data.evaluation_methodology.required_criteria[i][k]=v; }
+function delReq(i){ data.evaluation_methodology.required_criteria.splice(i,1); renderReq(); }
+
+function renderRisks(){
+  const tb=document.getElementById('risks'); tb.innerHTML='<tr><th>Issue</th><th>Consequence</th><th>Action</th><th></th></tr>';
+  const rk=(data.probity_and_accountability?.risks)||[];
+  rk.forEach((r,i)=>{
+    const row=tb.insertRow();
+    row.insertCell().innerHTML=`<input value="${r.issue||''}" oninput="setRisk(${i},'issue',this.value)" />`;
+    row.insertCell().innerHTML=`<input value="${r.consequence||''}" oninput="setRisk(${i},'consequence',this.value)" />`;
+    row.insertCell().innerHTML=`<input value="${r.action||''}" oninput="setRisk(${i},'action',this.value)" />`;
+    row.insertCell().innerHTML=`<button onclick="delRisk(${i})">Delete</button>`;
+  });
+}
+function addRisk(){ const rk=(data.probity_and_accountability=data.probity_and_accountability||{}, data.probity_and_accountability.risks=data.probity_and_accountability.risks||[]); rk.push({issue:'',consequence:'',action:''}); renderRisks(); }
+function setRisk(i,k,v){ data.probity_and_accountability.risks[i][k]=v; }
+function delRisk(i){ data.probity_and_accountability.risks.splice(i,1); renderRisks(); }
+
+function linesFromRubric(r){
+  return (r.levels||[]).map(x => [x.level||'', x.requirement||'', (x.score??'')].join(' | ')).join('\\n');
+}
+function rubricFromLines(txt){
+  return {levels: (txt? txt.split('\\n').map(s=>s.trim()).filter(Boolean):[]).map(line=>{
+    const parts=line.split('|').map(x=>x.trim());
+    return {level:parts[0]||'', requirement:parts[1]||'', score: parseFloat(parts[2]||'')||0};
+  })};
+}
+
+async function load(){
+  const r = await fetch('/records/'+recId+'/tepp'); data = await r.json();
+  // header
+  T('p_title', data.header?.project_title); T('t_no', data.header?.tender_no); T('roles', (data.header?.panel_roles||[]).join(', '));
+  // aim/description
+  document.getElementById('aim').value = (data.aim||[]).join('\\n');
+  document.getElementById('desc_summary').value = (data.description?.summary||[]).join('\\n');
+  document.getElementById('desired').value = (data.description?.desired_outcomes||[]).join('\\n');
+  document.getElementById('purpose').value = (data.description?.purpose_rft||[]).join('\\n');
+  // probity & accountability
+  const co = data.probity_and_accountability?.authorised_contact_officer||{};
+  T('co_name', co.name); T('co_title', co.title); T('co_email', co.email); T('co_phone', co.phone);
+  document.getElementById('receipt').value = (data.probity_and_accountability?.receipt_of_tenders||[]).join('\\n');
+  document.getElementById('late').value = (data.probity_and_accountability?.late_tenders||[]).join('\\n');
+  document.getElementById('clar').value = (data.probity_and_accountability?.clarifications||[]).join('\\n');
+  renderRisks();
+  // committees/schedule
+  renderCommittee(); renderSched();
+  // methodology
+  document.getElementById('comp').value = (data.evaluation_methodology?.compliance_criteria||[]).join('\\n');
+  renderReq();
+  document.getElementById('scale').value = (data.evaluation_methodology?.rating_scale||[]).join('\\n');
+  // scoring rubrics
+  document.getElementById('rs_exp').value = linesFromRubric(data.returnable_scoring?.relevant_experience||{});
+  document.getElementById('rs_cap').value = linesFromRubric(data.returnable_scoring?.capability||{});
+  document.getElementById('rs_qm').value  = linesFromRubric(data.returnable_scoring?.quality||{});
+  document.getElementById('rs_whs').value = linesFromRubric(data.returnable_scoring?.whs||{});
+  // pricing
+  document.getElementById('price_formulae').value = (data.pricing?.model?.formulae||[]).join('\\n');
+  document.getElementById('price_vars').value = (data.pricing?.model?.variables||[]).join(', ');
+  T('lp_bcc', data.pricing?.local_preference_policy?.blacktown_lga_discount);
+  T('lp_ws', data.pricing?.local_preference_policy?.western_sydney_discount);
+  document.getElementById('lp_notes').value = (data.pricing?.local_preference_policy?.notes||[]).join('\\n');
+  document.getElementById('vfm').value = (data.pricing?.value_for_money||[]).join('\\n');
+  // other sections
+  document.getElementById('ip').value = (data.interviews_presentations||[]).join('\\n');
+  document.getElementById('short').value = (data.shortlisting_alternatives||[]).join('\\n');
+  document.getElementById('erep').value = (data.evaluation_report||[]).join('\\n');
+  document.getElementById('neg').value = (data.contract_negotiations||[]).join('\\n');
+  document.getElementById('deb').value = (data.debriefing||[]).join('\\n');
+  document.getElementById('cm').value = (data.contract_management||[]).join('\\n');
+  document.getElementById('cdates').value = (data.critical_dates||[]).join('\\n');
+
+
+async function save(){
+  // header
+w  data.header = { project_title: V('p_title'), tender_no: V('t_no'), panel_roles: V('roles')? V('roles').split(',').map(x=>x.trim()):[] };
+  // aim/description
+  data.aim = L('aim');
+  data.description = { summary: L('desc_summary'), desired_outcomes: L('desired'), purpose_rft: L('purpose') };
+  // probity & accountability
+  data.probity_and_accountability = data.probity_and_accountability||{};
+  data.probity_and_accountability.authorised_contact_officer = { name: V('co_name'), title: V('co_title'), email: V('co_email'), phone: V('co_phone') };
+  data.probity_and_accountability.receipt_of_tenders = L('receipt');
+  data.probity_and_accountability.late_tenders = L('late');
+  data.probity_and_accountability.clarifications = L('clar');
+  // committees/schedule/methodology/risk & rubrics changes already bound via setters & save below
+  data.evaluation_methodology = data.evaluation_methodology||{};
+  data.evaluation_methodology.compliance_criteria = L('comp');
+  data.evaluation_methodology.rating_scale = L('scale');
+  data.returnable_scoring = {
+    relevant_experience: rubricFromLines(document.getElementById('rs_exp').value),
+    capability: rubricFromLines(document.getElementById('rs_cap').value),
+    quality: rubricFromLines(document.getElementById('rs_qm').value),
+    whs: rubricFromLines(document.getElementById('rs_whs').value)
+  };
+  // pricing
+  data.pricing = data.pricing||{};
+  data.pricing.model = { formulae: L('price_formulae'), variables: V('price_vars')? V('price_vars').split(',').map(x=>x.trim()):[] };
+  data.pricing.local_preference_policy = {
+    blacktown_lga_discount: V('lp_bcc'), western_sydney_discount: V('lp_ws'),
+    notes: L('lp_notes')
+  };
+  data.pricing.value_for_money = L('vfm');
+  // other sections
+  data.interviews_presentations = L('ip');
+  data.shortlisting_alternatives = L('short');
+  data.evaluation_report = L('erep');
+  data.contract_negotiations = L('neg');
+  data.debriefing = L('deb');
+  data.contract_management = L('cm');
+  data.critical_dates = L('cdates');
+
+  await fetch('/records/'+recId+'/tepp',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({data})});
+  alert('Saved');
+}
+
+function addReq(){ const rc=(data.evaluation_methodology=data.evaluation_methodology||{}, data.evaluation_methodology.required_criteria=data.evaluation_methodology.required_criteria||[]); rc.push({name:'New',weight:0,description:'',mandatory:false}); renderReq(); }
+function delReq(i){ data.evaluation_methodology.required_criteria.splice(i,1); renderReq(); }
+
+function addRisk(){ const rk=(data.probity_and_accountability=data.probity_and_accountability||{}, data.probity_and_accountability.risks=data.probity_and_accountability.risks||[]); rk.push({issue:'',consequence:'',action:''}); renderRisks(); }
+function delRisk(i){ data.probity_and_accountability.risks.splice(i,1); renderRisks(); }
+
+function addMember(){ (data.evaluation_committee = data.evaluation_committee||[]).push({}); renderCommittee(); }
+function delMember(i){ data.evaluation_committee.splice(i,1); renderCommittee(); }
+
+function addSched(){ (data.evaluation_schedule=data.evaluation_schedule||[]).push({task:''}); renderSched(); }
+function delSched(i){ data.evaluation_schedule.splice(i,1); renderSched(); }
+
+function setMember(i,k,v){ data.evaluation_committee[i][k]=v; }
+function setSched(i,k,v){ data.evaluation_schedule[i][k]=v; }
+function setReq(i,k,v){ if(k==='weight') v=parseFloat(v)||0; data.evaluation_methodology.required_criteria[i][k]=v; }
+function setRisk(i,k,v){ data.probity_and_accountability.risks[i][k]=v; }
+
+window.addEventListener('load', load);
+</script></body></html>
+"""
+
+# -------------------- Structured Returnables Editor --------------------
+EDITOR_RS2 = r"""
+<!doctype html><html><head><meta charset="utf-8"/>
+<title>Returnables (Structured)</title><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<style>
+body{font-family:system-ui;-apple-system,Segoe UI,Roboto,sans-serif;max-width:1100px;margin:22px auto;padding:0 16px}
+.card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:10px 0}
+.btn{padding:8px 12px;border:0;border-radius:10px;background:#111;color:#fff;cursor:pointer}
+table{width:100%;border-collapse:collapse} td,th{border:1px solid #ddd;padding:8px}
+</style></head><body>
+<h2>Returnable Schedules – Structured</h2>
+<a class="btn" id="back">← Back</a>
+
+<div class="card">
+  <h3>Schedule 9 – Delivery Performance (Milestones)</h3>
+  <table id="ms"><tr><th>Milestone</th><th>Start</th><th>End</th><th></th></tr></table>
+  <button class="btn" onclick="addMs()">Add Milestone</button>
+</div>
+
+<div class="card">
+  <h3>Schedule 10 – Chiller Performance (key fields)</h3>
+  <div id="ch"></div>
+</div>
+
+<div class="card">
+  <h3>Schedule 10 – Pricing Lines</h3>
+  <table id="pl"><tr><th>Item</th><th>Details</th><th>ex GST</th><th>GST</th><th>inc GST</th><th></th></tr></table>
+  <button class="btn" onclick="addPl()">Add Line</button>
+</div>
+
+<button class="btn" onclick="save()">Save</button>
+<script>
+const recId = location.pathname.split('/').pop();
+document.getElementById('back').href='/?recId='+encodeURIComponent(recId);
+let data=null;
+function td(r,html){const c=r.insertCell(); c.innerHTML=html; return c;}
+
+function render(){
+  const tb=document.getElementById('ms');
+  tb.innerHTML='<tr><th>Milestone</th><th>Start</th><th>End</th><th></th></tr>';
+  (data.schedule_9_milestones||[]).forEach((m,i)=>{
+    const r=tb.insertRow();
+    td(r,`<input value="${m.milestone||''}" oninput="setMs(${i},'milestone',this.value)">`);
+    td(r,`<input value="${m.start||''}" oninput="setMs(${i},'start',this.value)">`);
+    td(r,`<input value="${m.end||''}" oninput="setMs(${i},'end',this.value)">`);
+    td(r,`<button onclick="delMs(${i})">Delete</button>`);
+  });
+
+  const ch = data.schedule_10_chiller_performance||{};
+  document.getElementById('ch').innerHTML = `
+    <div>Basis of design: <input value="${ch.basis_of_design||''}" oninput="chSet('basis_of_design',this.value)"></div>
+    <div>Quantity: <input value="${ch.quantity||''}" oninput="chSet('quantity',this.value)"></div>
+    <div>Heating capacity (kWr): <input value="${ch.heating_capacity_kwr||''}" oninput="chSet('heating_capacity_kwr',this.value)"></div>
+    <div>Control: <input value="${ch.control||''}" oninput="chSet('control',this.value)"></div>
+  `;
+
+  const pl=document.getElementById('pl');
+  pl.innerHTML='<tr><th>Item</th><th>Details</th><th>ex GST</th><th>GST</th><th>inc GST</th><th></th></tr>';
+  (data.schedule_10_pricing||[]).forEach((p,i)=>{
+    const r=pl.insertRow();
+    td(r,`<input value="${p.item_no||''}" oninput="setPl(${i},'item_no',this.value)">`);
+    td(r,`<input style="width:100%" value="${p.details||''}" oninput="setPl(${i},'details',this.value)">`);
+    td(r,`<input type="number" step="0.01" value="${p.price_ex_gst??''}" oninput="setPl(${i},'price_ex_gst',parseFloat(this.value)||null)">`);
+    td(r,`<input type="number" step="0.01" value="${p.gst??''}" oninput="setPl(${i},'gst',parseFloat(this.value)||null)">`);
+    td(r,`<input type="number" step="0.01" value="${p.price_inc_gst??''}" oninput="setPl(${i},'price_inc_gst',parseFloat(this.value)||null)">`);
+    td(r,`<button onclick="delPl(${i})">Delete</button>`);
+  });
+}
+function setMs(i,k,v){data.schedule_9_milestones[i][k]=v;}
+function delMs(i){data.schedule_9_milestones.splice(i,1); render();}
+function addMs(){(data.schedule_9_milestones=data.schedule_9_milestones||[]).push({milestone:''}); render();}
+function chSet(k,v){data.schedule_10_chiller_performance[k]=v;}
+function setPl(i,k,v){data.schedule_10_pricing[i][k]=v;}
+function delPl(i){data.schedule_10_pricing.splice(i,1); render();}
+function addPl(){(data.schedule_10_pricing=data.schedule_10_pricing||[]).push({item_no:'',details:''}); render();}
+
+async function load(){ const r=await fetch('/records/'+recId+'/returnable_structured'); data=await r.json(); render(); }
+async function save(){ await fetch('/records/'+recId+'/returnable_structured',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({data})}); alert('Saved'); }
+load();
+</script>
+</body></html>
+"""
+
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return HTMLResponse(HOME)
+
+@app.get("/ui/returnable/{rec_id}", response_class=HTMLResponse)
+def ui_returnable(rec_id: str):
+    _ = load_record(rec_id)
+    return HTMLResponse(EDITOR_RS)
+
+@app.get("/ui/returnable2/{rec_id}", response_class=HTMLResponse)
+def ui_returnable2(rec_id: str):
+    _ = load_record(rec_id)
+    return HTMLResponse(EDITOR_RS2)
+
+@app.get("/ui/rft/{rec_id}", response_class=HTMLResponse)
+def ui_rft(rec_id: str):
+    _ = load_record(rec_id)
+    return HTMLResponse(EDITOR_RFT)
+
+@app.get("/ui/tepp/{rec_id}", response_class=HTMLResponse)
+def ui_tepp(rec_id: str):
+    _ = load_record(rec_id)
+    return HTMLResponse(EDITOR_TEPP)
