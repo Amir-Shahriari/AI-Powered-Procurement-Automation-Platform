@@ -1,0 +1,520 @@
+{
+  "id": "70e859ee-33dd-445e-b5e4-1e091ce20d89",
+  "created_at": "2025-08-19T01:06:39.848280",
+  "updated_at": "2025-08-19T01:06:39.848280",
+  "file_name": "BLCS-001 Technical Requirements - AHU 1 & 3 Refurbishments_Revised.pdf",
+  "source_type": ".pdf",
+  "vs_backend": "faiss_gpu",
+  "vs_location": "faiss/70e859ee-33dd-445e-b5e4-1e091ce20d89",
+  "spec_summary": {
+    "title": "",
+    "tender_no": "TEN123456",
+    "contract_no": "CON789012",
+    "closing_datetime": "2023-04-30T23:59:59Z",
+    "contact": {
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "phone": "(123) 456-7890"
+    },
+    "scope": [
+      "Construction of a new bridge over River XYZ to connect the east and west banks.",
+      "Design, procurement, installation, and commissioning services for all structural components."
+    ],
+    "location": "River XYZ near City A",
+    "safety_standards": [
+      "Compliance with local building codes as per the latest amendments.",
+      "Adherence to international safety standards ISO 9001 for quality management."
+    ]
+  },
+  "returnable": {
+    "schedules": [
+      {
+        "title": "Schedule 9 \u2013 Delivery performance (milestones)",
+        "items": [
+          "Site establishment, safety and access preparation",
+          "Removal of redundant equipment (fans, exchangers etc.)",
+          "Pouring and curing of concrete plinths for chillers",
+          "Delivery and installation of new chillers",
+          "AHU 1 & 3 internal plenum modification",
+          "Installation of coils, drift eliminators, and sumps",
+          "Supply & install EC fans and new access panels",
+          "Pipework and ductwork modifications",
+          "Electrical upgrades and cabling works",
+          "BMS integration and BACnet configuration",
+          "Testing and commissioning",
+          "Handover, documentation, and practical completion",
+          "12-month defect liability and maintenance period begins"
+        ]
+      },
+      {
+        "title": "Schedule 10 \u2013 Fee Structure (pricing items)",
+        "items": [
+          "1.0. Removal and disposal of redundant services including fans and exchangers",
+          "2.0. Supply, deliver and install (2) water-cooled chillers with inbuilt pumps and BACnet HLI card",
+          "3.0. Supply, deliver and install (8) EC fans, doors, panels, louvres",
+          "4.0. Supply and install coils: evaporator (4), condenser (2), run-around (4), and pumps (2)",
+          "5.0. Supply and install insulated copper pipes & fittings with metal cladding and all associated valves",
+          "6.0. Modify, supply and install exhaust ductwork",
+          "7.0. Modify and make good AHUs\u2019 internal plenum, rust treatment, patching",
+          "8.0. All electrical works in Plantroom 1 for AHU 1 & 3 upgrades",
+          "9.0. Project preliminaries and documentation",
+          "10.0. Maintenance for twelve months"
+        ]
+      },
+      {
+        "title": "Schedule 10 \u2013 Chiller performance (key data)",
+        "items": [
+          "Quantity: 2",
+          "Must be fitted with BACnet over IP gateway"
+        ]
+      },
+      {
+        "title": "Schedule 14 \u2013 WHS",
+        "items": [
+          "forms_required"
+        ]
+      },
+      {
+        "title": "Supporting documents checklist",
+        "items": [
+          "Certificates of currency for insurances",
+          "CVs for key personnel; licences/tickets",
+          "Financial statements (last 3 years)",
+          "Certificates of third-party accreditation",
+          "Quality Management Plan + ITPs",
+          "WHS policy/plan + SWMS + checklists",
+          "Environmental policy & plan",
+          "EEO policy & industrial awards"
+        ]
+      }
+    ]
+  },
+  "rft": {
+    "header": {
+      "tender_title": "",
+      "tender_no": "TEN123456",
+      "contract_no": "CON789012",
+      "closing_datetime": "2023-04-30T23:59:59Z",
+      "contact": {
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "phone": "(123) 456-7890"
+      },
+      "lodgement_instructions": null
+    },
+    "sections": [
+      {
+        "title": "Overview",
+        "items": [
+          "Location: River XYZ near City A",
+          "Includes new/replacement heat pump chillers and AHU refurbishments"
+        ]
+      },
+      {
+        "title": "Technical Scope Summary",
+        "items": [
+          "Supply & install x2 Water-cooled heat pump chiller",
+          "4 new evaporator coils",
+          "2 condenser coils",
+          "2 sets of run-around heat recovery coils with pumps/VSDs",
+          "8 EC plug exhaust fans (\u22484 per AHU)",
+          "Pump duty flow: 7.9 L/s",
+          "Pump duty head: 10.0 m"
+        ]
+      },
+      {
+        "title": "Response Requirements",
+        "items": [
+          "Complete all Returnable Schedules in the provided format",
+          "Provide product data/catalogues & technical sheets for all proposed equipment",
+          "Provide draft layout and connection diagrams",
+          "Provide methodology/program and risk controls",
+          "Provide warranty terms and service schedules"
+        ]
+      },
+      {
+        "title": "Submission & Closing",
+        "items": [
+          "Closing date and time: 2023-04-30T23:59:59Z"
+        ]
+      }
+    ]
+  },
+  "tepp": {
+    "header": {
+      "project_title": "",
+      "tender_no": "TEN123456"
+    },
+    "evaluation_criteria": [
+      {
+        "name": "Methodology",
+        "weight": 12.5,
+        "description": "Commissioning plan covering: 10.1 General; Provide all equipment, labour, materials, power, consumables, etc. to conduct testing and; commissioning. The Contractor shall carry out his own tests to verify operation and performance; before requesting Council to attend inspections. Submit fully detailed Test Log sheets for inspection; prior to any testing taking place. The Test Log sheets shall be A4 in size and present a clear and; precise record of all tests to be carried out.\u2026; BMCS integration/HLI (BACnet) with IO schedules and point lists; Program includes defects liability / warranty of 12 months; Provision for service/maintenance handover & schedules",
+        "mandatory": false
+      },
+      {
+        "name": "Quality",
+        "weight": 5.0,
+        "description": "Quality plan incl. ITPs; as-built docs; performance verification",
+        "mandatory": false
+      },
+      {
+        "name": "Work Health & Safety",
+        "weight": 5.0,
+        "description": "Comply with SafeWork NSW / Council WHS; Provide PPE for all on-site workers; Electrical work to AS/NZS 3000",
+        "mandatory": true
+      }
+    ],
+    "probity": {
+      "risks": [
+        {
+          "issue": "BMCS integration failure",
+          "consequence": "Loss of monitoring/control",
+          "action": "Factory acceptance test; point-to-point I/O test; SAT with witness"
+        },
+        {
+          "issue": "EC fan performance shortfall",
+          "consequence": "Insufficient airflow/pressure",
+          "action": "Verify duty against schedule; commissioning with TAB report"
+        },
+        {
+          "issue": "Warranty service response",
+          "consequence": "Extended downtime",
+          "action": "Specify response/rectification times and contacts in contract"
+        }
+      ]
+    },
+    "milestones": [
+      "RFT Closing: 2023-04-30T23:59:59Z"
+    ],
+    "aim": [],
+    "description": {
+      "summary": [
+        "Scope includes: Replacement/upgrade of water-cooled heat pump chillers; AHU coil refurbishments; 8 EC plug fans; BMCS integration (e.g., BACnet HLI)"
+      ],
+      "desired_outcomes": [],
+      "purpose_rft": []
+    },
+    "probity_and_accountability": {
+      "risks": [
+        {
+          "issue": "BMCS integration failure",
+          "consequence": "Loss of monitoring/control",
+          "action": "Factory acceptance test; point-to-point I/O test; SAT with witness"
+        },
+        {
+          "issue": "EC fan performance shortfall",
+          "consequence": "Insufficient airflow/pressure",
+          "action": "Verify duty against schedule; commissioning with TAB report"
+        },
+        {
+          "issue": "Warranty service response",
+          "consequence": "Extended downtime",
+          "action": "Specify response/rectification times and contacts in contract"
+        }
+      ]
+    },
+    "evaluation_committee": [],
+    "evaluation_schedule": [
+      {
+        "task": "Review Testing & Commissioning plan and witness tests",
+        "responsible": null,
+        "due": null
+      },
+      {
+        "task": "Review maintenance schedules and O&M handover",
+        "responsible": null,
+        "due": null
+      },
+      {
+        "task": "Review BMCS HLI/point list and integration test records",
+        "responsible": null,
+        "due": null
+      }
+    ],
+    "evaluation_methodology": {
+      "compliance_criteria": [
+        "Comply with SafeWork NSW / Council WHS",
+        "Provide PPE for all on-site workers",
+        "Electrical work to AS/NZS 3000",
+        "Provide commissioning plan and evidence of tests per Section 10",
+        "Quality plan incl. ITPs"
+      ],
+      "required_criteria": [
+        {
+          "name": "Methodology",
+          "weight": 12.5,
+          "description": "Commissioning plan covering: 10.1 General; Provide all equipment, labour, materials, power, consumables, etc. to conduct testing and; commissioning. The Contractor shall carry out his own tests to verify operation and performance; before requesting Council to attend inspections. Submit fully detailed Test Log sheets for inspection; prior to any testing taking place. The Test Log sheets shall be A4 in size and present a clear and; precise record of all tests to be carried out.\u2026; BMCS integration/HLI (BACnet) with IO schedules and point lists; Program includes defects liability / warranty of 12 months; Provision for service/maintenance handover & schedules",
+          "mandatory": false
+        },
+        {
+          "name": "Quality",
+          "weight": 5.0,
+          "description": "Quality plan incl. ITPs; as-built docs; performance verification",
+          "mandatory": false
+        },
+        {
+          "name": "Work Health & Safety",
+          "weight": 5.0,
+          "description": "Comply with SafeWork NSW / Council WHS; Provide PPE for all on-site workers; Electrical work to AS/NZS 3000",
+          "mandatory": true
+        }
+      ]
+    },
+    "returnable_scoring": {},
+    "pricing": {
+      "value_for_money": [
+        "Consider whole-of-life costs incl. maintenance and warranty obligations",
+        "Energy efficiency and control strategy for chillers/AHUs"
+      ]
+    },
+    "interviews_presentations": [],
+    "shortlisting_alternatives": [],
+    "evaluation_report": [],
+    "contract_negotiations": [],
+    "debriefing": [],
+    "contract_management": [],
+    "critical_dates": [
+      "RFT Closing: 2023-04-30T23:59:59Z"
+    ]
+  },
+  "citations": {
+    "testing_commissioning": [
+      "All wiring penetrating a fire wall shall be installed using a special fire rated intumescent fitting. \n10. TESTING & COMMISSIONING \n10.1 General \nProvide all equipment, labour, materials, power, consumables, etc. to conduct testing and \ncommissioning. The Contractor shall carry out his own tests to verify operation and performance \nbefore requesting Council to attend inspections. Submit fully detailed Test Log sheets for inspection \nprior to any testing taking place. The Test Log sheets shall be A4 in size and present a clear and \nprecise record of all tests to be carried out. \n10.2 Testing \nThe following tests and checks shall be carried out by the Contractor: \n1. Visual inspection of pipework and joints for leaks. \n2. Water-test drains and overflow piping for leaks and for unobstructed drainage. \n3. Check all power cabling terminations and megger test each circuit. \n4. Verify integrity of all controls cabling to ensure electrical continuity and freedom from shorts and \ngrounds. \n5. Sequence checks of all specified control functions and cycles, such as Start, Stop, Chiller Staging, \nCooling and Heating Cycles, etc.",
+      "of a type test certificate from a qualified testing laboratory. \n \nThe section for switching of sub-system, circuitry shall be labelled 'Authorised Personnel Only\", this \nsection shall not allow any person operating switches and circuit breakers to come into contact with \nlive parts. \n \nAll other sections of the SCA shall be labelled as indicated on switchboard drawings. \nLED pilot light \"Run\" and \"Fault\" indication for all main components will be provided including \nsupply and exhaust fans. Lamp test button is also required. \n \nIndividual pilot light 'fault' indication for all safety controls will be provided. \n9.3 Connections \nAll cables unless enclosed shall be neatly arranged and loosely tied and supported neatly, where \nnecessary. \nAll control cables to and from the switchboards shall terminate at an approved terminal block. No more \nthan two cables shall terminate at any one terminal point. Power cables for Compressor and \nCondenser motors may be directly terminated on respective Contactors/over-loads.",
+      "on a plinth with SS Tray under the feet and drained to waste will be provided for each closed system. \nA set of corrosion coupons are to be provided for each closed system and tested each three months. \n9. ELECTRICAL \n9.1 Requirements \nAll equipment supplied and all work done shall be in accordance with this specification and the S.A.A. \nWiring Rules and any other S.A.A. publications covering design, manufacture or installation of \nelectrical equipment and to the requirements of the local Electricity Supply Authority. The latest issue \nor amendment of the relevant S.A.A. publication shall be used. \nThe switchboard manufacturer shall have a type test certificate in addition to Part Type Test Assembly \ncertificate from switchgear supplier to which the design, manufacture and performance of the \nswitchboard shall conform. The installation Contractor shall have an Electrical Contractors license and \nemploy only licensed electricians on Site. \n9.2 Switchboards \nThe S.C.A. shall comply in all respects with AS 61439. \nProof of performance of the board shall be substantiated by switchboard manufacturers\u2019 submission \nof a type test certificate from a qualified testing laboratory."
+    ],
+    "warranty": [
+      "BLCS Main Pool Hall Heating & Ventilation - AHU 1 & 3 Refurbishments                                                                     Page 19 of 20 \n \n11. WARRANTY  \nWarranties for installation and equipment shall be for a period of 12 months minimum. \n12. MAINTENANCE & SERVICE \nThe Installation Contractor is responsible for carrying out all preventative maintenance and servicing \nfor the duration of the Defects Liability Period.  \nThe mechanical contractor shall allow in the tender for maintenance and servicing from date of \npractical completion to the end of the maintenance and defects liability period, to comply with \nrequirements of AS 3666, Local Authority and any other statutory body having jurisdiction. \nMaintenance, in addition to rectification of faults, emergency service and carrying out of capacity \ntests as required, shall also include a minimum of 12 regular monthly visits for routine maintenance. \n \n \n13. SCHEDULE OF PERFORMANCES \n13.1 Circulation Water Pump \nType \nVertical Inline \nDuty Flow \n7.9 L/S \nDuty Head \n10 M \nPower Supply, V/Ph/Hz \n415/3/50 \nSound Level @ 1m \n49 Db (A) \nNumber of Pumps \n2 \nMake / Equal \nBaker Line \n \n13.2 EC Fan \nFan no.",
+      "BLACKTOWN LEISURE CENTRE STANHOPE \nMAIN POOL HALL HEATING & VENTILATION \nAHU 1 & 3 REFURBISHMENTS \nTECHNICAL REQUIREMENTS \n \n \n \n \n \n \n \n \nDOCUMENT NUMBER \nBLCS-001 TECHNICAL \nREQUIREMENTS \nREVISION \n3 \nDATE \n05/05/2025 \nAPPROVER \nNESTOR PUNSALAN"
+    ],
+    "bmcs": [
+      "sheath at low level pipework (under 1.8m).  \n2.2.3 Upgrade of Building Management Control System & Associated Works (by \nOthers) \nNote: HVAC and BMCS contractors shall be responsible for coordinating inter-related works and no \nwaver of responsibility is allowed. Advise the project officer any conflict between the scope and \nresponsibility. \na. Extend the existing BMCS to control the new works, logic shall be identical to the newly \nrefurbished AHU 2 control \nb. Supply and install necessary and additional points to control and monitor the new equipment  \nc. Re-engineer and reprogram BMCS and other necessary works to completely control the new \nventilation and heating systems  \nd. Integrate the new Chiller BACnet High Level Interface gateway with the BMS to operate as \nspecified and provide the Device Instance and IP details and shall carry out all necessary \nprogramming to ensure the current Chiller Staging strategy is maintained. \ne. Test and commission the new installation. \nf. Allow progressive fine-tuning of control logic after Commissioning up to the end of the \nDefects Liability Period, without any additional cost to the Contract.",
+      "BLCS Main Pool Hall Heating & Ventilation - AHU 1 & 3 Refurbishments                                                                     Page 12 of 20 \n \n3.1.9 Controls \nThe man-machine-interface shall be via a 180mm (nominal 7\u201d) touch screen, finger or touch-pencil \ncapable. The control system shall be similar to Carrier \u201cTouch Pilot\u201d with the \u201cEnergy Management \nModule\u201d, or approved equivalent. \nThe touch screen shall permit web-connectivity, BACnet IP connectivity, trending capability and \ndownloadable documentation capability. \nBMS Interface shall be factory installed to provide a high-level interface (HLI - BACnet over IP \nGateway) with the existing BMS. This shall enable the BMS system to interrogate the control panel, \nreset the chiller setpoints, and manage alarms. Allow for necessary field programming. \nSet the Device Instance and IP details and provide a mapping table for the HLI points. \nThe following safeties shall be provided: \n1. Reverse rotation (phase reversal). \n2. Low Water Temperature. \n3. Low Water Flow Rate. \n4. Motor Thermal Overload. \n5. High Pressure Cut-out. \n6. Low Suction Pressure. \n7. Limit Start Timer. \n8. Electrical overload. \n9. Loss of Phase."
+    ],
+    "equipment": [
+      "tested, evacuated and fully factory charged with refrigerant. The chiller shall be factory tested at its \nfull thermal load and each capacity step. \nThe chiller shall consist of scroll type compressors with soft start capability, condenser, evaporator, \nmicroprocessor controls and user display. The chiller shall be complete with a factory installed main \ncircuit breaker with electrical disconnect/isolation capability. \nThe chiller shall incorporate in-built chilled and condenser water pumps sized to handle the chiller\u2019s \ntotal nominated water flow at least 400kPA capacity driven by a VSD and controlled by the chiller\u2019s \ninternal controller. \nService availability, technical support and spare parts shall be readily available in Australia. The \nmanufacturer\u2019s recommendations shall be followed in regards to handling, installation, commissioning \nand ongoing maintenance. The chiller manufacturer\u2019s local distributor shall be engaged by the \nContractor for maintenance during the Defects Liability Period. \n3.1.2 Product Data \nProvide the following information with the Tender: \n1. Manufacturer\u2019s rated performance data for the Chiller offered.",
+      "electrical code including replacement of electrical components within the board if necessary. \nb. Disconnect power supply cables from the main switchboard into the MSSB-1 and reconnect \nthe power supply cables into the new MSSB-2(old MCC1). \nc. Supply and install adequately sized power cables from the chiller sub-board located in the \nMain Switch room into existing MSSB-1 located in Plantroom 1. \nd. Supply and install switchgears in MSSB-1 to accommodate new chillers and provide power \nto the new sub-board, including terminals and relays for BMS interfacing, ensuring correct \ncontrol and status on the Control. \ne. Supply and install new electrical sub-board, cables and circuit breakers for the auxiliary \nequipment including heat recovery circulation pumps and EC fans as shown on the drawings.   \nf. Supply and install cable tray, cable supports, cabling, isolator and connection where required  \ng. Supply and installation of cable support, cabling, isolator and connection to (8) Exhaust Fans \nin the AHUs and the new chillers.  \nh. Supply and install 7.5kW ABB ACH580 VSD\u2019s to respective circulating pumps for the heat \nrecovery coils.",
+      "Duty Head \n10 M \nPower Supply, V/Ph/Hz \n415/3/50 \nSound Level @ 1m \n49 Db (A) \nNumber of Pumps \n2 \nMake / Equal \nBaker Line \n \n13.2 EC Fan \nFan no. \n       Description \nFan type \nVolume \nL/s \nStatic \npressure \nPa \nPhase \n/Voltage \nEF 1-1 \nExhaust air - AHU 1 \nEC centrifugal model \nplug fan \n    2750 \n      600 \n \n \n3Ph/ 380-480V \n \nEF 1-2 \nExhaust air - AHU 1 \nEC centrifugal model \nplug fan \n    2750 \nEF 1-3 \nExhaust air - AHU 1 \nEC centrifugal model \nplug fan \n    2750 \n      600 \n   \n \n3Ph/ 380-480V \n \nEF 1-4 \nExhaust air - AHU 1 \nEC centrifugal model \nplug fan \n    2750 \nEF 3-1 \nExhaust air - AHU 3 \nEC centrifugal model \nplug fan \n    2750 \n      600 \n \n3Ph/ 380-480V \nEF 3-2 \nExhaust air - AHU 3 \nEC centrifugal model \nplug fan \n    2750 \nEF 3-3 \nExhaust air - AHU 3 \nEC centrifugal model \nplug fan \n    2750 \n      600 \n3Ph/ 380-480V \nEF 3-4 \nExhaust air - AHU 3 \nEC centrifugal model \nplug fan \n    2750",
+      "and suitable for the operating weight of the Chiller. Minimum vibration isolation efficiency shall be \n95%. \n3.1.5 Compressors \nCompressors shall be of the full-hermetic scroll type with integral oil level sight glass. Each \ncompressor shall be driven by a 2-pole electric motor cooled by suction gas and protected by internal \ntemperature sensors. Over temperature motor protection shall also be provided. \nEach compressor shall be fitted with \u201csoft start\u201d control complete with phase loss protection. Each \ncompressor shall be fitted with an electric crankcase heater. \nEach compressor assembly shall be anti-vibration mounted to the chiller frame. \nEach refrigerant circuit shall be complete with the following: \n1. Suction and discharge line isolation valves. \n2. Replaceable core filter drier. \n3. Moisture indicating sight glass. \n4. Electronic expansion device. \n5. Liquid line service valves. \n3.1.6 Evaporator Heat Exchanger \nThe evaporator shall be a plate heat exchanger type fabricated from Type 316L stainless steel, copper \nbrazed. Evaporators shall be overall insulated with 19mm closed cell foam type insulation. Evaporator"
+    ],
+    "schedule_of_performances": [
+      "12. \nMAINTENANCE & SERVICE ............................................................................................... 19 \n13. \nSCHEDULE OF PERFORMANCES ..................................................................................... 19 \n13.1 Circulation Water Pump .................................................................................................... 19 \n13.2 EC Fan ............................................................................................................................. 19 \n13.3 AHU-1 and AHU-3 Coil Schedule (Identical) ..................................................................... 20",
+      "M114 - Mechanical Services \u2013 Air & Water Schematic - Existing \n \nExisting Equipment Schedule  \n \nSKM-01 \u2013 AHU -1&3 Piping Schematic Drawing \n            SKM-02 \u2013 Existing Power Supply Diagram \n      SKM-03 \u2013 Proposed Power Supply Diagram \n            SKM-04 \u2013 Plantroom Layout \n            SMK 05 - EC Fans External Wiring Diagram \n \n1.4 \n Programming of the Work \nDue to the nature of the work it is brought to the Contractors\u2019 attention that programming of the work \nand subsequent site management of the work are considered essential to minimise disruption to the \nleisure centre\u2019s activities. \nImmediately following award, the Contractor shall submit to Council a detailed schedule showing the \nproposed sequence of work and the durations for which the various areas will need to be available to \nthe Contractor for the work to be completed. This shall be based on the schedule and time for \ncompletion submitted with the Tender. \n1.5 \nCentre\u2019s Opening Hours \nLeisure centre\u2019s hours are 6:00am to 9:00pm daily. Any noisy works shall consider the neighbouring \nproperties such as any noisy works shall be limited to typical working hours or agreed with the leisure \ncentre\u2019s management. \n1.6",
+      "grounds. \n5. Sequence checks of all specified control functions and cycles, such as Start, Stop, Chiller Staging, \nCooling and Heating Cycles, etc. \n6. Water flow rates shall be balanced to +5% / -0% of those scheduled. Measure and record Chilled \nWater flow rates, compare with scheduled design water flows, and submit. \nMake all necessary adjustments and record all temperature set points and differentials on the Test \nLog sheets."
+    ]
+  },
+  "status": "draft",
+  "raw_excerpt": " \n \n \n \n \n \n \n \n \n \n \n \n \nBLACKTOWN LEISURE CENTRE STANHOPE \nMAIN POOL HALL HEATING & VENTILATION \nAHU 1 & 3 REFURBISHMENTS \nTECHNICAL REQUIREMENTS \n \n \n \n \n \n \n \n \nDOCUMENT NUMBER \nBLCS-001 TECHNICAL \nREQUIREMENTS \nREVISION \n3 \nDATE \n05/05/2025 \nAPPROVER \nNESTOR PUNSALAN  \n \n\n \nBLCS Main Pool Hall Heating & Ventilation - AHU 1 & 3 Refurbishments                                                                     Page 2 of 20 \n \n \nTable of Contents \n \n1. \nGENERAL REQUIREMENTS .................................................................................................... 4 \n1.1 \nGeneral ............................................................................................................................... 4 \n1.2 \nLicensed Personnel ............................................................................................................ 5 \n1.3 \nDrawings and Sketches ...................................................................................................... 5 \n1.4 \nProgramming of the Work ................................................................................................... 5 \n1.5 \nCentre\u2019s Opening Hours ..................................................................................................... 5 \n1.6 \nInterruption of Existing Services .......................................................................................... 5 \n1.7 \nDirt, Dust, Noise and Vibration Control ............................................................................... 5 \n1.8 \nDeliveries to Site and Off Loading ....................................................................................... 6 \n1.9 \nHoisting & Cranage ............................................................................................................. 6 \n1.10 Making Good ...................................................................................................................... 6 \n1.11 Recycling of Redundant Equipment ...............................",
+  "returnable_structured": {
+    "header": {
+      "tender_title": "",
+      "tender_no": "TEN123456",
+      "contract_no": "CON789012"
+    },
+    "schedule_1_corporate": {},
+    "schedule_2_financial": {},
+    "schedule_3_confidentiality_conflict": {},
+    "schedule_4_key_personnel": [],
+    "schedule_5_insurance": [],
+    "schedule_6_previous_experience": [],
+    "schedule_7_current_council_clients": [],
+    "schedule_8_referees": [],
+    "schedule_9_delivery_performance": {
+      "critical_dates": [
+        "Start of operation: 25 Aug 2025"
+      ]
+    },
+    "schedule_9_milestones": [
+      {
+        "milestone": "Site establishment, safety and access preparation",
+        "start": null,
+        "end": null
+      },
+      {
+        "milestone": "Removal of redundant equipment (fans, exchangers etc.)",
+        "start": null,
+        "end": null
+      },
+      {
+        "milestone": "Pouring and curing of concrete plinths for chillers",
+        "start": null,
+        "end": null
+      },
+      {
+        "milestone": "Delivery and installation of new chillers",
+        "start": null,
+        "end": null
+      },
+      {
+        "milestone": "AHU 1 & 3 internal plenum modification",
+        "start": null,
+        "end": null
+      },
+      {
+        "milestone": "Installation of coils, drift eliminators, and sumps",
+        "start": null,
+        "end": null
+      },
+      {
+        "milestone": "Supply & install EC fans and new access panels",
+        "start": null,
+        "end": null
+      },
+      {
+        "milestone": "Pipework and ductwork modifications",
+        "start": null,
+        "end": null
+      },
+      {
+        "milestone": "Electrical upgrades and cabling works",
+        "start": null,
+        "end": null
+      },
+      {
+        "milestone": "BMS integration and BACnet configuration",
+        "start": null,
+        "end": null
+      },
+      {
+        "milestone": "Testing and commissioning",
+        "start": null,
+        "end": null
+      },
+      {
+        "milestone": "Handover, documentation, and practical completion",
+        "start": null,
+        "end": null
+      },
+      {
+        "milestone": "12-month defect liability and maintenance period begins",
+        "start": null,
+        "end": null
+      }
+    ],
+    "schedule_9_subcontractors": [],
+    "schedule_9_questions": {},
+    "schedule_10_fee_structure": {
+      "terms": [
+        "Prices in AUD; same regardless of payment mode; lump sum basis",
+        "Prices available for acceptance during Validity Period",
+        "Include GST, levies, duties, out-of-pocket expenses within NSW"
+      ],
+      "notes": [
+        "Warranty: minimum 12 months (equipment & installation)",
+        "Include 12 monthly maintenance visits during DLP"
+      ]
+    },
+    "schedule_10_chiller_performance": {
+      "type": "Water source heat pump chiller",
+      "refrigerant": "R410a",
+      "compressors": "Four (4) off scroll compressors",
+      "start_method": "\u2018Soft\u2019 start with phase loss sensing",
+      "chilled_water_flow_ls": 5.75,
+      "chilled_water_temp_in_out": "12.2/5.6 \u00b0C",
+      "ambient_db_summer_c": 35.0,
+      "evaporator_fluid": "Fresh Water",
+      "heating_capacity_kwr": null,
+      "condenser_flow_ls": 10.2,
+      "condenser_temp_in_out": "45/50 \u00b0C",
+      "ambient_db_winter_c": 7.0,
+      "control": "Must be fitted with BACnet over IP gateway",
+      "pumps_vsds": null,
+      "basis_of_design": null,
+      "quantity": 2,
+      "alternative_spec": null
+    },
+    "schedule_10_pricing": [
+      {
+        "item_no": "1.0",
+        "details": "Removal and disposal of redundant services including fans and exchangers",
+        "price_ex_gst": null,
+        "gst": null,
+        "price_inc_gst": null
+      },
+      {
+        "item_no": "2.0",
+        "details": "Supply, deliver and install (2) water-cooled chillers with inbuilt pumps and BACnet HLI card",
+        "price_ex_gst": null,
+        "gst": null,
+        "price_inc_gst": null
+      },
+      {
+        "item_no": "3.0",
+        "details": "Supply, deliver and install (8) EC fans, doors, panels, louvres",
+        "price_ex_gst": null,
+        "gst": null,
+        "price_inc_gst": null
+      },
+      {
+        "item_no": "4.0",
+        "details": "Supply and install coils: evaporator (4), condenser (2), run-around (4), and pumps (2)",
+        "price_ex_gst": null,
+        "gst": null,
+        "price_inc_gst": null
+      },
+      {
+        "item_no": "5.0",
+        "details": "Supply and install insulated copper pipes & fittings with metal cladding and all associated valves",
+        "price_ex_gst": null,
+        "gst": null,
+        "price_inc_gst": null
+      },
+      {
+        "item_no": "6.0",
+        "details": "Modify, supply and install exhaust ductwork",
+        "price_ex_gst": null,
+        "gst": null,
+        "price_inc_gst": null
+      },
+      {
+        "item_no": "7.0",
+        "details": "Modify and make good AHUs\u2019 internal plenum, rust treatment, patching",
+        "price_ex_gst": null,
+        "gst": null,
+        "price_inc_gst": null
+      },
+      {
+        "item_no": "8.0",
+        "details": "All electrical works in Plantroom 1 for AHU 1 & 3 upgrades",
+        "price_ex_gst": null,
+        "gst": null,
+        "price_inc_gst": null
+      },
+      {
+        "item_no": "9.0",
+        "details": "Project preliminaries and documentation",
+        "price_ex_gst": null,
+        "gst": null,
+        "price_inc_gst": null
+      },
+      {
+        "item_no": "10.0",
+        "details": "Maintenance for twelve months",
+        "price_ex_gst": null,
+        "gst": null,
+        "price_inc_gst": null
+      }
+    ],
+    "schedule_11_csr": [],
+    "schedule_12_sustainability": [],
+    "schedule_13_eeo_fair": [],
+    "schedule_14_whs": {
+      "forms_required": [
+        "Appendix 1\u20133 WHS forms as per template"
+      ]
+    },
+    "schedule_15_modern_slavery": {},
+    "schedule_16_addenda_ack": {},
+    "supporting_documents_checklist": [
+      "Certificates of currency for insurances",
+      "CVs for key personnel; licences/tickets",
+      "Financial statements (last 3 years)",
+      "Certificates of third-party accreditation",
+      "Quality Management Plan + ITPs",
+      "WHS policy/plan + SWMS + checklists",
+      "Environmental policy & plan",
+      "EEO policy & industrial awards"
+    ]
+  }
+}
