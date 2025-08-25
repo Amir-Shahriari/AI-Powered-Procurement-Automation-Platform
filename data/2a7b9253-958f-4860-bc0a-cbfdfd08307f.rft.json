@@ -1,0 +1,164 @@
+{
+  "schema": "ait.rft.v1",
+  "version": "1.0.0",
+  "generated_at": null,
+  "tender": {
+    "title": null,
+    "tender_number": null,
+    "contract_number": null,
+    "trim_file_number": null,
+    "document_id": null,
+    "issue_date": null,
+    "principal": {
+      "name": null,
+      "legal_status": null,
+      "website": null,
+      "postal_address": null,
+      "contact_officer": {
+        "name": null,
+        "title": null,
+        "email": null,
+        "phone": null
+      }
+    },
+    "lodgement": {
+      "portal_name": null,
+      "portal_url": null,
+      "closing_datetime": null,
+      "anticipated_start_date": null
+    },
+    "agreement_bundle": {
+      "includes": []
+    }
+  },
+  "part_1_request": {
+    "invitation_summary": null,
+    "lodgement_instructions": null,
+    "closing_datetime": null,
+    "validity_period_days": null
+  },
+  "part_2_scope": {
+    "overview": null,
+    "site_visit": {
+      "required": null,
+      "datetime": null,
+      "location": null,
+      "ppe_required": [],
+      "attendance_submission_deadline": null,
+      "attendance_table_fields": []
+    },
+    "services": {
+      "decommissioning_removal": [],
+      "supply_installation": [],
+      "electrical_controls": [],
+      "hoisting_cranage": [],
+      "testing_commissioning": [],
+      "maintenance_warranty": []
+    },
+    "performance_evaluations": {
+      "reporting": [],
+      "criteria": []
+    },
+    "other_requirements": {
+      "warranty_quality_assurance": [],
+      "environmental_safety_considerations": [],
+      "standards_references": []
+    },
+    "service_dates": {
+      "anticipated_start_date": null,
+      "end_date": null,
+      "warranty_period_months_min": null
+    }
+  },
+  "part_3_detailed_submissions": {
+    "allow_alternative_responses": null,
+    "allow_deviations": null,
+    "non_conformance_declaration": {
+      "is_non_conforming": null,
+      "departures_from_scope": null,
+      "justification_for_alternative": null,
+      "deviations_detail": null
+    }
+  },
+  "part_4_response_requirements": {
+    "format": {
+      "language": null,
+      "units": null,
+      "unchanged_text_policy": null
+    },
+    "content_requirements": {
+      "include_all_information_and_pricing": null,
+      "answer_all_questions": null,
+      "warranties_and_guarantees": null,
+      "correct_notice_contact_details": null,
+      "declaration_of_conformity_required": null,
+      "authorised_approval_required": null
+    },
+    "file_rules": {
+      "naming": {
+        "pattern_examples": [],
+        "requirements": []
+      },
+      "compression": null,
+      "security": {
+        "no_macros_or_executables": null,
+        "virus_free_required": null
+      }
+    },
+    "addenda": {
+      "may_be_issued_any_time_before_closing": null,
+      "notification_via_etender": null,
+      "tenderer_responsible_to_check": null
+    },
+    "submission_method": {
+      "electronic_only": null,
+      "portal_url": null,
+      "no_email_fax_physical": null,
+      "receipt": null,
+      "secure_tender_box": null
+    },
+    "deadline_policy": {
+      "late_submissions_not_accepted": null,
+      "possible_extension_via_addendum_if_portal_failure": null
+    },
+    "validity_period_days": null
+  },
+  "part_5_returnable_schedules": {
+    "schedules": [],
+    "submitted": {}
+  },
+  "evaluation": {
+    "criteria": [],
+    "process": {
+      "may_include": [],
+      "shortlist_financial_viability_check": null,
+      "external_financial_assessor_may_be_used": null,
+      "compliance_required": null,
+      "report_to_council_meeting": null,
+      "governance_framework": []
+    },
+    "outcome": {
+      "notification_to_all_tenderers": null,
+      "letter_of_engagement_effects": [],
+      "rft_is_not_a_contract": null,
+      "decision_final_not_subject_to_challenge": null
+    }
+  },
+  "attachments": [],
+  "llm_notes": {
+    "confidence": null,
+    "extraction_sources": [],
+    "warnings": []
+  },
+  "header": {
+    "tender_title": null,
+    "tender_no": null,
+    "contract_no": "M114",
+    "closing_datetime": null,
+    "contact": {
+      "name": null,
+      "email": null,
+      "phone": null
+    }
+  }
+}

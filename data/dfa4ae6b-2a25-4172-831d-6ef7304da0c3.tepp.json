@@ -1,0 +1,404 @@
+{
+  "document_metadata": {
+    "document_title": "Tender Evaluation and Probity Plan",
+    "tender_number": "",
+    "project_name": "",
+    "term": "For a term of 12 months.",
+    "date": "",
+    "version": "",
+    "prepared_by": "",
+    "approved_by": ""
+  },
+  "table_of_contents": [
+    {
+      "n": "1.",
+      "title": "Aim"
+    },
+    {
+      "n": "2.",
+      "title": "Description of Requirement"
+    },
+    {
+      "n": "2.1",
+      "title": "Desired Outcomes"
+    },
+    {
+      "n": "2.2",
+      "title": "Purpose of Request for Tender (RFT)"
+    },
+    {
+      "n": "3.",
+      "title": "Probity and Accountability"
+    },
+    {
+      "n": "3.1",
+      "title": "Probity"
+    },
+    {
+      "n": "3.2",
+      "title": "Confidentiality and Conflict of Interest"
+    },
+    {
+      "n": "3.3",
+      "title": "Security and Confidentiality"
+    },
+    {
+      "n": "3.4",
+      "title": "Authorised Contact Officer"
+    },
+    {
+      "n": "3.5",
+      "title": "Advertising the RFT"
+    },
+    {
+      "n": "3.6",
+      "title": "Receipt of Tenders"
+    },
+    {
+      "n": "3.7",
+      "title": "Late Tenders"
+    },
+    {
+      "n": "3.8",
+      "title": "Requests for Clarification"
+    },
+    {
+      "n": "3.9",
+      "title": "Critical issues or risks"
+    },
+    {
+      "n": "4.",
+      "title": "Evaluation Committee"
+    },
+    {
+      "n": "5.",
+      "title": "Evaluation Schedule"
+    },
+    {
+      "n": "6.",
+      "title": "Tender Evaluation"
+    },
+    {
+      "n": "6.1",
+      "title": "Evaluation Methodology"
+    },
+    {
+      "n": "6.1.1",
+      "title": "Compliance Criteria"
+    },
+    {
+      "n": "6.1.2",
+      "title": "Required Criteria"
+    },
+    {
+      "n": "6.2",
+      "title": "Returnable Schedules Scoring"
+    },
+    {
+      "n": "7.",
+      "title": "Pricing"
+    },
+    {
+      "n": "7.1.1",
+      "title": "Pricing Model"
+    },
+    {
+      "n": "7.1.2",
+      "title": "Local Preference Policy"
+    },
+    {
+      "n": "7.1.3",
+      "title": "Value for Money"
+    },
+    {
+      "n": "7.1.4",
+      "title": "Interviews and Presentation Criteria"
+    },
+    {
+      "n": "7.2",
+      "title": "Short-listing / Setting Aside Tenders"
+    },
+    {
+      "n": "7.3",
+      "title": "Alternative Tenders"
+    },
+    {
+      "n": "7.4",
+      "title": "Tenderer Presentations"
+    },
+    {
+      "n": "7.5",
+      "title": "Evaluation Report"
+    },
+    {
+      "n": "8.",
+      "title": "Contract Negotiations"
+    },
+    {
+      "n": "9.",
+      "title": "Debriefing of Unsuccessful Tenderers"
+    },
+    {
+      "n": "10.",
+      "title": "Contract Management"
+    },
+    {
+      "n": "11.",
+      "title": "Critical dates"
+    },
+    {
+      "n": "12.",
+      "title": "How to Complete the TEPP"
+    }
+  ],
+  "aim": {
+    "intro": "The Request for Tender (RFT) is for the this procurement to Council for the service of the procurement, installation, and integration of the specified works.",
+    "body": "This Tender Evaluation and Probity Plan (TEPP) is the planning and control document for conducting the evaluation of Tenders received in response to the RFT.\nThe TEPP sets out:\n• the processes and principles to be followed when evaluating Tenders;\n• individuals’ responsibilities;\n• the evaluation schedule; and\n• reporting requirements."
+  },
+  "description_of_requirement": {
+    "summary": [],
+    "general": [],
+    "technical_requirements": {
+      "decommissioning_removal": [],
+      "supply_installation": [],
+      "electrical_controls": [],
+      "hoisting_cranage": [],
+      "testing_commissioning": [],
+      "maintenance_warranty": []
+    },
+    "invoicing": [],
+    "reporting": {
+      "weekly": [],
+      "final": []
+    },
+    "performance_monitoring": {
+      "note": "",
+      "criteria": []
+    }
+  },
+  "desired_outcomes": [],
+  "purpose_rft": [],
+  "probity_and_accountability": {
+    "probity": "",
+    "confidentiality_and_conflict": "",
+    "security_and_confidentiality": "",
+    "authorised_contact_officer": {
+      "name": null,
+      "title": null,
+      "email": null,
+      "phone": null
+    },
+    "advertising_rft": "",
+    "receipt_of_tenders": "",
+    "late_tenders": "",
+    "requests_for_clarification": "",
+    "critical_issues_or_risks": [],
+    "risks": [
+      {
+        "issue": "BMCS integration failure",
+        "consequence": "Loss of monitoring/control",
+        "action": "FAT; point-to-point I/O test; SAT with witness"
+      },
+      {
+        "issue": "EC fan performance shortfall",
+        "consequence": "Insufficient airflow/pressure",
+        "action": "Verify duty; commissioning with TAB report"
+      },
+      {
+        "issue": "Warranty service response",
+        "consequence": "Extended downtime",
+        "action": "Specify response/rectification times & contacts"
+      }
+    ]
+  },
+  "evaluation_committee": [],
+  "evaluation_schedule": [
+    {
+      "task": "Review Testing & Commissioning plan and witness tests",
+      "responsible": null,
+      "due": null
+    },
+    {
+      "task": "Review maintenance schedules and O&M handover",
+      "responsible": null,
+      "due": null
+    },
+    {
+      "task": "Review BMCS HLI/point list and integration test records",
+      "responsible": null,
+      "due": null
+    }
+  ],
+  "tender_evaluation": {
+    "methodology_text": "The Evaluation Committee, in accordance with the methodology specified in the RFT and reproduced here, will evaluate all tenders.",
+    "evaluation_methodology": {
+      "compliance_criteria": [
+        {
+          "criterion": "Tender Details",
+          "weight": "Nil"
+        },
+        {
+          "criterion": "Compliance of RFT Terms & Conditions",
+          "weight": "Nil"
+        },
+        {
+          "criterion": "Tenderer’s Statutory Declaration",
+          "weight": "Nil"
+        }
+      ],
+      "required_criteria_table": [
+        {
+          "criterion": "Price (Full Cost)",
+          "weight": "50.0%"
+        },
+        {
+          "criterion": "Relevant Experience",
+          "weight": "13.5%"
+        },
+        {
+          "criterion": "Capability",
+          "weight": "13.5%"
+        },
+        {
+          "criterion": "Management & Financial Capacity",
+          "weight": "9.0%"
+        },
+        {
+          "criterion": "Quality Management",
+          "weight": "4.5%"
+        },
+        {
+          "criterion": "WHS",
+          "weight": "4.5%"
+        },
+        {
+          "criterion": "Sustainability and EEO & Fair Employment",
+          "weight": "5.0%"
+        }
+      ],
+      "weighting_rationales": {
+        "Price (Full Cost)": "Price is a significant factor for a construction contract of this value. Setting it at 50% reflects the need for cost-effectiveness while allowing for consideration of other crucial factors. The mid-point of the allowed range balances cost and quality.",
+        "Relevant Experience": "Given the contract value and potential integration risks (indicated by 'integration_risk': true), experience is vital to mitigate unforeseen challenges. 15% reflects the need for a proven track record.",
+        "Capability": "Capability ensures the contractor possesses the necessary resources and technical expertise to execute the project successfully. 15% acknowledges the importance of demonstrated ability.",
+        "Management & Financial Capacity": "A contractor's financial stability and management capabilities are crucial for project continuity and timely completion. 10% ensures they can handle the financial obligations and manage the project effectively.",
+        "Quality Management": "While no specific quality requirements are present ('has_quality_requirements': false), maintaining a baseline level of quality is essential. 5% ensures a minimum standard is met.",
+        "WHS": "Safety is paramount in construction. 5% emphasizes the contractor's commitment to workplace health and safety, especially given the safety criticality rating of 3.",
+        "Sustainability/EEO": "Sustainability/EEO is set to 10% of the chosen Price weight (50% * 10% = 5%). This ensures compliance with the rule and acknowledges the importance of sustainable practices and equal employment opportunity."
+      }
+    },
+    "returnable_schedules_scoring": {}
+  },
+  "pricing": {
+    "pricing_model_text": "Pricing for tender evaluation will be normalised; the lowest fee achieves the maximum score (equal to the price weighting). State Government method:\nPs = 200 – (Pc / Pav × 100)\nPn = Ps / 200\nPw = Pn × [Price Weight]\nPc = Total Net Cost, Pav = Average of Total Net Costs.",
+    "local_preference_policy": {
+      "policy_text": "Local Preference Policy per Procurement Policy P000553.1: 5% discount (cap $50,000) for suppliers in Blacktown LGA; 2.5% discount (cap $25,000) for suppliers located in Western Sydney Councils.",
+      "western_sydney_councils": [
+        "Blue Mountains City Council",
+        "City of Parramatta Council",
+        "Cumberland City Council",
+        "Fairfield City Council",
+        "Hawkesbury City Council",
+        "Liverpool City Council",
+        "Parramatta City Council",
+        "Penrith City Council",
+        "The Hills Shire Council"
+      ],
+      "application_note": "Record eligible addresses in the evaluation spreadsheet (third tab)."
+    },
+    "value_for_money": [
+      "Assessed on qualitative outcomes + price: quality and fitness for purpose vs whole-of-life costs vs risk.",
+      "Consider whole-of-life costs incl. maintenance and warranty obligations",
+      "Energy efficiency and control strategy for chillers/AHUs"
+    ],
+    "interviews_and_presentation_criteria": "Scores may be revised following interviews/presentations of shortlisted tenderers."
+  },
+  "shortlisting": "Clearly non-competitive tenders may be excluded with reasons recorded.",
+  "alternative_tenders": "Alternative tenders will be evaluated per the RFT methodology.",
+  "tenderer_presentations": "Interviews may be used for clarification only; no new information is accepted.",
+  "evaluation_report": "Final results documented in a Council Report: method, number of tenders, rankings, recommendation, and rationale. Considered by the Tender Review Committee; endorsed and presented to Council.",
+  "contract_negotiations": "Negotiations (post-tender) are fair, open, and must not materially change requirements. Outcomes documented.",
+  "debriefing_unsuccessful": "Debriefing may be offered upon request. Only general comments on the tenderer’s own submission; no comparisons; no scoring details.",
+  "contract_management": "The contract will be managed by <role/name>.",
+  "critical_dates": [],
+  "how_to_complete_tepp": [
+    "1) Title Page — Replace Tender Number, Name and Term.",
+    "2) 1. Aim — Update Tender Name and Term.",
+    "3) 2. Description of Requirement — Replace with contract description and main requirements.",
+    "4) 2.1 Desired Outcomes — Insert procurement outcomes (value for money, timely delivery, etc.).",
+    "5) 2.2 Purpose of RFT — Replace with reasons for this tender (or EOI/Quotation).",
+    "… (continue your internal guidance list as needed) …",
+    "Update footer to correct Tender Number and Tender Name."
+  ],
+  "evaluation_methodology": {
+    "compliance_criteria": [
+      "Comply with SafeWork NSW / Council WHS",
+      "Provide PPE for all on-site workers",
+      "Electrical work to AS/NZS 3000",
+      "Provide commissioning plan and evidence of tests per Section 10"
+    ],
+    "required_criteria": [
+      {
+        "name": "Methodology",
+        "weight": 12.5,
+        "description": "Commissioning plan covering: 10.1 General; Provide all equipment, labour, materials, power, consumables, etc. to conduct testing and; commissioning. The Contractor shall carry out his own tests to verify operation and performance; before requesting Council to attend inspections. Submit fully detailed Test Log sheets for inspection; prior to any testing taking place. The Test Log sheets shall be A4 in size and present a clear and; precise record of all tests to be carried out.…; BMCS integration/HLI (BACnet) with IO schedules and point lists; Program includes defects liability / warranty of 12 months; Provision for service/maintenance handover & schedules",
+        "mandatory": false
+      },
+      {
+        "name": "Quality",
+        "weight": 5.0,
+        "description": "Quality plan incl. ITPs; as-built docs; performance verification",
+        "mandatory": false
+      },
+      {
+        "name": "Work Health & Safety",
+        "weight": 5.0,
+        "description": "Comply with SafeWork NSW / Council WHS; Provide PPE for all on-site workers; Electrical work to AS/NZS 3000",
+        "mandatory": true
+      }
+    ]
+  },
+  "description": {
+    "summary": [
+      "Scope includes: Replacement/upgrade of water-cooled heat pump chillers; AHU coil refurbishments; 8 EC plug fans; BMCS integration (e.g., BACnet HLI)"
+    ],
+    "desired_outcomes": [],
+    "purpose_rft": []
+  },
+  "evaluation_criteria": [
+    {
+      "criterion": "Price (Full Cost)",
+      "weighting": "50.0%",
+      "subcriteria": []
+    },
+    {
+      "criterion": "Relevant Experience",
+      "weighting": "13.5%",
+      "subcriteria": []
+    },
+    {
+      "criterion": "Capability",
+      "weighting": "13.5%",
+      "subcriteria": []
+    },
+    {
+      "criterion": "Management & Financial Capacity",
+      "weighting": "9.0%",
+      "subcriteria": []
+    },
+    {
+      "criterion": "Quality Management",
+      "weighting": "4.5%",
+      "subcriteria": []
+    },
+    {
+      "criterion": "WHS",
+      "weighting": "4.5%",
+      "subcriteria": []
+    },
+    {
+      "criterion": "Sustainability and EEO & Fair Employment",
+      "weighting": "5.0%",
+      "subcriteria": []
+    }
+  ]
+}
