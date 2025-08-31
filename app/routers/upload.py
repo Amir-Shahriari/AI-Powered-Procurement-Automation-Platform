@@ -14,7 +14,6 @@ from ..services.llm import rag_json, set_runtime_model, reset_runtime_model
 from ..services.parse_spec import parse_spec
 from ..services.policy import scan_policy_files, extract_many, _build_ephemeral_vs
 
-# JSON templates + fillers
 from ..services.templates import (
     load_returnables_template,
     load_rft_template,
@@ -22,7 +21,7 @@ from ..services.templates import (
 )
 from ..services.returnables_filler import seed_returnables_from_spec
 from ..services.rft_filler import seed_rft_from_spec
-from ..services.compose import compose_tepp
+from ..services.compose import compose_tepp, compose_returnable_schedules
 
 router = APIRouter()
 
@@ -40,6 +39,7 @@ Return ONLY strict JSON with fields:
 }
 Use ONLY the provided context. If unknown, set null or [].
 """
+
 
 
 @router.post("/upload", response_model=Record)
@@ -103,7 +103,8 @@ async def upload(
         vs_policy = _build_ephemeral_vs(policy_chunks) if policy_chunks else None
 
         # Generate and SAVE JSON artifacts
-        ret_filled  = seed_returnables_from_spec(load_returnables_template(), spec_summary.model_dump(), parsed)
+        ret_filled = compose_returnable_schedules(spec_summary, parsed, non_negotiable_date=None)
+        write_json(settings.DATA_DIR / f"{doc_id}.returnables.json", ret_filled)
         rft_filled  = seed_rft_from_spec(load_rft_template(),         spec_summary.model_dump(), parsed)
         tepp_filled = compose_tepp(spec_summary, parsed, vs, [vs_policy] if vs_policy else None)
 

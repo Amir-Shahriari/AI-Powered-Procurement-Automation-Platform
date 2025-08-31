@@ -1,22 +1,22 @@
+# app/services/llm.py
 import json, re, contextvars
-from typing import Any, List, Optional, Iterable, Tuple
+from typing import Any, List, Optional, Iterable, Tuple, Callable
 from langchain.schema import SystemMessage, HumanMessage
-# from langchain_community.chat_models import ChatOllama
-from langchain_ollama import ChatOllama  # switch from langchain_community
-from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
+from langchain_google_genai import ChatGoogleGenerativeAI
 from ..config import settings
 
 
 # -------------------------------
 # Runtime model override (per-request)
 # -------------------------------
-# We let the /upload route set a per-request model (e.g., "llama3.1:8b") via a context var.
+# We let the /upload route set a per-request **Ollama** model (e.g., "llama3.1:8b")
 _RUNTIME_MODEL: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
     "runtime_model", default=None
 )
 
 def set_runtime_model(model: Optional[str]) -> Optional[contextvars.Token]:
-    """Temporarily override the model for the current request/task. Returns a token for reset."""
+    """Temporarily override the Ollama model for this request. Returns a token for reset()."""
     if model and isinstance(model, str) and model.strip():
         return _RUNTIME_MODEL.set(model.strip())
     return None
@@ -26,46 +26,9 @@ def reset_runtime_model(token: Optional[contextvars.Token]) -> None:
     if token is not None:
         _RUNTIME_MODEL.reset(token)
 
-def _current_model(default_ollama: str, default_openai: str) -> str:
-    """Return the model name, preferring the per-request override if present."""
-    return _RUNTIME_MODEL.get() or (default_ollama if settings.LLM_PROVIDER.lower() == "ollama" else default_openai)
-
-
-# -------------------------------
-# LLM client
-# -------------------------------
-def _llm(json_mode: bool = False):
-    """
-    Create an LLM client based on settings.
-    - Ollama supports `format="json"` via LangChain's ChatOllama JSON mode.
-    - OpenAI uses response_format for JSON.
-    """
-    provider = settings.LLM_PROVIDER.lower()
-    if provider == "ollama":
-        # Use per-request override if available, else settings.OLLAMA_MODEL
-        model_name = _current_model(settings.OLLAMA_MODEL, settings.OPENAI_MODEL)
-        kwargs = dict(
-            base_url=settings.OLLAMA_BASE_URL,
-            model=model_name,
-            temperature=0,
-            request_timeout=150,   # ← hard timeout so requests never hang
-        )
-        if json_mode:
-            kwargs["format"] = "json"
-        return ChatOllama(**kwargs)
-
-    # OpenAI (optionally respects the runtime override too)
-    model_name = _current_model(settings.OLLAMA_MODEL, settings.OPENAI_MODEL)
-    kwargs = dict(
-        model=model_name,
-        temperature=0,
-        base_url=settings.OPENAI_BASE_URL,
-        request_timeout=150,     # ← hard timeout so requests never hang
-        max_retries=2,
-    )
-    if json_mode:
-        kwargs["model_kwargs"] = {"response_format": {"type": "json_object"}}
-    return ChatOpenAI(**kwargs)
+def _current_ollama_model() -> str:
+    """Return the Ollama model name, preferring the per-request override if present."""
+    return _RUNTIME_MODEL.get() or settings.OLLAMA_MODEL
 
 
 # -------------------------------
@@ -96,6 +59,137 @@ def _try_parse_json(response: str) -> Any:
         if not m:
             raise
         return json.loads(m.group(1))
+
+
+# -------------------------------
+# Providers + Failover wrapper
+# -------------------------------
+def _ollama_client(json_mode: bool = False) -> ChatOllama:
+    """Construct an Ollama chat client (uses current per-request override if set)."""
+    kwargs = dict(
+        base_url=settings.OLLAMA_BASE_URL,
+        model=_current_ollama_model(),
+        temperature=0,
+        request_timeout=150,  # hard timeout so requests never hang
+    )
+    if json_mode:
+        kwargs["format"] = "json"
+    return ChatOllama(**kwargs)
+
+def _ollama_client_default(json_mode: bool = False) -> ChatOllama:
+    """
+    Construct an Ollama client that IGNORES the per-request override and uses the default
+    settings.OLLAMA_MODEL. This is used as a second-chance fallback when an override
+    points to a model that isn't pulled locally.
+    """
+    kwargs = dict(
+        base_url=settings.OLLAMA_BASE_URL,
+        model=settings.OLLAMA_MODEL,
+        temperature=0,
+        request_timeout=150,
+    )
+    if json_mode:
+        kwargs["format"] = "json"
+    return ChatOllama(**kwargs)
+
+
+def _gemini_client(json_mode: bool = False) -> ChatGoogleGenerativeAI:
+    """
+    Construct a Gemini chat client.
+    When json_mode=True we ask for clean JSON via response_mime_type.
+    IMPORTANT: max_retries=0 so we fail fast and let our failover handle 429s.
+    """
+    gen_cfg = {"response_mime_type": "application/json"} if json_mode else None
+    return ChatGoogleGenerativeAI(
+        model=settings.GEMINI_MODEL,
+        google_api_key=settings.GOOGLE_API_KEY,
+        temperature=0,
+        max_output_tokens=8192,
+        max_retries=0,  # fail fast on 429 / quota
+        convert_system_message_to_human=True,  # map system->human for Gemini
+        generation_config=gen_cfg,
+    )
+
+
+def _should_fallback(exc: Exception) -> bool:
+    """
+    Decide whether to fall back to Ollama for this exception.
+    We target quota/limit/billing/auth-ish issues from Gemini.
+    """
+    msg = (getattr(exc, "message", None) or str(exc) or "").lower()
+
+    # Common Gemini / Google API phrases indicating quota/rate/billing/permission issues
+    triggers = [
+        "quota", "rate limit", "rate-limit", "resource exhausted", "exceeded",
+        "429", "too many requests", "billing", "insufficient", "daily limit",
+        "permission denied", "forbidden", "403", "api key not valid", "invalid api key",
+        "project has been blocked",
+    ]
+    return any(t in msg for t in triggers)
+
+
+class _FallbackChatModel:
+    """
+    Wrapper that tries primary (Gemini) and falls back to Ollama on quota/rate/billing/auth errors.
+    If the Ollama fallback fails with "model not found", it retries once using the DEFAULT Ollama
+    model (ignoring any per-request override).
+    """
+    def __init__(self, primary, fallback_factory: Callable[[], ChatOllama], fallback_default_factory: Callable[[], ChatOllama]):
+        self._primary = primary
+        self._fallback_factory = fallback_factory
+        self._fallback_default_factory = fallback_default_factory
+        self.used = "primary"  # for debugging
+
+    def invoke(self, messages, **kwargs):
+        # 1) Try primary provider
+        try:
+            return self._primary.invoke(messages, **kwargs)
+        except Exception as e:
+            if not _should_fallback(e):
+                raise
+
+        # 2) Try Ollama (may use per-request override)
+        try:
+            fb = self._fallback_factory()
+            self.used = "fallback"
+            return fb.invoke(messages, **kwargs)
+        except Exception as e2:
+            msg = (getattr(e2, "message", None) or str(e2) or "").lower()
+            # 3) If override model is missing, try DEFAULT Ollama model once
+            if "model" in msg and "not found" in msg:
+                try:
+                    fb2 = self._fallback_default_factory()
+                    self.used = "fallback-default"
+                    return fb2.invoke(messages, **kwargs)
+                except Exception:
+                    pass
+            # If it still fails, bubble the original Ollama error
+            raise e2
+
+
+# -------------------------------
+# LLM client (factory)
+# -------------------------------
+def _llm(json_mode: bool = False):
+    """
+    Create a chat client based on settings.
+    - If settings.LLM_PROVIDER == "gemini":
+        Use Gemini and auto-fallback to Ollama (local) on quota/limit/billing errors.
+    - If settings.LLM_PROVIDER == "ollama":
+        Use Ollama directly (no Gemini).
+    """
+    provider = (settings.LLM_PROVIDER or "ollama").lower()
+
+    if provider == "gemini":
+        primary = _gemini_client(json_mode=json_mode)
+        return _FallbackChatModel(
+            primary,
+            fallback_factory=lambda: _ollama_client(json_mode=json_mode),
+            fallback_default_factory=lambda: _ollama_client_default(json_mode=json_mode),
+        )
+
+    # default / explicit local
+    return _ollama_client(json_mode=json_mode)
 
 
 # -------------------------------
@@ -186,12 +280,7 @@ def rag_json(
 ) -> Any:
     """
     Retrieve labeled context blocks and ask the LLM to return STRICT JSON.
-    Improvements:
-      - query expansion to improve recall
-      - minimum context budget (min_chars) with broadening if needed
-      - de-duplication and soft char cap to avoid token blowups
     """
-    # similar(vs, query, k) is already provided in your repo
     from .vectorstores import similar
 
     def _similar(q: str, k: int = max_ctx) -> List[str]:
@@ -208,7 +297,6 @@ def rag_json(
     blocks = _gather_snippets(_similar, field_queries, max_ctx=max_ctx, min_chars=min_chars)
     context = ""
     if blocks:
-        # label by coarse query categories for better grounding
         labeled = []
         for i, b in enumerate(blocks, 1):
             labeled.append(f"[CTX {i}]\n{b}")

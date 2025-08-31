@@ -1,3 +1,5 @@
+#app/services/vectorstores.py
+
 from pathlib import Path
 from typing import List
 from fastapi import HTTPException
@@ -34,8 +36,13 @@ def get_vs(doc_id: str):
         except Exception:
             raise HTTPException(500, "FAISS-GPU not available.")
         vs = LCFAISS.load_local(str(_faiss_path(doc_id)), embeddings=EMBED, allow_dangerous_deserialization=True)
-        res = faiss.StandardGpuResources()
-        vs.index = faiss.index_cpu_to_gpu(res, 0, vs.index)
+        try:
+            # Try to move the index to GPU. If it fails (for example, due to lack of GPU memory)
+            # leave the index on CPU instead of raising an exception.
+            res = faiss.StandardGpuResources()
+            vs.index = faiss.index_cpu_to_gpu(res, 0, vs.index)
+        except Exception:
+            pass  # Leave the index on CPU; retrieval will still work.
         return vs
     return Chroma(
         embedding_function=EMBED, persist_directory=str(settings.INDEX_DIR),

@@ -5,6 +5,7 @@ from ..repo.records import load_record
 router = APIRouter()
 
 HOME_HTML = r"""<!doctype html>
+<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -56,6 +57,15 @@ HOME_HTML = r"""<!doctype html>
           <a class="btn" id="btn-rft"  href="#">Open RFT</a>
           <a class="btn" id="btn-tepp" href="#">Open TEPP</a>
         </div>
+        <!-- BEGIN new supplier upload section -->
+        <div class="spacer"></div>
+        <div id="supplierUpload" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label for="supplierFiles" class="muted">Supplier responses:</label>
+          <input type="file" id="supplierFiles" multiple />
+          <button type="button" id="btn-supplier">Submit Supplier Responses</button>
+          <span id="supplierStatus" class="muted"></span>
+        </div>
+        <!-- END new supplier upload section -->
       </div>
     </div>
   </main>
@@ -99,9 +109,45 @@ HOME_HTML = r"""<!doctype html>
         statusEl.className = "warn";
       }
     });
+
+    // BEGIN new supplier upload handler
+    document.getElementById("btn-supplier").addEventListener("click", async () => {
+      const supplierStatus = document.getElementById("supplierStatus");
+      const filesInput = document.getElementById("supplierFiles");
+      const recSpan = document.getElementById("recId");
+      const recId = recSpan.textContent;
+      if (!recId) {
+        supplierStatus.textContent = "No record selected.";
+        supplierStatus.className = "warn";
+        return;
+      }
+      const files = filesInput.files;
+      if (!files || files.length === 0) {
+        supplierStatus.textContent = "Please select file(s) first.";
+        supplierStatus.className = "warn";
+        return;
+      }
+      const formData = new FormData();
+      for (const f of files) {
+        formData.append("files", f);
+      }
+      supplierStatus.textContent = "Uploading…";
+      supplierStatus.className = "muted";
+      try {
+        const res = await fetch(`/records/${recId}/supplier_responses`, { method: "POST", body: formData });
+        if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+        supplierStatus.textContent = "Supplier responses processed.";
+        supplierStatus.className = "ok";
+      } catch (err) {
+        supplierStatus.textContent = err.message || String(err);
+        supplierStatus.className = "warn";
+      }
+    });
+    // END new supplier upload handler
   </script>
 </body>
 </html>
+
 """
 
 # Root/home
@@ -193,23 +239,112 @@ DOCUMENT_EDITOR = r"""<!doctype html>
   <title>__TITLE__</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { --bg:#0f172a; --panel:#111827; --text:#e5e7eb; --muted:#9ca3af; }
-    body{margin:0;background:var(--bg);color:var(--text);
-      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,"Helvetica Neue",Arial}
-    header{padding:16px 20px;background:#0b1220;border-bottom:1px solid #1f2937;display:flex;justify-content:space-between;align-items:center}
-    h1{margin:0;font-size:18px}
-    .muted{color:var(--muted);font-size:12px}
-    main{padding:16px;max-width:980px;margin:0 auto}
-    .status{padding:8px 0;font-size:12px}
-    table{width:100%;border-collapse:collapse;margin-bottom:8px}
-    th, td{border:1px solid #374151;padding:4px;color:var(--text);vertical-align:top}
-    input[type="text"], input[type="number"], input[type="email"]{width:100%;background:#1f2937;border:1px solid #374151;color:var(--text);padding:4px;border-radius:4px}
-    input[type="checkbox"]{transform:scale(1.2);}
-    button{border:1px solid #374151;background:#0b1220;color:var(--text);padding:4px 8px;border-radius:6px;margin:2px;cursor:pointer}
-    button.primary{border-color:#14532d;background:#052e16}
-    ul{margin:0 0 8px 20px;padding:0}
-    li{margin-bottom:4px}
-  </style>
+      /* colour palette reused from the JSON editor */
+      :root {
+        --bg:#0f172a;
+        --panel:#111827;
+        --text:#e5e7eb;
+        --muted:#9ca3af;
+      }
+      /* page layout */
+      body{
+        margin:0;
+        background:var(--bg);
+        color:var(--text);
+        font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,"Helvetica Neue",Arial;
+      }
+      header{
+        padding:16px 20px;
+        background:#0b1220;
+        border-bottom:1px solid #1f2937;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+      }
+      h1{
+        margin:0;
+        font-size:20px;
+      }
+      .muted{
+        color:var(--muted);
+        font-size:12px;
+      }
+      main{
+        padding:16px;
+        max-width:980px;
+        margin:0 auto;
+      }
+      .status{
+        padding:8px 0;
+        font-size:12px;
+      }
+      /* headlining for nested sections */
+      h2, h3, h4, h5, h6{
+        margin-top:16px;
+        margin-bottom:8px;
+        font-weight:600;
+        color:var(--text);
+      }
+      /* section wrapper to control spacing */
+      .section{
+        margin-bottom:16px;
+      }
+      /* table styling for arrays of objects */
+      table{
+        width:100%;
+        border-collapse:collapse;
+        margin-bottom:16px;
+      }
+      th, td{
+        border:1px solid #374151;
+        padding:6px;
+        vertical-align:top;
+      }
+      th{
+        background-color:#1f2937;
+        color:var(--text);
+        text-align:left;
+      }
+      td{
+        color:var(--text);
+      }
+      input[type="text"], input[type="number"], input[type="email"]{
+        width:100%;
+        box-sizing:border-box;
+        background:#1f2937;
+        border:1px solid #374151;
+        color:var(--text);
+        padding:6px;
+        border-radius:4px;
+      }
+      input[type="checkbox"]{
+        transform:scale(1.2);
+        margin-right:8px;
+      }
+      button{
+        border:1px solid #374151;
+        background:#0b1220;
+        color:var(--text);
+        padding:6px 10px;
+        border-radius:6px;
+        margin:2px;
+        cursor:pointer;
+      }
+      button.primary{
+        border-color:#14532d;
+        background:#052e16;
+      }
+      /* custom list styling for arrays of primitives */
+      ul.custom-list{
+        list-style-type:disc;
+        margin-left:20px;
+        margin-bottom:8px;
+        padding:0;
+      }
+      ul.custom-list li{
+        margin-bottom:4px;
+      }
+        </style>
 </head>
 <body>
 <header>
@@ -289,7 +424,7 @@ function setValue(obj, path, value) {
 }
 
 // Build UI recursively
-function buildUI(data, path, container) {
+function buildUI(data, path, container, level = 2) {
   if (data === null || typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
     createPrimitive(path, data, container);
   } else if (Array.isArray(data)) {
@@ -298,12 +433,12 @@ function buildUI(data, path, container) {
       if (data[i] !== null && data[i] !== undefined) { first = data[i]; break; }
     }
     if (first !== null && typeof first === 'object' && !Array.isArray(first)) {
-      createArrayObject(path, data, container);
+      createArrayObject(path, data, container, level);
     } else {
-      createArrayPrimitive(path, data, container);
+      createArrayPrimitive(path, data, container, level);
     }
   } else if (typeof data === 'object') {
-    createObject(path, data, container);
+    createObject(path, data, container, level);
   }
 }
 
@@ -339,11 +474,11 @@ function createPrimitive(path, value, container) {
 }
 
 // Render array of primitive values
-function createArrayPrimitive(path, arr, container) {
+function createArrayPrimitive(path, arr, container, level) {
   container.innerHTML = '';
   const list = document.createElement('ul');
-  list.style.listStyle = 'disc';
-  list.style.marginLeft = '20px';
+  list.className = 'custom-list';
+  
   arr.forEach((val, idx) => {
     const li = document.createElement('li');
     const input = document.createElement('input');
@@ -376,7 +511,7 @@ function createArrayPrimitive(path, arr, container) {
 }
 
 // Render array of objects as editable table
-function createArrayObject(path, arr, container) {
+function createArrayObject(path, arr, container, level) {
   container.innerHTML = '';
   const table = document.createElement('table');
   const thead = document.createElement('thead');
@@ -441,18 +576,18 @@ function createArrayObject(path, arr, container) {
 }
 
 // Render an object (dictionary) as nested sections
-function createObject(path, obj, container) {
+function createObject(path, obj, container, level) {
   const keys = Object.keys(obj || {});
   keys.forEach(key => {
     const value = obj[key];
     const section = document.createElement('div');
-    section.style.marginBottom = '12px';
-    const label = document.createElement('div');
-    label.textContent = key;
-    label.style.fontWeight = 'bold';
-    label.style.marginBottom = '4px';
-    section.appendChild(label);
-    buildUI(value, path ? (path + '.' + key) : key, section);
+    section.className = "section";
+    const headingLevel = Math.min(level, 6);
+    const heading = document.createElement('h' + headingLevel);
+    const displayKey = key.replace(/_/g, " " ).replace(/\b\w/g, (c) => c.toUpperCase());
+    heading.textContent = displayKey;
+    section.appendChild(heading);
+    buildUI(value, path ? (path + '.' + key) : key, section, level + 1);
     container.appendChild(section);
   });
 }
@@ -465,7 +600,7 @@ async function load() {
     jsonData = await res.json();
     const editor = document.getElementById('editor');
     editor.innerHTML = '';
-    buildUI(jsonData, '', editor);
+    buildUI(jsonData, '', editor, 2);
     setStatus('Loaded', true);
   } catch (e) {
     setStatus('Error: ' + e.message);

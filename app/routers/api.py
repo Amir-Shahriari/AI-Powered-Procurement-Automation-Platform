@@ -3,6 +3,7 @@ import shutil
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import List, Any
 
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import FileResponse
@@ -25,6 +26,7 @@ from ..services.docx_export import export_json_to_docx
 from ..services.returnables_filler import seed_returnables_from_spec
 from ..services.rft_filler import seed_rft_from_spec
 from ..services.compose import compose_tepp
+from ..services.returnables_supplier import fill_returnables_from_supplier
 
 router = APIRouter()
 
@@ -123,7 +125,40 @@ async def upload(file: UploadFile = File(...)):
     save_record(rec)
     return rec
 
-
+@router.post("/records/{rec_id}/supplier_responses")
+async def submit_supplier_responses(rec_id: str, files: List[UploadFile] = File(...)):
+    """
+    Accept one or more supplier response documents, build vector stores for
+    each, run the LLM to populate empty fields in the existing returnable
+    schedule, and save the updated schedule.
+    """
+    _ = load_record(rec_id)
+    if not files:
+        raise HTTPException(status_code=400, detail="No files submitted.")
+    vs_list: List[Any] = []
+    for f in files:
+        if not f.filename:
+            continue
+        sup_id = f"{rec_id}_supplier_{uuid.uuid4()}"
+        suffix = Path(f.filename).suffix or ".bin"
+        dest = settings.DATA_DIR / f"{sup_id}{suffix}"
+        with open(dest, "wb") as out_file:
+            shutil.copyfileobj(f.file, out_file)
+        try:
+            text = extract_text(dest)
+        except Exception:
+            continue
+        if text and text.strip():
+            chs = chunks(text)
+            build_index(sup_id, chs)
+            vs_list.append(get_vs(sup_id))
+    if not vs_list:
+        raise HTTPException(status_code=400, detail="Could not extract any text from the uploaded supplier documents.")
+    ret_path = settings.DATA_DIR / f"{rec_id}.returnables.json"
+    current = json.loads(ret_path.read_text(encoding="utf-8"))
+    updated = fill_returnables_from_supplier(current, vs_list)
+    ret_path.write_text(json.dumps(updated, indent=2), encoding="utf-8")
+    return {"ok": True}
 # -------------------------
 # Record (basic)
 # -------------------------
