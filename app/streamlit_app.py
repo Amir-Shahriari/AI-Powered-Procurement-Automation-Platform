@@ -2,9 +2,9 @@
 Streamlit user interface for generating tender documents.
 
 This app provides a clean, two-step UX:
-  1) Home: pick an Ollama model.
+  1) Home: pick an Ollama model and tender category.
   2) Upload: upload a spec, generate documents → redirect to Results.
-  3) Results: view the criteria table, edit the TEPP JSON, and download TEPP/Returnables.
+  3) Results: view/edit the TEPP (with criteria table) and Returnables, and download DOCX.
 
 Run:
     streamlit run app/streamlit_app.py
@@ -19,10 +19,17 @@ import requests
 import pandas as pd
 import streamlit as st
 
-# Ensure the project root (the parent of 'app') is on sys.path when run by Streamlit
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
+# --- Ensure the project root (parent of 'app') is on sys.path BEFORE importing app.* ---
+PROJECT_ROOT = Path(__file__).resolve().parent.parent  # repo root
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Now safe to import from app.*
+from app.services.templates_catalog import (
+    list_categories,
+    load_category_template,
+    deep_merge,
+)
 
 # --- App imports ---
 from app.deps import SPLITTER
@@ -35,6 +42,7 @@ from app.services.parse_spec import parse_spec
 from app.services.policy import scan_policy_files, extract_many, _build_ephemeral_vs
 from app.services.compose import compose_tepp, compose_returnable_schedules
 from app.services.docx_export import export_json_to_docx
+
 
 # ---- Prompt (same as API) ----
 SPEC_SUMMARY_PROMPT = """You summarise government engineering tender specifications.
@@ -127,6 +135,7 @@ def list_ollama_models(base_url: str) -> list[str]:
     except Exception:
         return []
 
+
 def _generate_documents(file_path: Path, model: str) -> Dict[str, Dict]:
     """Core pipeline: extract → index → summarise/parse → compose TEPP/Returnables."""
     doc_id = str(uuid.uuid4())
@@ -205,6 +214,7 @@ def _inject_css():
     except Exception as e:
         st.warning(f"Could not read CSS at {css_path}: {e}")
 
+
 def _nav_set(view: str, extra: Dict[str, str] | None = None):
     """Set view in query params and trigger rerun."""
     payload = dict(st.query_params)
@@ -230,7 +240,6 @@ def _is_uniform_dict_list(xs: list) -> bool:
     return len(set(keys)) == 1
 
 def _edit_table(records: list[dict], key: str, caption: str | None = None) -> list[dict]:
-    import pandas as pd
     df = pd.DataFrame(records) if records else pd.DataFrame([{}])
     edited = st.data_editor(
         df,
@@ -303,6 +312,7 @@ def _set_tepp_criteria(tepp: dict, rows: list[dict]) -> None:
     tepp.setdefault("tender_evaluation", {})\
         .setdefault("evaluation_methodology", {})["required_criteria_table"] = rows
 
+
 # ==========================
 # Pages
 # ==========================
@@ -313,6 +323,16 @@ def page_home():
         unsafe_allow_html=True
     )
 
+    # Category picker
+    cats = list_categories("tepp")  # show categories that at least have a TEPP template
+    default_cat = st.session_state.get("selected_category", "generic")
+    if default_cat not in cats:
+        default_cat = "generic"
+    selected_category = st.selectbox("Tender category", cats, index=cats.index(default_cat))
+    st.session_state.selected_category = selected_category
+    st.caption(f"Category: `{selected_category}`")
+
+    # Model picker (Ollama)
     OLLAMA_URL = os.getenv("OLLAMA_BASE_URL", getattr(settings, "OLLAMA_BASE_URL", "http://localhost:11434"))
     if "ollama_models" not in st.session_state:
         st.session_state.ollama_models = list_ollama_models(OLLAMA_URL)
@@ -347,8 +367,9 @@ def page_home():
             st.rerun()
 
         st.write("")  # spacer
-        if st.button("Continue to Upload", key="continue_btn", use_container_width=True):
-            _nav_set("upload", {"model": st.session_state.selected_model})
+        if st.button("Continue to Upload"):
+            _nav_set("upload", {"model": st.session_state.selected_model, "category": selected_category})
+
 
 def page_upload():
     st.title("Upload Specification")
@@ -380,13 +401,24 @@ def page_upload():
                 st.error(f"An error occurred during generation: {exc}")
                 return
 
+        # Save raw outputs
         st.session_state["spec_summary"] = outputs["spec_summary"]
         st.session_state["parsed"] = outputs["parsed"]
-        st.session_state["tepp"] = outputs["tepp"]
-        st.session_state["returnables"] = outputs["returnables"]
+
+        # Apply category templates (deep-merge)
+        selected_category = st.session_state.get("selected_category", "generic")
+        tepp_tmpl = load_category_template("tepp", selected_category)
+        ret_tmpl  = load_category_template("returnable_schedules", selected_category)
+
+        merged_tepp = deep_merge(tepp_tmpl, outputs["tepp"])
+        merged_ret  = deep_merge(ret_tmpl, outputs["returnables"])
+
+        st.session_state["tepp"] = merged_tepp
+        st.session_state["returnables"] = merged_ret
 
         # Redirect to results page
         _nav_set("results")
+
 
 def page_results():
     st.markdown('<div class="page-header"><h1>Results</h1></div>', unsafe_allow_html=True)

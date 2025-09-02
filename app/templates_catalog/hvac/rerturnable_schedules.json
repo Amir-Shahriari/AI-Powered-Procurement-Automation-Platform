@@ -1,0 +1,16 @@
+{
+  "instructions": {
+    "notes": "Provide all HVAC technical data sheets and BMS integration details.",
+    "attachments_policy": "Attach catalogues, performance curves and ITPs."
+  },
+  "schedule_9_service_delivery_performance": {
+    "capability_summary": {
+      "methodology_and_procedures": "Describe HVAC commissioning methodology and TAB plan."
+    }
+  },
+  "schedule_10_fee_structure": {
+    "pricing_currency": "AUD",
+    "inclusions_notes": "Include commissioning, TAB and BMS integration.",
+    "exclusions_notes": "None unless clearly stated."
+  }
+}

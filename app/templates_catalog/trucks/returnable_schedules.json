@@ -1,0 +1,23 @@
+{
+  "instructions": {
+    "notes": "Provide full vehicle spec sheets, ADR compliance and emissions documentation."
+  },
+  "schedule_9_service_delivery_performance": {
+    "capability_summary": {
+      "resources": {
+        "plant_and_equipment": ["Workshop capacity", "Diagnostic tools", "Mobile service vans"]
+      }
+    },
+    "programme": {
+      "required_dates": "Provide build slots and VIN allocation timeline."
+    }
+  },
+  "schedule_10_fee_structure": {
+    "pricing_currency": "AUD",
+    "inclusions_notes": "Pre-delivery inspection, registration, training, initial service.",
+    "schedule_of_performance_heat_pump_chillers": {
+      "description": "Not applicable (Trucks category)",
+      "spec": { "type": "" }
+    }
+  }
+}

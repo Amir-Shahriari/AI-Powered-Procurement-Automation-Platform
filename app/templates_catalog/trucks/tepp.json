@@ -1,0 +1,23 @@
+{
+  "document_metadata": {
+    "document_title": "Fleet Trucks TEPP",
+    "version": "1.0"
+  },
+  "evaluation_process": {
+    "scoring_methodology": {
+      "scale": "0–10",
+      "definitions": "0=Not acceptable, 10=Excellent"
+    }
+  },
+  "evaluation_criteria": [
+    { "criterion": "Vehicle Specification & Compliance", "weighting": "30", "subcriteria": [
+      { "subcriterion": "ADR/EPA compliance", "weighting": "10" },
+      { "subcriterion": "Payload & configuration", "weighting": "10" },
+      { "subcriterion": "Safety systems (e.g., AEB, cameras)", "weighting": "10" }
+    ]},
+    { "criterion": "Lifecycle Cost", "weighting": "20", "subcriteria": [] },
+    { "criterion": "Service & Support Network", "weighting": "20", "subcriteria": [] },
+    { "criterion": "Delivery Schedule & Training", "weighting": "15", "subcriteria": [] },
+    { "criterion": "Warranty & Parts Availability", "weighting": "15", "subcriteria": [] }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "ait.rft.v1",
+  "part_2_scope": {
+    "services": {
+      "supply_installation": ["HVAC equipment", "BMS integration", "Ductwork & pipework"]
+    },
+    "other_requirements": {
+      "standards_references": ["AS/NZS 1668", "NCC", "ISO 9001"]
+    }
+  }
+}

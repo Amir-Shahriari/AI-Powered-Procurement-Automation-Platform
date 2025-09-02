@@ -1,0 +1,11 @@
+{
+  "schema": "ait.rft.v1",
+  "part_2_scope": {
+    "services": {
+      "supply_installation": ["Cab-chassis", "Body build", "Fit-out & ADR compliance"]
+    },
+    "other_requirements": {
+      "standards_references": ["ADR", "NCC heavy vehicles", "ISO 9001"]
+    }
+  }
+}

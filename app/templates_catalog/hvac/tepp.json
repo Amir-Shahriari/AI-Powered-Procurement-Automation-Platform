@@ -1,0 +1,23 @@
+{
+  "document_metadata": {
+    "document_title": "HVAC Tender Evaluation & Probity Plan",
+    "version": "1.0"
+  },
+  "evaluation_process": {
+    "scoring_methodology": {
+      "scale": "0–5",
+      "definitions": "0=Not addressed, 5=Outstanding"
+    }
+  },
+  "evaluation_criteria": [
+    { "criterion": "Technical Compliance (HVAC)", "weighting": "35", "subcriteria": [
+      { "subcriterion": "Compliance to performance specs", "weighting": "20" },
+      { "subcriterion": "Energy efficiency & COP", "weighting": "10" },
+      { "subcriterion": "Controls / BMS integration", "weighting": "5" }
+    ]},
+    { "criterion": "Delivery & Methodology", "weighting": "25", "subcriteria": [] },
+    { "criterion": "Past Performance (HVAC)", "weighting": "15", "subcriteria": [] },
+    { "criterion": "WHS & Risk", "weighting": "10", "subcriteria": [] },
+    { "criterion": "Price", "weighting": "15", "subcriteria": [] }
+  ]
+}
