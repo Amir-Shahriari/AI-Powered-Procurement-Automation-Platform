@@ -1,0 +1,655 @@
+{
+  "meta": {
+    "document_type": "returnable_schedules",
+    "rft_title": "",
+    "contract_no": "",
+    "trim_file_no": "",
+    "tenderer_name": "",
+    "version": "1.0",
+    "created_at": "",
+    "prepared_by": ""
+  },
+  "instructions": {
+    "notes": "",
+    "attachments_policy": "",
+    "pdf_requirement": true
+  },
+  "submission_checklist": {
+    "returnable_schedules": {
+      "schedule_1_corporate_information_and_declaration": false,
+      "schedule_2_financial_capacity": false,
+      "schedule_3_confidentiality_and_conflict_of_interest": false,
+      "schedule_4_key_personnel": false,
+      "schedule_5_insurance": false,
+      "schedule_6_previous_experience": false,
+      "schedule_7_current_council_clients": false,
+      "schedule_8_referees": false,
+      "schedule_9_delivery_performance": false,
+      "schedule_10_fee_structure": false,
+      "schedule_11_corporate_social_responsibility": false,
+      "schedule_12_sustainability": false,
+      "schedule_13_eeo_and_fair_employment": false,
+      "schedule_14_work_health_and_safety": false,
+      "schedule_15_modern_slavery": false,
+      "schedule_16_acknowledgement_of_addenda_and_declaration": false
+    },
+    "appendices": {
+      "appendix_1_whs051_5_contractor_whs_code_of_conduct": false,
+      "appendix_2_whs051_11_contractor_scope_of_works_requirements": false,
+      "appendix_3_whs051_8_subcontractor_statement": false,
+      "appendix_4_whs_pol_100_policy": false
+    },
+    "supporting_documents": {
+      "certificate_of_business_registration": false,
+      "insurance_certificates_of_currency": false,
+      "cvs_for_key_personnel": false,
+      "licences_tickets_registrations": false,
+      "financial_statements_last_3_years": false,
+      "third_party_accreditation_certificates": false,
+      "quality_management_policy_and_plan": false,
+      "inspection_and_testing_plans": false,
+      "whs_system_verification": false,
+      "whs_management_plan_policy_swms_checklists_forms": false,
+      "chain_of_responsibility_compliance": false,
+      "cor_verification_documents": false,
+      "environmental_policy_and_plan": false,
+      "eeo_policy_and_awards": false,
+      "other": []
+    }
+  },
+  "schedule_1_corporate_information_and_declaration": {
+    "company_details": {
+      "trading_name": "",
+      "legal_name": "",
+      "abn": "",
+      "acn": "",
+      "entity_type": "",
+      "trading_address": "",
+      "phone": "",
+      "fax": ""
+    },
+    "contact_details": {
+      "name": "",
+      "position": "",
+      "address": "",
+      "phone": "",
+      "mobile": "",
+      "email": ""
+    },
+    "declaration": {
+      "declarant": {
+        "name": "",
+        "address": "",
+        "occupation": ""
+      },
+      "authorised_to_declare": null,
+      "solvent": null,
+      "no_insolvency_event": null,
+      "no_conflict_of_interest_for_contract": null,
+      "accepts_conditions_of_tender_and_engagement": null,
+      "agrees_to_be_bound": null,
+      "response_type": "conforming_or_non_conforming",
+      "alternative_response_reference": "",
+      "conflicts_declared_in_schedule_3": null,
+      "acknowledgements": {
+        "pi_insurance_requirements_accepted": null,
+        "liability_conditions_accepted": null
+      },
+      "confidentiality_commitments": {
+        "keep_information_confidential": null,
+        "use_information_only_for_contract": null,
+        "no_unauthorised_copy_or_release": null,
+        "no_public_release_without_consent": null
+      },
+      "industrial_relations_commitments": {
+        "good_industrial_record": null,
+        "subcontractor_undertakings": null
+      },
+      "electronic_signature_acknowledged": null,
+      "signature": {
+        "name": "",
+        "date": ""
+      }
+    }
+  },
+  "schedule_2_financial_capacity": {
+    "financial_institution": {
+      "name": "",
+      "address": "",
+      "manager": "",
+      "phone": "",
+      "fax": "",
+      "term_of_engagement": "",
+      "overdraft_limit": ""
+    },
+    "accountant": {
+      "company": "",
+      "address": "",
+      "contact": "",
+      "phone": "",
+      "fax": "",
+      "term_of_engagement": ""
+    },
+    "financial_details_last_3_years": {
+      "annual_financial_statements_included": null,
+      "if_no_reason": ""
+    }
+  },
+  "schedule_3_confidentiality_and_conflict_of_interest": {
+    "confidentiality_basis": "",
+    "conflict_of_interest_statement": "",
+    "conflicts": [
+      {
+        "description": "",
+        "parties_involved": "",
+        "resolution_proposed": ""
+      }
+    ],
+    "guidance_acknowledged": null
+  },
+  "schedule_4_key_personnel": {
+    "people": [
+      {
+        "name": "",
+        "proposed_position": "",
+        "qualifications_and_experience": "",
+        "tenure_years_current_firm": "",
+        "tenure_years_total": ""
+      }
+    ],
+    "cvs_attached": null
+  },
+  "schedule_5_insurance": {
+    "public_liability": {
+      "insurer": "",
+      "policy_amount": "",
+      "certificate_attached": null
+    },
+    "workers_compensation": {
+      "insurer": "",
+      "policy_amount": "",
+      "no_of_workers_insured": "",
+      "certificate_attached": null
+    },
+    "professional_indemnity": {
+      "insurer": "",
+      "policy_amount": "",
+      "certificate_attached": null
+    },
+    "product_liability": {
+      "insurer": "",
+      "policy_amount": "",
+      "certificate_attached": null
+    },
+    "other_insurance": [
+      {
+        "type": "",
+        "insurer": "",
+        "policy_amount": "",
+        "certificate_attached": null
+      }
+    ],
+    "subcontractors_insurance": [
+      {
+        "type": "",
+        "cover_amount": "",
+        "details": "",
+        "certificate_attached": null
+      }
+    ],
+    "prepared_to_increase_cover_to_meet_requirements": null,
+    "liability_cap_note": ""
+  },
+  "schedule_6_previous_experience": {
+    "total_years_providing_required_services": "",
+    "years_for_state_or_local_government": "",
+    "projects": [
+      {
+        "title": "",
+        "client": "",
+        "contract_amount": "",
+        "date_commenced": "",
+        "completion_date_actual_or_estimated": "",
+        "description_of_goods_services": ""
+      }
+    ],
+    "additional_projects_attachment_refs": []
+  },
+  "schedule_7_current_council_clients": {
+    "clients": [
+      {
+        "council_name": "",
+        "years_of_service": ""
+      }
+    ]
+  },
+  "schedule_8_referees": {
+    "referees": [
+      {
+        "council_or_client": "",
+        "project": "",
+        "years_serviced": "",
+        "contact_name": "",
+        "telephone": "",
+        "email": ""
+      }
+    ]
+  },
+  "schedule_9_service_delivery_performance": {
+    "capability_summary": {
+      "licences_and_qualifications": "",
+      "principal_address": "",
+      "organisation_and_key_staff": "",
+      "resources": {
+        "workforce_size": "",
+        "plant_and_equipment": [],
+        "suppliers_and_subcontractors": []
+      },
+      "quality_management_plan": "",
+      "inspection_and_testing_plan": "",
+      "accreditations": [
+        "AS1677.2",
+        "AS1210",
+        "BCC WHS requirements",
+        "AS 61439"
+      ],
+      "methodology_and_procedures": "Provide the following information with the Tender: Manufacturer’s rated performance data for the Chiller offered, Full dimensional details in the form of certified drawings, Weights, including loading diagrams, Details of facilities and services required for the Chiller offered, Details of accessories and features provided with the Chiller offered, Electrical requirements for the Chiller offered, Wiring Diagrams, Evidence of conformance with AS1677.2 and AS1210 ; The following shall be provided with the Chiller or as part of the pipework modifications to connect the new Chiller into the CHW piping reticulation ; Programming of the work and subsequent site management of the work ; submit to Council a detailed schedule showing the proposed sequence of work and the durations for which the various areas will need to be available to the Contractor for the work to be completed ; Supply and install 7.5kW ABB ACH580 VSD’s to respective circulating pumps for the heat recovery coils ; All other associated and necessary electrical works not specifically mentioned above complying to current and applicable electrical codes and safe operation of the systems ; Remove and re-instate plantroom external wall louvre for access to equipment delivery and retrieval of redundant equipment ; Remove any job generated rubbish and dispose off-site, including redundant equipment ; Co-ordinate with centre management and Council officer in charge of the project, including allowing safe access to centre’s miscellaneous stocks they need for centre’s operation and safe movement of the pool staffs through the work area ; All other associated works, including controls, builder’s, electrical, hydraulics and other associated works not specifically mentioned in this scope of works to form a complete and operating system ; Test and commission the system ; New interconnecting CHW and COW pipework between AHU 1 & 3 and the new Chillers ; Associated electrical and interconnecting controls work ; Modify and reconfigure the existing electrical system to accommodate the chillers and other associated equipment ; Associated plumbing/hydraulics works ; Associated builder’s work, making good, removal of redundant items and construction rubbish, etc ; All other works not mentioned above to form a complete and operating system similar to the newly refurbished AHU 2",
+      "supporting_evidence_refs": []
+    },
+    "programme": {
+      "required_dates": "",
+      "milestones": [
+        {
+          "name": "Site establishment, safety and access preparation",
+          "start_date": "",
+          "end_date": ""
+        },
+        {
+          "name": "Removal of redundant equipment",
+          "start_date": "",
+          "end_date": ""
+        },
+        {
+          "name": "Concrete plinths for chillers",
+          "start_date": "",
+          "end_date": ""
+        },
+        {
+          "name": "Delivery & installation of new chillers",
+          "start_date": "",
+          "end_date": ""
+        },
+        {
+          "name": "AHU 1 & 3 internal plenum modification",
+          "start_date": "",
+          "end_date": ""
+        },
+        {
+          "name": "Install coils, drift eliminators, sumps",
+          "start_date": "",
+          "end_date": ""
+        },
+        {
+          "name": "Supply & install EC fans & access panels",
+          "start_date": "",
+          "end_date": ""
+        },
+        {
+          "name": "Pipework and ductwork modifications",
+          "start_date": "",
+          "end_date": ""
+        },
+        {
+          "name": "Electrical upgrades and cabling",
+          "start_date": "",
+          "end_date": ""
+        },
+        {
+          "name": "BMS integration & BACnet configuration",
+          "start_date": "",
+          "end_date": ""
+        },
+        {
+          "name": "Testing & commissioning",
+          "start_date": "",
+          "end_date": ""
+        },
+        {
+          "name": "Handover & practical completion",
+          "start_date": "",
+          "end_date": ""
+        },
+        {
+          "name": "12-month defects & maintenance period",
+          "start_date": "",
+          "end_date": ""
+        }
+      ],
+      "non_negotiable_milestones": [
+        {
+          "name": "Start of operation",
+          "date": ""
+        }
+      ],
+      "minimise_disruption_strategy": ""
+    },
+    "tender_questions": {
+      "timely_delivery_assurance": "",
+      "origin_of_main_equipment": "",
+      "space_sufficiency_and_modifications": "",
+      "includes_catalogues_and_tech_specs": null,
+      "includes_layout_fitout_and_connections_diagram": null,
+      "installation_crew_details": "",
+      "product_warranty_details": "",
+      "subcontractors_list_and_performance": []
+    }
+  },
+  "schedule_10_fee_structure": {
+    "pricing_currency": "AUD",
+    "lump_sum_basis": null,
+    "gst_inclusive": null,
+    "validity_period_days": "",
+    "inclusions_notes": "",
+    "exclusions_notes": "",
+    "schedule_of_performance_heat_pump_chillers": {
+      "description": "Heat Pump Chiller Specification",
+      "spec": {
+        "type": "",
+        "refrigerant": "",
+        "compressor_type_and_number": "",
+        "compressor_starting": "",
+        "chilled_water_flow_rate_ls": "",
+        "chilled_water_ent_lvg_temp_c": "",
+        "ambient_temp_c_db": "",
+        "evaporator_fluid_type": "",
+        "heating_capacity_kwr": "",
+        "condenser_water_flow_rate_ls": "",
+        "condenser_water_ent_lvg_temp_c": "",
+        "evaporator_fluid_type_heating": "",
+        "control": "",
+        "inbuilt_pumps_and_vsds": "",
+        "basis_of_design": "",
+        "quantity": ""
+      },
+      "alternative_spec_if_deviating": ""
+    },
+    "pricing_schedule_ahu_refurbishments": [
+      {
+        "item_no": "1.0",
+        "service_details": "Removal and disposal of redundant services",
+        "price_excl_gst": "",
+        "gst": "",
+        "price_incl_gst": ""
+      },
+      {
+        "item_no": "2.0",
+        "service_details": "Supply & install 2 water-cooled chillers (BACnet HLI)",
+        "price_excl_gst": "",
+        "gst": "",
+        "price_incl_gst": ""
+      },
+      {
+        "item_no": "3.0",
+        "service_details": "Supply & install 8 EC fans, doors, panels, louvres",
+        "price_excl_gst": "",
+        "gst": "",
+        "price_incl_gst": ""
+      },
+      {
+        "item_no": "4.0",
+        "service_details": "Supply & install coils & pumps",
+        "price_excl_gst": "",
+        "gst": "",
+        "price_incl_gst": ""
+      },
+      {
+        "item_no": "5.0",
+        "service_details": "Insulated copper pipes & fittings with cladding and valves",
+        "price_excl_gst": "",
+        "gst": "",
+        "price_incl_gst": ""
+      },
+      {
+        "item_no": "6.0",
+        "service_details": "Modify / install exhaust ductwork",
+        "price_excl_gst": "",
+        "gst": "",
+        "price_incl_gst": ""
+      },
+      {
+        "item_no": "7.0",
+        "service_details": "Make good AHU plenums, rust treatment, patching",
+        "price_excl_gst": "",
+        "gst": "",
+        "price_incl_gst": ""
+      },
+      {
+        "item_no": "8.0",
+        "service_details": "Electrical works for AHU 1 & 3 upgrades",
+        "price_excl_gst": "",
+        "gst": "",
+        "price_incl_gst": ""
+      },
+      {
+        "item_no": "9.0",
+        "service_details": "Project preliminaries and documentation",
+        "price_excl_gst": "",
+        "gst": "",
+        "price_incl_gst": ""
+      },
+      {
+        "item_no": "10.0",
+        "service_details": "Maintenance for twelve months",
+        "price_excl_gst": "",
+        "gst": "",
+        "price_incl_gst": ""
+      },
+      {
+        "item_no": "11.0",
+        "service_details": "Testing & commissioning",
+        "price_excl_gst": "",
+        "gst": "",
+        "price_incl_gst": ""
+      },
+      {
+        "item_no": "12.0",
+        "service_details": "Other items",
+        "price_excl_gst": "",
+        "gst": "",
+        "price_incl_gst": ""
+      }
+    ],
+    "pricing_totals": {
+      "subtotal_excl_gst": "",
+      "gst": "",
+      "total_incl_gst": ""
+    }
+  },
+  "schedule_11_corporate_social_responsibility": {
+    "csr_policy_or_plan_summary": "",
+    "recent_initiative_example": ""
+  },
+  "schedule_12_sustainability": {
+    "sustainability_understanding": "",
+    "organisational_practices_and_examples": ""
+  },
+  "schedule_13_eeo_and_fair_employment": {
+    "policies": {
+      "recruitment": {
+        "exists": null,
+        "policy_reference": "",
+        "attached": null
+      },
+      "training_and_development": {
+        "exists": null,
+        "policy_reference": "",
+        "attached": null
+      },
+      "equal_employment_opportunity": {
+        "exists": null,
+        "policy_reference": "",
+        "attached": null
+      },
+      "anti_discrimination": {
+        "exists": null,
+        "policy_reference": "",
+        "attached": null
+      },
+      "unionism": {
+        "exists": null,
+        "policy_reference": "",
+        "attached": null
+      },
+      "consultation": {
+        "exists": null,
+        "policy_reference": "",
+        "attached": null
+      },
+      "dispute_resolution": {
+        "exists": null,
+        "policy_reference": "",
+        "attached": null
+      },
+      "other": []
+    },
+    "management_representative": {
+      "exists": null,
+      "name": "",
+      "phone_email": ""
+    },
+    "wages_and_super_compliance": {
+      "any_breaches": null,
+      "breach_details_and_rectifications": ""
+    },
+    "aboriginal_and_torres_strait_islander_employment": {
+      "policy_exists": null,
+      "staff_numbers_and_history": "",
+      "contract_commitment_statement": ""
+    },
+    "apprenticeships_and_traineeships": {
+      "offered": null,
+      "details": ""
+    },
+    "other_relevant_skills_details": ""
+  },
+  "schedule_14_work_health_and_safety": {
+    "acknowledges_whs_policy_100": null,
+    "forms_required": {
+      "whs051_5_contractor_whs_code_of_conduct_completed": null,
+      "whs051_11_contractor_scope_of_works_requirements_completed": null,
+      "whs051_8_subcontractor_statement_completed": null
+    },
+    "verification_documents": {
+      "manual_policy_procedures": null,
+      "responsibilities_allocation_chart": null,
+      "consultation_statement": null,
+      "sample_inspection_checklists_and_records": null,
+      "sample_hazard_report_corrective_actions": null
+    },
+    "injuries_and_incidents": {
+      "sample_register_of_injuries": null,
+      "sample_incident_report": null,
+      "regulatory_notices_last_3_years": ""
+    },
+    "training_records": {
+      "sample_whs_induction": null,
+      "sample_consultation_training": null,
+      "sample_first_aid_training": null,
+      "confined_space_training_records": null,
+      "plant_operator_training_certifications": null,
+      "sample_sop_training": null,
+      "training_programs_schedule_records": null
+    },
+    "risk_assessments": {
+      "task_risk_assessments": null,
+      "plant_and_equipment_risk_assessments": null,
+      "swms_or_specific_instructions": null,
+      "hazardous_substances_register": null,
+      "sds_and_risk_assessments_for_hazardous_chemicals": null,
+      "maintenance_inspection_and_test_records": null,
+      "permit_to_work_system_docs": null
+    },
+    "construction_work_whs": {
+      "site_specific_or_generic_whs_management_plan": null,
+      "audits_or_inspection_reports": null,
+      "induction_and_work_activity_records": null,
+      "site_specific_induction_records": null
+    },
+    "chain_of_responsibility": {
+      "policy_and_procedures_exists": null,
+      "policy_attached": null,
+      "risk_register_exists": null,
+      "risk_register_attached": null,
+      "workplace_hazard_risk_register_control_review": null,
+      "register_identifies_road_transport_risks": null,
+      "safety_kpis_kept": null,
+      "training_register_kept": null,
+      "drivers_informed_of_site_hazards": null,
+      "fleet_register_for_vehicles_gt_4_5t_gvm": null,
+      "maintenance_records_available": null,
+      "driver_work_diary_or_daily_sheets_records": null,
+      "pre_engagement_audits_for_subcontract_drivers": null
+    }
+  },
+  "schedule_15_modern_slavery": {
+    "supplier_contact_details": {
+      "organisation_name": "",
+      "organisation_address": "",
+      "abn": "",
+      "parent_company": "",
+      "contact_person": "",
+      "contact_email": "",
+      "contact_phone": "",
+      "date_of_completion": "",
+      "declaration_true_and_correct": null
+    },
+    "reporting_under_modern_slavery_act": {
+      "required_to_report": null,
+      "statement_attached": null,
+      "preparation_activities": ""
+    },
+    "policies_related_to_human_rights_and_ethics": {
+      "exists": null,
+      "details": ""
+    },
+    "internal_ms_risk_management": {
+      "activities_exist": null,
+      "details": ""
+    },
+    "supply_chain_ms_risk_management": {
+      "activities_exist": null,
+      "details": ""
+    },
+    "formal_supply_chain_risk_assessment": {
+      "undertaken": null,
+      "details": ""
+    },
+    "training_on_modern_slavery": {
+      "provided": null,
+      "details": ""
+    },
+    "countries_of_manufacture_and_raw_materials": []
+  },
+  "schedule_16_acknowledgement_of_addenda_and_declaration": {
+    "addenda": [
+      {
+        "addendum_no": "",
+        "brief_description": "",
+        "date_received": ""
+      }
+    ],
+    "tenderer_declaration": {
+      "tenderer_name": "",
+      "occupation_or_role": "",
+      "offers_to_supply_per_rft_pricing_schedule": null,
+      "agrees_to_comply_with_tender_obligations": null,
+      "confirms_capacity_to_bid_no_restrictions": null,
+      "consents_to_council_checks": null,
+      "validity_period_days": ""
+    },
+    "signature": {
+      "name": "",
+      "date": ""
+    }
+  }
+}

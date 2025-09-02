@@ -1,3 +1,5 @@
+#app/routers/api.py
+
 import uuid
 import shutil
 import json
@@ -22,12 +24,39 @@ from ..services.templates import (
     load_tepp_template,
     write_json,
 )
+from typing import List, Optional
+from pathlib import Path
+import json
+
+from fastapi import APIRouter, UploadFile, File, Body, HTTPException
+from fastapi.responses import FileResponse
+
+from ..config import settings
+from ..services.supplier import (
+    process_suppliers,
+    list_suppliers,
+    get_supplier_returnables,
+    save_supplier_returnables,
+    generate_evaluation_for_suppliers,
+)
+
+from ..services.supplier import (
+    process_suppliers,
+    list_suppliers,
+    get_supplier_returnables,
+    save_supplier_returnables,
+    generate_evaluation_for_suppliers,
+)
 from ..services.docx_export import export_json_to_docx
 from ..services.returnables_filler import seed_returnables_from_spec
 from ..services.rft_filler import seed_rft_from_spec
 from ..services.compose import compose_tepp
 from ..services.returnables_supplier import fill_returnables_from_supplier
+from fastapi import APIRouter, HTTPException, Body
+from fastapi.responses import FileResponse
 
+from ..repo.records import load_record
+from ..services.evaluation import generate_evaluation_excel
 router = APIRouter()
 
 SPEC_SUMMARY_PROMPT = """You summarise government engineering tender specifications.
@@ -159,6 +188,97 @@ async def submit_supplier_responses(rec_id: str, files: List[UploadFile] = File(
     updated = fill_returnables_from_supplier(current, vs_list)
     ret_path.write_text(json.dumps(updated, indent=2), encoding="utf-8")
     return {"ok": True}
+
+@router.post("/records/{rec_id}/evaluation_sheet")
+def generate_evaluation_sheet(rec_id: str, suppliers: List[str] = Body(...)):
+    """
+    Generate an Excel workbook for evaluating supplier tenders.
+
+    The caller must provide a JSON array of supplier names.  The TEPP
+    document associated with the record must exist (the TEPP is used to
+    obtain the evaluation criteria and weightings).  The resulting
+    spreadsheet includes columns for price, normalised price scores,
+    qualitative scores (raw and weighted), total scores and ranking.  It
+    is saved under the record's data directory and returned as a file
+    response.
+    """
+    # Ensure the record exists
+    _ = load_record(rec_id)
+    try:
+        path = generate_evaluation_excel(rec_id, suppliers)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    filename = f"{rec_id}_evaluation.xlsx"
+    return FileResponse(path, filename=filename,
+                        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+
+@router.post("/records/{rec_id}/supplier_responses")
+async def submit_supplier_responses(rec_id: str, files: List[UploadFile] = File(...)):
+    base_returnables = json.loads(_path_returnables(rec_id).read_text(encoding="utf-8"))
+    suppliers = process_suppliers(rec_id, files, base_returnables)
+    return {"ok": True, "suppliers": suppliers}
+
+@router.get("/records/{rec_id}/suppliers")
+def get_suppliers(rec_id: str):
+    return list_suppliers(rec_id)
+
+@router.get("/records/{rec_id}/suppliers/{sup_id}/returnables_json")
+def get_supplier_returnables_json(rec_id: str, sup_id: str):
+    return get_supplier_returnables(rec_id, sup_id)
+
+@router.patch("/records/{rec_id}/suppliers/{sup_id}/returnables_json")
+def patch_supplier_returnables_json(rec_id: str, sup_id: str, payload: dict):
+    save_supplier_returnables(rec_id, sup_id, payload); return {"ok": True}
+
+@router.post("/records/{rec_id}/evaluate_suppliers")
+def evaluate_suppliers(rec_id: str, supplier_ids: Optional[List[str]] = Body(None)):
+    path = generate_evaluation_for_suppliers(rec_id, supplier_ids)
+    return FileResponse(path, filename=f"{rec_id}_evaluation.xlsx",
+                        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+# Upload supplier responses, auto-fill per-supplier returnables, and update manifest
+@router.post("/records/{rec_id}/supplier_responses")
+async def submit_supplier_responses(
+    rec_id: str,
+    files: List[UploadFile] = File(...),
+):
+    # Load the base (blank/generated) returnables JSON for this record
+    ret_path = settings.DATA_DIR / f"{rec_id}.returnables.json"
+    if not ret_path.exists():
+        raise HTTPException(status_code=400, detail="Base returnables JSON not found for this record.")
+    base_returnables = json.loads(ret_path.read_text(encoding="utf-8"))
+
+    suppliers = process_suppliers(rec_id, files, base_returnables)
+    return {"ok": True, "suppliers": suppliers}
+
+# List suppliers for a record (reads the manifest)
+@router.get("/records/{rec_id}/suppliers")
+def api_list_suppliers(rec_id: str):
+    return list_suppliers(rec_id)
+
+# Get / update a specific supplier's filled returnables JSON
+@router.get("/records/{rec_id}/suppliers/{sup_id}/returnables_json")
+def api_get_supplier_returnables(rec_id: str, sup_id: str):
+    return get_supplier_returnables(rec_id, sup_id)
+
+@router.patch("/records/{rec_id}/suppliers/{sup_id}/returnables_json")
+def api_patch_supplier_returnables(rec_id: str, sup_id: str, payload: dict):
+    save_supplier_returnables(rec_id, sup_id, payload)
+    return {"ok": True}
+
+# Generate evaluation workbook (uses TEPP weights if present)
+@router.post("/records/{rec_id}/evaluate_suppliers")
+def api_evaluate_suppliers(
+    rec_id: str,
+    supplier_ids: Optional[List[str]] = Body(None),
+):
+    path = generate_evaluation_for_suppliers(rec_id, supplier_ids)
+    return FileResponse(
+        path,
+        filename=f"{rec_id}_evaluation.xlsx",
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
 # -------------------------
 # Record (basic)
 # -------------------------

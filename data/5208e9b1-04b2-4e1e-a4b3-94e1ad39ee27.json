@@ -1,0 +1,50 @@
+{
+  "id": "5208e9b1-04b2-4e1e-a4b3-94e1ad39ee27",
+  "created_at": "2025-08-31T07:03:15.420198",
+  "updated_at": "2025-08-31T07:03:15.420198",
+  "file_name": "BLCS-001 Technical Requirements - AHU 1 & 3 Refurbishments_Revised.pdf",
+  "source_type": ".pdf",
+  "vs_backend": "faiss_gpu",
+  "vs_location": "faiss/5208e9b1-04b2-4e1e-a4b3-94e1ad39ee27",
+  "spec_summary": {
+    "title": null,
+    "tender_no": null,
+    "contract_no": null,
+    "closing_datetime": null,
+    "contact": {
+      "name": null,
+      "email": null,
+      "phone": null
+    },
+    "scope": [
+      "Provide the following information with the Tender: Manufacturer\u2019s rated performance data for the Chiller offered, Full dimensional details in the form of certified drawings, Weights, including loading diagrams, Details of facilities and services required for the Chiller offered, Details of accessories and features provided with the Chiller offered, Electrical requirements for the Chiller offered, Wiring Diagrams, Evidence of conformance with AS1677.2 and AS1210",
+      "The following shall be provided with the Chiller or as part of the pipework modifications to connect the new Chiller into the CHW piping reticulation",
+      "Programming of the work and subsequent site management of the work",
+      "submit to Council a detailed schedule showing the proposed sequence of work and the durations for which the various areas will need to be available to the Contractor for the work to be completed",
+      "Supply and install 7.5kW ABB ACH580 VSD\u2019s to respective circulating pumps for the heat recovery coils",
+      "All other associated and necessary electrical works not specifically mentioned above complying to current and applicable electrical codes and safe operation of the systems",
+      "Remove and re-instate plantroom external wall louvre for access to equipment delivery and retrieval of redundant equipment",
+      "Remove any job generated rubbish and dispose off-site, including redundant equipment",
+      "Co-ordinate with centre management and Council officer in charge of the project, including allowing safe access to centre\u2019s miscellaneous stocks they need for centre\u2019s operation and safe movement of the pool staffs through the work area",
+      "All other associated works, including controls, builder\u2019s, electrical, hydraulics and other associated works not specifically mentioned in this scope of works to form a complete and operating system",
+      "Test and commission the system",
+      "New interconnecting CHW and COW pipework between AHU 1 & 3 and the new Chillers",
+      "Associated electrical and interconnecting controls work",
+      "Modify and reconfigure the existing electrical system to accommodate the chillers and other associated equipment",
+      "Associated plumbing/hydraulics works",
+      "Associated builder\u2019s work, making good, removal of redundant items and construction rubbish, etc",
+      "All other works not mentioned above to form a complete and operating system similar to the newly refurbished AHU 2"
+    ],
+    "location": null,
+    "safety_standards": [
+      "AS1677.2",
+      "AS1210",
+      "BCC WHS requirements",
+      "AS 61439"
+    ]
+  },
+  "citations": {},
+  "status": "draft",
+  "raw_excerpt": " \n \n \n \n \n \n \n \n \n \n \n \n \nBLACKTOWN LEISURE CENTRE STANHOPE \nMAIN POOL HALL HEATING & VENTILATION \nAHU 1 & 3 REFURBISHMENTS \nTECHNICAL REQUIREMENTS \n \n \n \n \n \n \n \n \nDOCUMENT NUMBER \nBLCS-001 TECHNICAL \nREQUIREMENTS \nREVISION \n3 \nDATE \n05/05/2025 \nAPPROVER \nNESTOR PUNSALAN  \n \n\n \nBLCS Main Pool Hall Heating & Ventilation - AHU 1 & 3 Refurbishments                                                                     Page 2 of 20 \n \n \nTable of Contents \n \n1. \nGENERAL REQUIREMENTS .................................................................................................... 4 \n1.1 \nGeneral ............................................................................................................................... 4 \n1.2 \nLicensed Personnel ............................................................................................................ 5 \n1.3 \nDrawings and Sketches ...................................................................................................... 5 \n1.4 \nProgramming of the Work ................................................................................................... 5 \n1.5 \nCentre\u2019s Opening Hours ..................................................................................................... 5 \n1.6 \nInterruption of Existing Services .......................................................................................... 5 \n1.7 \nDirt, Dust, Noise and Vibration Control ............................................................................... 5 \n1.8 \nDeliveries to Site and Off Loading ....................................................................................... 6 \n1.9 \nHoisting & Cranage ............................................................................................................. 6 \n1.10 Making Good ...................................................................................................................... 6 \n1.11 Recycling of Redundant Equipment ...............................",
+  "returnables_json": {}
+}
