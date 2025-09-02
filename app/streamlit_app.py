@@ -1,41 +1,31 @@
 """
 Streamlit user interface for generating tender documents.
 
-This script provides an interactive, browser‐based workflow for generating
-a Tender Evaluation & Probity Plan (TEPP) and the associated returnable
-schedules from a technical specification.  It wraps the existing
-low‑level services found in the ``app.services`` package with a simple
-and approachable user interface built on top of `streamlit`.  Users
-upload a specification file, pick a model for the LLM, and the app
-handles the rest: it extracts text, builds a vector store, calls the
-LLM to summarise and parse the spec, composes a TEPP, displays the
-evaluation criteria and weighting rationales, and finally assembles
-the returnable schedules.  At each stage the user can inspect the
-intermediate JSON and download the generated DOCX files.
+This app provides a clean, two-step UX:
+  1) Home: pick an Ollama model.
+  2) Upload: upload a spec, generate documents → redirect to Results.
+  3) Results: view the criteria table, edit the TEPP JSON, and download TEPP/Returnables.
 
-To run this app locally install `streamlit` in your environment and
-execute:
-
+Run:
     streamlit run app/streamlit_app.py
-
-The application reads and writes data into the same DATA_DIR defined
-in :mod:`app.config`.  Temporary vector stores are also persisted
-under that directory; unique document identifiers are generated per
-session to avoid collisions.
 """
 import os, sys
+from pathlib import Path
+from typing import List, Dict
+import uuid
+import json
+import subprocess
+import requests
+import pandas as pd
+import streamlit as st
+
 # Ensure the project root (the parent of 'app') is on sys.path when run by Streamlit
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-import uuid
-from pathlib import Path
-from typing import Optional, List, Dict
-
-import pandas as pd
-import streamlit as st
-
+# --- App imports ---
+from app.deps import SPLITTER
 from app.config import settings
 from app.schemas import SpecSummary
 from app.services.textio import extract_text, chunks
@@ -43,18 +33,10 @@ from app.services.vectorstores import build_index, get_vs
 from app.services.llm import rag_json, set_runtime_model, reset_runtime_model
 from app.services.parse_spec import parse_spec
 from app.services.policy import scan_policy_files, extract_many, _build_ephemeral_vs
-from app.services.templates import load_rft_template, load_tepp_template, write_json
-from app.services.returnables_filler import seed_returnables_from_spec
-from app.services.rft_filler import seed_rft_from_spec
 from app.services.compose import compose_tepp, compose_returnable_schedules
 from app.services.docx_export import export_json_to_docx
-from app.repo.records import save_record, load_record
 
-
-# The same prompt used by the FastAPI upload route.  It instructs the
-# LLM to produce a concise JSON summary of the tender specification
-# including title, tender number and other high‑level metadata.  If
-# values are unknown they should be null or empty.
+# ---- Prompt (same as API) ----
 SPEC_SUMMARY_PROMPT = """You summarise government engineering tender specifications.
 Return ONLY strict JSON with fields:
 {
@@ -70,70 +52,103 @@ Return ONLY strict JSON with fields:
 Use ONLY the provided context. If unknown, set null or [].
 """
 
+# ==========================
+# Helpers
+# ==========================
+def _coerce_to_text(x) -> str:
+    """Return a plain string for any input (dict/list/bytes/None/etc.)."""
+    if x is None:
+        return ""
+    if isinstance(x, (bytes, bytearray)):
+        try:
+            return x.decode("utf-8", "ignore")
+        except Exception:
+            return str(x)
+    if isinstance(x, dict):
+        # Prefer common text keys if present
+        for k in ("text", "content", "body", "value"):
+            if k in x:
+                return _coerce_to_text(x[k])
+        # Fallback to JSON
+        try:
+            return json.dumps(x, ensure_ascii=False)
+        except Exception:
+            return str(x)
+    if isinstance(x, (list, tuple)):
+        # Join lists of strings as lines
+        try:
+            return "\n".join(_coerce_to_text(i) for i in x)
+        except Exception:
+            return str(x)
+    return str(x)
+
+
+def list_ollama_models(base_url: str) -> list[str]:
+    """
+    Return a list of model names available in the local Ollama registry.
+    Try REST first (/api/tags), then CLI. CLI fallback parses the default table
+    so it works on older Ollama versions without --format json.
+    """
+    # 1) REST
+    try:
+        resp = requests.get(f"{base_url.rstrip('/')}/api/tags", timeout=3)
+        resp.raise_for_status()
+        data = resp.json() or {}
+        models = []
+        for m in data.get("models", []):
+            n = (m.get("name") or m.get("model") or "").strip()
+            if n:
+                models.append(n)
+        if models:
+            return sorted(dict.fromkeys(models))
+    except Exception:
+        pass
+    # 2) CLI JSON
+    try:
+        out = subprocess.check_output(["ollama", "list", "--format", "json"], text=True, timeout=3)
+        arr = json.loads(out)
+        models = [row.get("name") for row in arr if row.get("name")]
+        if models:
+            return sorted(dict.fromkeys(models))
+    except Exception:
+        pass
+    # 3) CLI table
+    try:
+        out = subprocess.check_output(["ollama", "list"], text=True, timeout=3)
+        lines = [ln.strip() for ln in out.splitlines() if ln.strip()]
+        if lines and lines[0].lower().startswith("name"):  # header
+            lines = lines[1:]
+        models = []
+        for ln in lines:
+            parts = ln.split()
+            if parts:
+                models.append(parts[0])
+        return sorted(dict.fromkeys(models))
+    except Exception:
+        return []
 
 def _generate_documents(file_path: Path, model: str) -> Dict[str, Dict]:
-    """Drive the core document generation pipeline.
-
-    Given the path to an uploaded specification and a model name, this
-    helper function extracts text, builds a vector store, summarises
-    and parses the specification, composes the TEPP and returnables
-    JSONs, and returns them along with the parsed metadata.  A
-    temporary document identifier is generated for each call so that
-    vector stores and JSON artefacts do not collide across sessions.
-
-    Parameters
-    ----------
-    file_path: Path
-        Location of the uploaded specification on disk.
-    model: str
-        The name of the Ollama/Gemini model to use.  This value is
-        passed through to :func:`set_runtime_model` which overrides
-        the model for the duration of the call.
-
-    Returns
-    -------
-    dict
-        A dictionary with keys ``spec_summary``, ``parsed``, ``tepp``
-        and ``returnables``.  Values are the corresponding Python
-        objects; ``tepp`` and ``returnables`` are nested dictionaries
-        serialisable to JSON.
-    """
-    # Create a new document identifier to isolate vector stores and
-    # outputs.  Persist under the configured DATA_DIR.
+    """Core pipeline: extract → index → summarise/parse → compose TEPP/Returnables."""
     doc_id = str(uuid.uuid4())
     suffix = file_path.suffix or ".bin"
     temp_path = settings.DATA_DIR / f"{doc_id}{suffix}"
-    # Copy the uploaded file into our data directory.  The input file
-    # may be a SpooledTemporaryFile so we read bytes from it.
     with open(file_path, "rb") as src, open(temp_path, "wb") as dst:
         dst.write(src.read())
 
-    # Extract raw text from the specification.  ``extract_text``
-    # supports common office formats and falls back to ``textract``
-    # under the hood.  If no text can be read an exception will be
-    # raised to the caller.
-    text = extract_text(temp_path)
+    # 1) Extract and coerce to string
+    text_raw = extract_text(temp_path)
+    text = _coerce_to_text(text_raw)
     if not text or not text.strip():
         raise ValueError("Could not read text from the document.")
 
-    # Split the text into overlapping chunks suitable for building a
-    # vector store.  The default chunker in ``textio`` uses
-    # heuristics to preserve sentence boundaries.
-    chs = chunks(text)
+    # 2) Build vector store
+    chs = chunks(text)  # expects a str; now guaranteed
     build_index(doc_id, chs)
     vs = get_vs(doc_id)
 
-    # Override the model for the duration of this request.  When using
-    # Gemini the environment variable GOOGLE_API_KEY must be set; for
-    # local operation set LLM_PROVIDER=ollama and ensure an Ollama
-    # server is running.  After generation we reset the override.
+    # 3) Run with selected model
     token = set_runtime_model(model)
     try:
-        # Summarise the specification into a simple JSON payload.  This
-        # call uses the RAG pipeline to retrieve relevant context from
-        # the vector store and then queries the LLM with the prompt and
-        # a set of field queries.  The output is validated using
-        # pydantic's SpecSummary model.
         summary_json = rag_json(
             vs,
             SPEC_SUMMARY_PROMPT,
@@ -151,40 +166,21 @@ def _generate_documents(file_path: Path, model: str) -> Dict[str, Dict]:
         )
         spec_summary = SpecSummary.model_validate(summary_json)
 
-        # Perform a deterministic parse of the specification.  This
-        # function extracts project metadata and domain‑specific
-        # information without using the LLM.
         parsed = parse_spec(text)
 
-        # Optionally incorporate policy documents into the RAG context.
-        # If additional policies exist in ``app/policy``, they will
-        # influence the TEPP generation.  We build a small vector
-        # store on the fly for these documents.  For simplicity we
-        # ignore errors if no policy files are present.
+        # 4) Optional policies → ephemeral VS (coerce each to str)
         policy_files = scan_policy_files()
         policy_texts = extract_many(policy_files)
         policy_chunks: List[str] = []
         if policy_texts:
-            from .deps import SPLITTER  # imported lazily to avoid circular import
             for t in policy_texts:
-                policy_chunks.extend(SPLITTER.split_text(t))
+                s = _coerce_to_text(t)
+                if s.strip():
+                    policy_chunks.extend(SPLITTER.split_text(s))
         vs_policy = _build_ephemeral_vs(policy_chunks) if policy_chunks else None
 
-        # Compose the TEPP.  This function orchestrates a complex
-        # interaction with the LLM, retrieving context, prompting
-        # sections, deciding evaluation weightings and building a rich
-        # structured JSON representation of the Tender Evaluation &
-        # Probity Plan.  The optional ``extra_vss`` argument allows
-        # additional vector stores (e.g. policies) to be consulted.
+        # 5) Compose TEPP + Returnables
         tepp = compose_tepp(spec_summary, parsed, vs, [vs_policy] if vs_policy else None)
-
-        # Build the returnable schedules.  Unlike the TEPP this
-        # generator does not call the LLM; it assembles a structured
-        # JSON document containing instructions, reference checklists
-        # and all schedules that tenderers must complete.  The
-        # ``non_negotiable_date`` parameter may be provided to insert
-        # a mandated commencement date in Schedule 9; we leave it
-        # unset here.
         returnables = compose_returnable_schedules(spec_summary, parsed, non_negotiable_date=None)
 
         return {
@@ -197,119 +193,342 @@ def _generate_documents(file_path: Path, model: str) -> Dict[str, Dict]:
         reset_runtime_model(token)
 
 
-def main() -> None:
-    """Entry point for the Streamlit UI."""
-    st.set_page_config(page_title="Before Advertisement", layout="wide")
-    st.title("Before Advertisement")
+def _inject_css():
+    """Read and inject external CSS file."""
+    # default location: app/ui/theme.css (sibling folder `ui` next to this file)
+    default_path = Path(__file__).parent / "ui" / "theme.css"
+    css_path_str = os.getenv("APP_THEME_CSS", str(default_path))
+    css_path = Path(css_path_str)
+    try:
+        css = css_path.read_text(encoding="utf-8")
+        st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+    except Exception as e:
+        st.warning(f"Could not read CSS at {css_path}: {e}")
 
-    # Model selector allows the user to pick the underlying LLM.  The
-    # default options correspond to local Ollama models defined in
-    # ``app/config.py``.  Additional models can be added here if
-    # available.
-    model = st.selectbox(
-        "Choose LLM model",
-        options=["llama3.1:8b", "llama3:latest", "mistral:latest"],
-        index=0,
-        help="Select which language model to use for summarising and composing documents."
+def _nav_set(view: str, extra: Dict[str, str] | None = None):
+    """Set view in query params and trigger rerun."""
+    payload = dict(st.query_params)
+    # Flatten list values from previous state
+    for k, v in list(payload.items()):
+        if isinstance(v, list) and v:
+            payload[k] = v[0]
+    payload["view"] = view
+    if extra:
+        payload.update(extra)
+    st.query_params.clear()
+    st.query_params.update(payload)
+
+
+# ---------- Pretty helpers ----------
+def _pretty(label: str) -> str:
+    return label.replace("_", " ").replace("-", " ").title()
+
+def _is_uniform_dict_list(xs: list) -> bool:
+    if not xs or not all(isinstance(x, dict) for x in xs):
+        return False
+    keys = [tuple(sorted(x.keys())) for x in xs if isinstance(x, dict)]
+    return len(set(keys)) == 1
+
+def _edit_table(records: list[dict], key: str, caption: str | None = None) -> list[dict]:
+    import pandas as pd
+    df = pd.DataFrame(records) if records else pd.DataFrame([{}])
+    edited = st.data_editor(
+        df,
+        key=key,
+        num_rows="dynamic",
+        use_container_width=True,
+        hide_index=True,
     )
+    if caption:
+        st.caption(caption)
+    return edited.to_dict(orient="records")
 
-    uploaded_file = st.file_uploader(
-        "Upload technical specification",
-        type=["pdf", "docx", "txt", "doc"],
-        help="Provide the tender specification file (PDF, DOCX, DOC or TXT)."
-    )
+def _edit_scalar(label: str, value, key: str):
+    if isinstance(value, bool):
+        return st.checkbox(label, value=value, key=key)
+    # keep everything else stringly-typed (safer for downstream)
+    return st.text_input(label, value="" if value is None else str(value), key=key)
 
-    # When the user clicks the Generate button we run the pipeline.
-    if uploaded_file is not None:
-        if st.button("Generate TEPP and Returnables"):
-            # Persist the uploaded file to a temporary location.  Use
-            # Streamlit's uploaded file API to access the underlying
-            # buffer and write it to disk.  We use a UUID file name to
-            # avoid clobbering existing files.
-            temp_dir = Path(st.experimental_get_query_params().get("data_dir", [str(settings.DATA_DIR)])[0])
-            temp_dir.mkdir(parents=True, exist_ok=True)
-            temp_path = temp_dir / uploaded_file.name
-            with open(temp_path, "wb") as out:
-                out.write(uploaded_file.getbuffer())
+def _render_form(obj, key_prefix: str = ""):
+    """
+    Generic form renderer:
+      - dict of scalars -> inputs
+      - dict of dicts -> nested expanders
+      - list[dict (uniform)] -> editable table
+      - list[str]/list[scalar] -> multi-line textarea (JSON)
+    Returns potentially-edited object.
+    """
+    if isinstance(obj, dict):
+        out = {}
+        for k, v in obj.items():
+            pk = f"{key_prefix}.{k}" if key_prefix else k
+            label = _pretty(k)
+            if isinstance(v, dict):
+                with st.expander(label, expanded=False):
+                    out[k] = _render_form(v, pk)
+            elif isinstance(v, list):
+                with st.expander(label, expanded=False):
+                    out[k] = _render_form(v, pk)
+            else:
+                out[k] = _edit_scalar(label, v, pk)
+        return out
 
-            with st.spinner("Generating documents, please wait…"):
-                try:
-                    outputs = _generate_documents(temp_path, model)
-                except Exception as exc:
-                    st.error(f"An error occurred during generation: {exc}")
-                    return
+    if isinstance(obj, list):
+        if _is_uniform_dict_list(obj):
+            return _edit_table(obj, key=f"{key_prefix}.table")
+        # fallback: free JSON editor for mixed/simple lists
+        text = st.text_area(
+            _pretty(key_prefix or "List"),
+            value=json.dumps(obj, indent=2, ensure_ascii=False),
+            height=200,
+            key=f"{key_prefix}.json",
+        )
+        try:
+            return json.loads(text)
+        except Exception:
+            st.warning("Invalid JSON in list editor; keeping previous value.")
+            return obj
 
-            # Store results in the session state so they persist across
-            # interactions (e.g. when the user expands sections or
-            # downloads files).  The 'tepp' key is especially
-            # important as it drives the display of the criteria table.
-            st.session_state["spec_summary"] = outputs["spec_summary"]
-            st.session_state["parsed"] = outputs["parsed"]
-            st.session_state["tepp"] = outputs["tepp"]
-            st.session_state["returnables"] = outputs["returnables"]
-            st.success("Document generation complete!")
+    # scalars
+    return _edit_scalar(_pretty(key_prefix or "Value"), obj, key_prefix)
 
-    # Once a TEPP has been generated we reveal the evaluation criteria
-    # table.  This section is rendered whenever the corresponding
-    # object exists in the session state.
-    if "tepp" in st.session_state:
-        tepp = st.session_state["tepp"]
-        # Navigate to the weighted criteria.  Defensive checks are
-        # employed to avoid KeyError if the JSON structure changes.
-        table: List[Dict[str, str]] = (
-            tepp
-            .get("tender_evaluation", {})
+def _get_tepp_criteria(tepp: dict) -> list[dict]:
+    return (
+        tepp.get("tender_evaluation", {})
             .get("evaluation_methodology", {})
             .get("required_criteria_table", [])
+    )
+
+def _set_tepp_criteria(tepp: dict, rows: list[dict]) -> None:
+    tepp.setdefault("tender_evaluation", {})\
+        .setdefault("evaluation_methodology", {})["required_criteria_table"] = rows
+
+# ==========================
+# Pages
+# ==========================
+def page_home():
+    # Centered page header (replaces st.title)
+    st.markdown(
+        '<div class="page-header"><h1>Before Advertisement</h1></div>',
+        unsafe_allow_html=True
+    )
+
+    OLLAMA_URL = os.getenv("OLLAMA_BASE_URL", getattr(settings, "OLLAMA_BASE_URL", "http://localhost:11434"))
+    if "ollama_models" not in st.session_state:
+        st.session_state.ollama_models = list_ollama_models(OLLAMA_URL)
+
+    # One centered column for ALL controls (hero, select, refresh, continue)
+    left, main, right = st.columns([1, 3, 1])
+    with main:
+        # Hero text aligned with everything below
+        st.markdown(
+            '<div class="hero-bg fade-in center"><h3>Please Select The AI You Want To Use</h3></div>',
+            unsafe_allow_html=True
         )
-        st.subheader("Evaluation criteria and weightings")
-        if table:
-            df = pd.DataFrame(table)
-            # Reorder columns for a nicer display
-            cols = [c for c in ["criterion", "weight", "rationale"] if c in df.columns]
-            st.table(df[cols])
-        else:
-            st.info("No criteria table was generated.")
 
-        # Button to view the full TEPP JSON.  We use an expander to
-        # collapse the potentially large document by default.  The
-        # document is presented as formatted JSON using Streamlit's
-        # built‑in rendering.
-        with st.expander("Full TEPP document", expanded=False):
-            st.json(tepp)
-
-        # Provide a download option for the TEPP as a DOCX.  We
-        # generate the DOCX on demand to avoid unnecessary work.
-        if st.button("Download TEPP (DOCX)"):
-            docx_path = export_json_to_docx(tepp, "Tender Evaluation & Probity Plan")
-            with open(docx_path, "rb") as f:
-                data = f.read()
-            st.download_button(
-                label="Download TEPP",
-                data=data,
-                file_name="tepp.docx",
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        options = st.session_state.ollama_models or []
+        if not options:
+            st.warning("No models found from Ollama. Start `ollama serve` or pull a model, e.g., `ollama pull llama3.1`.")
+            selected_model = st.text_input(
+                "Model (type manually)",
+                value=st.session_state.get("selected_model", "llama3.1:8b"),
             )
-
-        # Show the returnable schedules once TEPP has been generated.
-        st.subheader("Returnable schedules")
-        returnables = st.session_state.get("returnables")
-        if returnables:
-            with st.expander("Returnables JSON", expanded=False):
-                st.json(returnables)
-            if st.button("Download Returnables (DOCX)"):
-                docx_path = export_json_to_docx(returnables, "Returnable Schedules")
-                with open(docx_path, "rb") as f:
-                    data = f.read()
-                st.download_button(
-                    label="Download Returnables",
-                    data=data,
-                    file_name="returnables.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                )
         else:
-            st.info("Returnable schedules have not been generated yet.")
+            prev = st.session_state.get("selected_model")
+            default_index = options.index(prev) if prev in options else 0
+            selected_model = st.selectbox("Model", options, index=default_index, key="model_select")
 
+        st.session_state.selected_model = selected_model
+        st.markdown(f'<p class="center muted">Using model: <code>{selected_model}</code></p>', unsafe_allow_html=True)
+
+        st.write("")  # spacer
+        if st.button("↻ Refresh models", key="refresh_models", use_container_width=True):
+            st.session_state.ollama_models = list_ollama_models(OLLAMA_URL)
+            st.rerun()
+
+        st.write("")  # spacer
+        if st.button("Continue to Upload", key="continue_btn", use_container_width=True):
+            _nav_set("upload", {"model": st.session_state.selected_model})
+
+def page_upload():
+    st.title("Upload Specification")
+    st.markdown('<div class="card fade-in">Upload your technical specification file. After generation you will be redirected to the results page.</div>', unsafe_allow_html=True)
+
+    uploaded_file = st.file_uploader(
+        "Technical specification",
+        type=["pdf", "docx", "txt", "doc"],
+        help="Provide the tender specification file (PDF, DOCX, DOC or TXT).",
+    )
+
+    if uploaded_file is not None and st.button("Generate TEPP and Returnables"):
+        # Resolve data_dir from query params (new API)
+        qp = st.query_params
+        data_dir_val = qp.get("data_dir", str(settings.DATA_DIR))
+        if isinstance(data_dir_val, list):
+            data_dir_val = data_dir_val[0]
+        temp_dir = Path(data_dir_val)
+        temp_dir.mkdir(parents=True, exist_ok=True)
+
+        temp_path = temp_dir / uploaded_file.name
+        with open(temp_path, "wb") as out:
+            out.write(uploaded_file.getbuffer())
+
+        with st.spinner("Generating documents, please wait…"):
+            try:
+                outputs = _generate_documents(temp_path, st.session_state.get("selected_model", "llama3.1:8b"))
+            except Exception as exc:
+                st.error(f"An error occurred during generation: {exc}")
+                return
+
+        st.session_state["spec_summary"] = outputs["spec_summary"]
+        st.session_state["parsed"] = outputs["parsed"]
+        st.session_state["tepp"] = outputs["tepp"]
+        st.session_state["returnables"] = outputs["returnables"]
+
+        # Redirect to results page
+        _nav_set("results")
+
+def page_results():
+    st.markdown('<div class="page-header"><h1>Results</h1></div>', unsafe_allow_html=True)
+
+    tepp = st.session_state.get("tepp") or {}
+    returnables = st.session_state.get("returnables") or {}
+    spec_summary = st.session_state.get("spec_summary") or {}
+
+    tabs = st.tabs(["TEPP", "Returnables", "Raw JSON"])
+    # ---------------- TEPP ----------------
+    with tabs[0]:
+        t1, t2, t3 = st.tabs(["Overview", "Evaluation Criteria", "Sections"])
+
+        # ---- Overview (nice fields) ----
+        with t1:
+            col1, col2 = st.columns(2)
+            with col1:
+                tepp_title = st.text_input("Title", value=tepp.get("title") or spec_summary.get("title") or "")
+                tender_no  = st.text_input("Tender No.", value=tepp.get("tender_no", ""))
+                contract_no= st.text_input("Contract No.", value=tepp.get("contract_no", ""))
+            with col2:
+                closing    = st.text_input("Closing Date/Time", value=tepp.get("closing_datetime", ""))
+                location   = st.text_input("Location / Site", value=tepp.get("location", ""))
+
+            c1, c2, c3 = st.columns(3)
+            contact = tepp.get("contact", {}) or {}
+            with c1:
+                contact_name = st.text_input("Contact Name", value=contact.get("name", ""))
+            with c2:
+                contact_email = st.text_input("Contact Email", value=contact.get("email", ""))
+            with c3:
+                contact_phone = st.text_input("Contact Phone", value=contact.get("phone", ""))
+
+            if st.button("Save Overview", key="save_overview"):
+                tepp["title"] = tepp_title
+                tepp["tender_no"] = tender_no
+                tepp["contract_no"] = contract_no
+                tepp["closing_datetime"] = closing
+                tepp["location"] = location
+                tepp["contact"] = {"name": contact_name, "email": contact_email, "phone": contact_phone}
+                st.session_state["tepp"] = tepp
+                st.success("Overview saved.")
+
+        # ---- Evaluation Criteria (editable table) ----
+        with t2:
+            rows = _get_tepp_criteria(tepp)
+            edited_rows = _edit_table(
+                rows, key="criteria_editor",
+                caption="Tip: add/remove rows; all cells are editable. Columns like weight can include % symbols."
+            )
+            if st.button("Save Criteria", key="save_criteria"):
+                _set_tepp_criteria(tepp, edited_rows)
+                st.session_state["tepp"] = tepp
+                st.success("Criteria saved.")
+
+        # ---- Sections (generic nested editor) ----
+        with t3:
+            st.caption("Edit any other TEPP sections below. Each block expands to reveal fields and tables.")
+            edited_tepp = _render_form(tepp, key_prefix="tepp_sections")
+            if st.button("Save Sections", key="save_sections"):
+                st.session_state["tepp"] = edited_tepp
+                st.success("Sections saved.")
+
+        st.divider()
+        cA, cB, cC = st.columns(3)
+        with cA:
+            if st.button("Download TEPP (DOCX)", key="dl_tepp"):
+                docx_path = export_json_to_docx(st.session_state["tepp"], "Tender Evaluation & Probity Plan")
+                with open(docx_path, "rb") as f:
+                    st.download_button("Download TEPP", f.read(), file_name="tepp.docx",
+                                       mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                       key="dlbtn_tepp")
+        with cB:
+            if st.button("Back to Home", key="home_btn"):
+                _nav_set("home")
+
+    # ---------------- Returnables ----------------
+    with tabs[1]:
+        if not returnables:
+            st.info("No Returnables found.")
+        else:
+            st.caption("Each schedule opens in its own section. Edit fields/tables directly.")
+            # Render top-level dict as expanders
+            edited_returnables = {}
+            for sched_name, sched_data in returnables.items():
+                with st.expander(_pretty(sched_name), expanded=False):
+                    edited_returnables[sched_name] = _render_form(sched_data, key_prefix=f"ret.{sched_name}")
+
+            if st.button("Save Returnables", key="save_returnables"):
+                st.session_state["returnables"] = edited_returnables
+                st.success("Returnables saved.")
+
+            st.divider()
+            if st.button("Download Returnables (DOCX)", key="dl_returnables"):
+                docx_path = export_json_to_docx(st.session_state["returnables"], "Returnable Schedules")
+                with open(docx_path, "rb") as f:
+                    st.download_button("Download Returnables", f.read(), file_name="returnables.docx",
+                                       mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                       key="dlbtn_ret")
+
+    # ---------------- Raw JSON (for power users) ----------------
+    with tabs[2]:
+        r1, r2 = st.tabs(["TEPP JSON", "Returnables JSON"])
+        with r1:
+            tepp_str = json.dumps(st.session_state.get("tepp", {}), indent=2, ensure_ascii=False)
+            new_tepp_str = st.text_area("TEPP JSON", value=tepp_str, height=360, key="tepp_json_raw")
+            if st.button("Apply TEPP JSON"):
+                try:
+                    st.session_state["tepp"] = json.loads(new_tepp_str)
+                    st.success("TEPP JSON applied.")
+                except Exception as e:
+                    st.error(f"Invalid JSON: {e}")
+        with r2:
+            ret_str = json.dumps(st.session_state.get("returnables", {}), indent=2, ensure_ascii=False)
+            new_ret_str = st.text_area("Returnables JSON", value=ret_str, height=360, key="ret_json_raw")
+            if st.button("Apply Returnables JSON"):
+                try:
+                    st.session_state["returnables"] = json.loads(new_ret_str)
+                    st.success("Returnables JSON applied.")
+                except Exception as e:
+                    st.error(f"Invalid JSON: {e}")
+
+
+# ==========================
+# App entry
+# ==========================
+def main():
+    st.set_page_config(page_title="Before Advertisement", layout="wide")
+    _inject_css()  # Inject external CSS
+
+    # Simple router using st.query_params
+    qp = st.query_params
+    view = qp.get("view", "home")
+    if isinstance(view, list):
+        view = view[0]
+
+    if view == "home":
+        page_home()
+    elif view == "upload":
+        page_upload()
+    else:
+        page_results()
 
 if __name__ == "__main__":
     main()

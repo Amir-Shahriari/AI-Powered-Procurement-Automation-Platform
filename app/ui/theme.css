@@ -1,0 +1,134 @@
+/* =========================
+   Dark Slate + Violet Theme
+   ========================= */
+
+/* Theme tokens */
+:root{
+  --bg:        #0f172a;   /* page background (slate-900) */
+  --panel:     #101826;   /* cards / panels */
+  --panel-2:   #0b1220;   /* deeper surface for contrast */
+  --text:      #e5e7eb;   /* primary text */
+  --muted:     #94a3b8;   /* secondary text */
+  --border:    #223048;   /* subtle borders */
+  --accent:    #8b5cf6;   /* primary violet */
+  --accent-600:#7c3aed;   /* hover */
+  --accent-700:#6d28d9;   /* active / stronger */
+  --shadow-lg: 0 18px 40px rgba(2,6,23,.45), 0 6px 18px rgba(2,6,23,.35);
+}
+
+/* --- Base --- */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  color:var(--text);
+  background:var(--bg);
+}
+img{max-width:100%;display:block}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* Header / nav */
+.header-shadow{
+  box-shadow:none;
+  border-bottom:1px solid rgba(148,163,184,.12);
+  background:linear-gradient(180deg, rgba(16,24,38,.85), rgba(16,24,38,.65));
+  backdrop-filter: blur(6px);
+}
+.nav-link{opacity:.9;transition:opacity .15s ease}
+.nav-link:hover{opacity:1;text-decoration:underline}
+
+/* Inputs (covers most Streamlit inputs generically) */
+input, select, textarea, [role="combobox"], .stSelectbox, .stTextInput, .stTextArea{
+  background:var(--panel);
+  color:var(--text) !important;
+  border:1px solid var(--border) !important;
+  border-radius:.6rem !important;
+}
+input::placeholder, textarea::placeholder{color:var(--muted)}
+/* Baseweb (Streamlit) focus ring fallback */
+:focus{outline:2px solid transparent}
+:focus-visible{outline:2px solid var(--accent-600); outline-offset:2px}
+
+/* Buttons (Streamlit buttons) */
+.stButton > button, .stDownloadButton > button{
+  position:relative;display:inline-block;border:1px solid transparent;border-radius:.6rem;
+  padding:.8rem 1.2rem;background:var(--accent-600);color:#fff;font-weight:600;cursor:pointer;
+  transition:transform .15s ease, background .15s ease, box-shadow .15s ease;
+  box-shadow:0 6px 18px rgba(124,58,237,.25);
+}
+.stButton > button:hover, .stDownloadButton > button:hover{background:var(--accent-700)}
+.stButton > button:active, .stDownloadButton > button:active{transform:translateY(1px) scale(.99)}
+.stButton[data-ripple] > button::after{
+  content:"";position:absolute;inset:0;opacity:0;transition:opacity .25s ease;
+  background:radial-gradient(140px 140px at var(--rx,50%) var(--ry,50%), rgba(255,255,255,.18) 0, transparent 60%);
+}
+.stButton[data-ripple]:hover > button::after{opacity:1}
+
+/* Cards */
+.card{
+  background:linear-gradient(180deg, var(--panel), var(--panel-2));
+  border:1px solid var(--border);
+  border-radius:.75rem;padding:1.1rem;
+  transition:transform .25s ease, box-shadow .25s ease, background .25s ease, border-color .25s ease;
+}
+.card:hover{
+  transform:translateY(-3px);
+  box-shadow:var(--shadow-lg);
+  border-color:rgba(139,92,246,.35);
+}
+
+/* Subtle page fade */
+.fade-in{animation:fadeIn .6s ease-out both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none}}
+
+/* Animated hero background (dark-friendly) */
+.hero-bg{
+  background:
+    radial-gradient(1200px 600px at 10% -20%, rgba(124,58,237,.18) 10%, transparent 60%),
+    radial-gradient(1000px 600px at 110% 20%, rgba(139,92,246,.16) 10%, transparent 55%),
+    linear-gradient(120deg, rgba(16,24,38,1), rgba(11,18,32,1) 50%, rgba(16,24,38,1));
+  animation:gradientShift 12s ease-in-out infinite alternate;
+  border-radius:1rem;padding:2rem;margin-bottom:1rem;border:1px solid var(--border);
+}
+@keyframes gradientShift{
+  0%{background-position:0% 0%, 100% 0%, 0% 0%}
+  100%{background-position:10% -10%, 95% 15%, 0% 0%}
+}
+
+/* Simple containers */
+.container{max-width:72rem;margin-inline:auto;padding-inline:1rem}
+.center{text-align:center}
+
+/* Footer */
+.footer{
+  background:var(--panel);
+  color:var(--muted);
+  text-align:center;padding:1.1rem;
+  border-top:1px solid var(--border);
+}
+/* Make primary actions look “cardy” */
+.stButton > button{
+  width:100%;
+  box-shadow:0 10px 24px rgba(93,104,138,.18);
+}
+/* Centered page header bar */
+.page-header{
+  display:flex; align-items:center; justify-content:center;
+  padding: 0.5rem 0 1rem; margin-bottom:.5rem;
+}
+.page-header h1{ margin:0; text-align:center; }
+
+/* Helpers */
+.center{ text-align:center; }
+.muted{ color: var(--muted); }
+
+/* Keep headers centered across pages */
+.page-header{ display:flex; justify-content:center; padding:.5rem 0 1rem }
+.page-header h1{ margin:0; text-align:center }
+
+/* Make Streamlit data editor feel like a sheet */
+.stDataFrame, .stDataEditor{ border-radius: .6rem; overflow: hidden; border:1px solid var(--border) }
+
+/* Utility: progress/strips that looked too light in dark mode */
+.hr, hr{border:none;border-top:1px solid var(--border);opacity:.6}
