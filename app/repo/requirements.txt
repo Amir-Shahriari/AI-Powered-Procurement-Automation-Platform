@@ -1,0 +1,14 @@
+streamlit>=1.36
+requests>=2.31
+pandas>=2.1
+python-docx>=1.1.0
+lxml>=4.9
+
+# Vector store (pick one that your code uses; remove the other)
+faiss-cpu>=1.7 ; platform_system!="Windows"
+# chromadb>=0.5
+
+# If you’re using LangChain + Gemini in code:
+langchain>=0.2
+google-generativeai>=0.6
+langchain-google-genai>=2.0

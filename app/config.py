@@ -1,13 +1,11 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
 
-load_dotenv()
-
-class Settings:
-    DATA_DIR = Path("./data"); DATA_DIR.mkdir(exist_ok=True)
-    INDEX_DIR = Path("./chroma"); INDEX_DIR.mkdir(exist_ok=True)
-    FAISS_DIR = Path("./faiss"); FAISS_DIR.mkdir(exist_ok=True)
+class Settings(BaseSettings):
+    DATA_DIR: Path = Path(os.getenv("DATA_DIR", "/tmp"))
+    OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "google")  # cloud default = google
 
     VECTOR_BACKEND = os.getenv("VECTOR_BACKEND", "faiss_gpu").lower()  # "faiss_gpu" | "chroma"
 
