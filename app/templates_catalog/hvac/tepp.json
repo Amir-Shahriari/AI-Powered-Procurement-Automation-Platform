@@ -1,23 +1,75 @@
 {
   "document_metadata": {
-    "document_title": "HVAC Tender Evaluation & Probity Plan",
-    "version": "1.0"
+    "document_title": "",
+    "tender_number": "",
+    "contract_number": "",
+    "project_name": "",
+    "version": "",
+    "date": "",
+    "prepared_by": "",
+    "approved_by": "",
+    "term": "",
+    "notes": ""
+  },
+  "introduction": {
+    "purpose": "",
+    "background": "",
+    "objectives": [],
+    "scope": "",
+    "reference_documents": []
+  },
+  "probity": {
+    "principles": [],
+    "probity_advisor": { "name": "", "organisation": "", "role": "" },
+    "confidentiality_requirements": "",
+    "conflict_of_interest": { "disclosure_process": "", "management_process": "" },
+    "communication_protocols": "",
+    "record_keeping": "",
+    "authorised_contact_officer": { "name": "", "title": "", "email": "", "phone": "" }
+  },
+  "evaluation_governance": {
+    "evaluation_committee": {
+      "members": [],
+      "chairperson": "",
+      "probity_advisor": "",
+      "secretariat": ""
+    },
+    "roles_and_responsibilities": {},
+    "meeting_procedures": "",
+    "quorum_requirements": ""
   },
   "evaluation_process": {
+    "overview": "",
+    "evaluation_stages": [],
+    "receipt_and_registration_of_tenders": "",
+    "compliance_check": "",
+    "clarifications": "",
+    "presentations_or_interviews": "",
+    "site_visits": "",
     "scoring_methodology": {
-      "scale": "0–5",
-      "definitions": "0=Not addressed, 5=Outstanding"
+      "scale": "",
+      "definitions": "",
+      "weightings": []
     }
   },
-  "evaluation_criteria": [
-    { "criterion": "Technical Compliance (HVAC)", "weighting": "35", "subcriteria": [
-      { "subcriterion": "Compliance to performance specs", "weighting": "20" },
-      { "subcriterion": "Energy efficiency & COP", "weighting": "10" },
-      { "subcriterion": "Controls / BMS integration", "weighting": "5" }
-    ]},
-    { "criterion": "Delivery & Methodology", "weighting": "25", "subcriteria": [] },
-    { "criterion": "Past Performance (HVAC)", "weighting": "15", "subcriteria": [] },
-    { "criterion": "WHS & Risk", "weighting": "10", "subcriteria": [] },
-    { "criterion": "Price", "weighting": "15", "subcriteria": [] }
-  ]
+  "evaluation_criteria": [],
+  "pricing": {
+    "model": "",
+    "local_preference_policy": {},
+    "value_for_money": "",
+    "interviews_and_presentations": ""
+  },
+  "decision_making": {
+    "consensus_process": "",
+    "recommendation_report": { "author": "", "content_requirements": "" },
+    "approval_authority": "",
+    "escalation_procedures": ""
+  },
+  "probity_requirements": {
+    "audit_trail": "",
+    "document_security": "",
+    "storage_and_disposal": "",
+    "confidentiality_agreements": ""
+  },
+  "appendices": []
 }

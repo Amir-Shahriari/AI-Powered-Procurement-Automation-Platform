@@ -1,16 +1,246 @@
 {
-  "instructions": {
-    "notes": "Provide all HVAC technical data sheets and BMS integration details.",
-    "attachments_policy": "Attach catalogues, performance curves and ITPs."
+  "meta": {
+    "document_type": "returnable_schedules",
+    "rft_title": "",
+    "contract_no": "",
+    "trim_file_no": "",
+    "tenderer_name": "",
+    "version": "",
+    "created_at": "",
+    "prepared_by": ""
   },
-  "schedule_9_service_delivery_performance": {
-    "capability_summary": {
-      "methodology_and_procedures": "Describe HVAC commissioning methodology and TAB plan."
+  "instructions": {
+    "notes": "",
+    "attachments_policy": "",
+    "pdf_requirement": null
+  },
+  "submission_checklist": {
+    "returnable_schedules": {
+      "schedule_1_corporate_information_and_declaration": false,
+      "schedule_2_financial_capacity": false,
+      "schedule_3_confidentiality_and_conflict_of_interest": false,
+      "schedule_4_key_personnel": false,
+      "schedule_5_insurance": false,
+      "schedule_6_previous_experience": false,
+      "schedule_7_current_council_clients": false,
+      "schedule_8_referees": false,
+      "schedule_9_delivery_performance": false,
+      "schedule_10_fee_structure": false,
+      "schedule_11_corporate_social_responsibility": false,
+      "schedule_12_sustainability": false,
+      "schedule_13_eeo_and_fair_employment": false,
+      "schedule_14_work_health_and_safety": false,
+      "schedule_15_modern_slavery": false,
+      "schedule_16_acknowledgement_of_addenda_and_declaration": false
+    },
+    "appendices": {
+      "appendix_1_whs051_5_contractor_whs_code_of_conduct": false,
+      "appendix_2_whs051_11_contractor_scope_of_works_requirements": false,
+      "appendix_3_whs051_8_subcontractor_statement": false,
+      "appendix_4_whs_pol_100_policy": false
+    },
+    "supporting_documents": {
+      "certificate_of_business_registration": false,
+      "insurance_certificates_of_currency": false,
+      "cvs_for_key_personnel": false,
+      "licences_tickets_registrations": false,
+      "financial_statements_last_3_years": false,
+      "third_party_accreditation_certificates": false,
+      "quality_management_policy_and_plan": false,
+      "inspection_and_testing_plans": false,
+      "whs_system_verification": false,
+      "whs_management_plan_policy_swms_checklists_forms": false,
+      "chain_of_responsibility_compliance": false,
+      "cor_verification_documents": false,
+      "environmental_policy_and_plan": false,
+      "eeo_policy_and_awards": false,
+      "other": []
     }
   },
+  "schedule_1_corporate_information_and_declaration": {
+    "company_details": {
+      "trading_name": "",
+      "legal_name": "",
+      "abn": "",
+      "acn": "",
+      "entity_type": "",
+      "trading_address": "",
+      "phone": "",
+      "fax": ""
+    },
+    "contact_details": {
+      "name": "",
+      "position": "",
+      "address": "",
+      "phone": "",
+      "mobile": "",
+      "email": ""
+    },
+    "declaration": {
+      "declarant": { "name": "", "address": "", "occupation": "" },
+      "authorised_to_declare": null,
+      "solvent": null,
+      "no_insolvency_event": null,
+      "no_conflict_of_interest_for_contract": null,
+      "accepts_conditions_of_tender_and_engagement": null,
+      "agrees_to_be_bound": null,
+      "response_type": "",
+      "alternative_response_reference": "",
+      "conflicts_declared_in_schedule_3": null,
+      "acknowledgements": {
+        "pi_insurance_requirements_accepted": null,
+        "liability_conditions_accepted": null
+      },
+      "confidentiality_commitments": {
+        "keep_information_confidential": null,
+        "use_information_only_for_contract": null,
+        "no_unauthorised_copy_or_release": null,
+        "no_public_release_without_consent": null
+      },
+      "industrial_relations_commitments": {
+        "good_industrial_record": null,
+        "subcontractor_undertakings": null
+      },
+      "electronic_signature_acknowledged": null,
+      "signature": { "name": "", "date": "" }
+    }
+  },
+  "schedule_2_financial_capacity": {
+    "financial_institution": {
+      "name": "",
+      "address": "",
+      "manager": "",
+      "phone": "",
+      "fax": "",
+      "term_of_engagement": "",
+      "overdraft_limit": ""
+    },
+    "accountant": {
+      "company": "",
+      "address": "",
+      "contact": "",
+      "phone": "",
+      "fax": "",
+      "term_of_engagement": ""
+    },
+    "financial_details_last_3_years": {
+      "annual_financial_statements_included": null,
+      "if_no_reason": ""
+    }
+  },
+  "schedule_3_confidentiality_and_conflict_of_interest": {
+    "confidentiality_basis": "",
+    "conflict_of_interest_statement": "",
+    "conflicts": [],
+    "guidance_acknowledged": null
+  },
+  "schedule_4_key_personnel": {
+    "people": [],
+    "cvs_attached": null
+  },
+  "schedule_5_insurance": {
+    "public_liability": { "insurer": "", "policy_amount": "", "certificate_attached": null },
+    "workers_compensation": { "insurer": "", "policy_amount": "", "no_of_workers_insured": "", "certificate_attached": null },
+    "professional_indemnity": { "insurer": "", "policy_amount": "", "certificate_attached": null },
+    "product_liability": { "insurer": "", "policy_amount": "", "certificate_attached": null },
+    "other_insurance": [],
+    "subcontractors_insurance": [],
+    "prepared_to_increase_cover_to_meet_requirements": null,
+    "liability_cap_note": ""
+  },
+  "schedule_6_previous_experience": {
+    "total_years_providing_required_services": "",
+    "years_for_state_or_local_government": "",
+    "projects": [],
+    "additional_projects_attachment_refs": []
+  },
+  "schedule_7_current_council_clients": { "clients": [] },
+  "schedule_8_referees": { "referees": [] },
+  "schedule_9_service_delivery_performance": {
+    "capability_summary": {
+      "licences_and_qualifications": "",
+      "principal_address": "",
+      "organisation_and_key_staff": "",
+      "resources": { "workforce_size": "", "plant_and_equipment": [], "suppliers_and_subcontractors": [] },
+      "quality_management_plan": "",
+      "inspection_and_testing_plan": "",
+      "accreditations": [],
+      "methodology_and_procedures": "",
+      "supporting_evidence_refs": []
+    },
+    "programme": {
+      "required_dates": "",
+      "milestones": [],
+      "non_negotiable_milestones": [],
+      "minimise_disruption_strategy": ""
+    },
+    "tender_questions": {}
+  },
   "schedule_10_fee_structure": {
-    "pricing_currency": "AUD",
-    "inclusions_notes": "Include commissioning, TAB and BMS integration.",
-    "exclusions_notes": "None unless clearly stated."
+    "pricing_currency": "",
+    "lump_sum_basis": null,
+    "gst_inclusive": null,
+    "validity_period_days": "",
+    "inclusions_notes": "",
+    "exclusions_notes": "",
+    "line_items": [],
+    "pricing_totals": { "subtotal_excl_gst": "", "gst": "", "total_incl_gst": "" }
+  },
+  "schedule_11_corporate_social_responsibility": { "csr_policy_or_plan_summary": "", "recent_initiative_example": "" },
+  "schedule_12_sustainability": { "sustainability_understanding": "", "organisational_practices_and_examples": "" },
+  "schedule_13_eeo_and_fair_employment": {
+    "policies": { "recruitment": {}, "training_and_development": {}, "equal_employment_opportunity": {}, "anti_discrimination": {}, "unionism": {}, "consultation": {}, "dispute_resolution": {}, "other": [] },
+    "management_representative": { "exists": null, "name": "", "phone_email": "" },
+    "wages_and_super_compliance": { "any_breaches": null, "breach_details_and_rectifications": "" },
+    "aboriginal_and_torres_strait_islander_employment": { "policy_exists": null, "staff_numbers_and_history": "", "contract_commitment_statement": "" },
+    "apprenticeships_and_traineeships": { "offered": null, "details": "" },
+    "other_relevant_skills_details": ""
+  },
+  "schedule_14_work_health_and_safety": {
+    "acknowledges_whs_policy_100": null,
+    "forms_required": {
+      "whs051_5_contractor_whs_code_of_conduct_completed": null,
+      "whs051_11_contractor_scope_of_works_requirements_completed": null,
+      "whs051_8_subcontractor_statement_completed": null
+    },
+    "verification_documents": {},
+    "injuries_and_incidents": {},
+    "training_records": {},
+    "risk_assessments": {},
+    "construction_work_whs": {},
+    "chain_of_responsibility": {}
+  },
+  "schedule_15_modern_slavery": {
+    "supplier_contact_details": {
+      "organisation_name": "",
+      "organisation_address": "",
+      "abn": "",
+      "parent_company": "",
+      "contact_person": "",
+      "contact_email": "",
+      "contact_phone": "",
+      "date_of_completion": "",
+      "declaration_true_and_correct": null
+    },
+    "reporting_under_modern_slavery_act": { "required_to_report": null, "statement_attached": null, "preparation_activities": "" },
+    "policies_related_to_human_rights_and_ethics": { "exists": null, "details": "" },
+    "internal_ms_risk_management": { "activities_exist": null, "details": "" },
+    "supply_chain_ms_risk_management": { "activities_exist": null, "details": "" },
+    "formal_supply_chain_risk_assessment": { "undertaken": null, "details": "" },
+    "training_on_modern_slavery": { "provided": null, "details": "" },
+    "countries_of_manufacture_and_raw_materials": []
+  },
+  "schedule_16_acknowledgement_of_addenda_and_declaration": {
+    "addenda": [],
+    "tenderer_declaration": {
+      "tenderer_name": "",
+      "occupation_or_role": "",
+      "offers_to_supply_per_rft_pricing_schedule": null,
+      "agrees_to_comply_with_tender_obligations": null,
+      "confirms_capacity_to_bid_no_restrictions": null,
+      "consents_to_council_checks": null,
+      "validity_period_days": ""
+    },
+    "signature": { "name": "", "date": "" }
   }
 }

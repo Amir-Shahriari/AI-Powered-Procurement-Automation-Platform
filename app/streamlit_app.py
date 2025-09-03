@@ -317,49 +317,63 @@ def _set_tepp_criteria(tepp: dict, rows: list[dict]) -> None:
 # Pages
 # ==========================
 def page_home():
-    # Centered page header (replaces st.title)
+    # Header
     st.markdown(
         '<div class="page-header"><h1>Before Advertisement</h1></div>',
         unsafe_allow_html=True
     )
 
-    # Category picker
-    cats = list_categories("tepp")  # show categories that at least have a TEPP template
-    default_cat = st.session_state.get("selected_category", "generic")
-    if default_cat not in cats:
-        default_cat = "generic"
-    selected_category = st.selectbox("Tender category", cats, index=cats.index(default_cat))
-    st.session_state.selected_category = selected_category
-    st.caption(f"Category: `{selected_category}`")
-
-    # Model picker (Ollama)
+    # Model source
     OLLAMA_URL = os.getenv("OLLAMA_BASE_URL", getattr(settings, "OLLAMA_BASE_URL", "http://localhost:11434"))
     if "ollama_models" not in st.session_state:
         st.session_state.ollama_models = list_ollama_models(OLLAMA_URL)
 
-    # One centered column for ALL controls (hero, select, refresh, continue)
+    # One centered column for all controls so widths match
     left, main, right = st.columns([1, 3, 1])
     with main:
-        # Hero text aligned with everything below
         st.markdown(
-            '<div class="hero-bg fade-in center"><h3>Please Select The AI You Want To Use</h3></div>',
+            '<div class="hero-bg fade-in center"><h3>Please Select The Tender Category & The AI You Want To Use</h3></div>',
             unsafe_allow_html=True
         )
 
+        # --- Category picker (moved here so it’s same width as the rest) ---
+        cats = list_categories("tepp")
+        default_cat = st.session_state.get("selected_category", "generic")
+        if default_cat not in cats:
+            default_cat = "generic"
+        selected_category = st.selectbox(
+            "Tender category",
+            cats,
+            index=cats.index(default_cat),
+            key="category_select",
+        )
+        st.session_state.selected_category = selected_category
+        st.caption(f"Category: `{selected_category}`")
+
+        # --- Model picker ---
         options = st.session_state.ollama_models or []
         if not options:
             st.warning("No models found from Ollama. Start `ollama serve` or pull a model, e.g., `ollama pull llama3.1`.")
             selected_model = st.text_input(
                 "Model (type manually)",
                 value=st.session_state.get("selected_model", "llama3.1:8b"),
+                key="manual_model",
             )
         else:
             prev = st.session_state.get("selected_model")
             default_index = options.index(prev) if prev in options else 0
-            selected_model = st.selectbox("Model", options, index=default_index, key="model_select")
+            selected_model = st.selectbox(
+                "Model",
+                options,
+                index=default_index,
+                key="model_select",
+            )
 
         st.session_state.selected_model = selected_model
-        st.markdown(f'<p class="center muted">Using model: <code>{selected_model}</code></p>', unsafe_allow_html=True)
+        st.markdown(
+            f'<p class="center muted">Using model: <code>{selected_model}</code></p>',
+            unsafe_allow_html=True
+        )
 
         st.write("")  # spacer
         if st.button("↻ Refresh models", key="refresh_models", use_container_width=True):
@@ -367,7 +381,7 @@ def page_home():
             st.rerun()
 
         st.write("")  # spacer
-        if st.button("Continue to Upload"):
+        if st.button("Continue to Upload", use_container_width=True):
             _nav_set("upload", {"model": st.session_state.selected_model, "category": selected_category})
 
 
