@@ -1,9 +1,10 @@
 ```markdown
+```
 # AI-Powered Procurement Automation Platform
 
 This project provides an **AI-driven procurement automation platform** designed to assist councils and organizations in generating, managing, and evaluating tender documents.  
 It integrates **FastAPI services** (for document processing, TEPP generation, supplier response ingestion, etc.) with a **Streamlit user interface** for an interactive, user-friendly workflow.
-
+```
 ---
 
 ## 📂 Project Structure
