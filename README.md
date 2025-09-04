@@ -8,7 +8,7 @@ It integrates **FastAPI services** (for document processing, TEPP generation, su
 
 ## 📂 Project Structure
 
-```
+
 
 AI-Powered-Procurement-Automation-Platform/
 │
@@ -109,6 +109,7 @@ pip install -r requirements.txt
 ## 📄 License
 
 MIT License
+
 
 
 
