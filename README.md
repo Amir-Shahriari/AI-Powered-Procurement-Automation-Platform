@@ -1,5 +1,3 @@
-Perfect — here’s the full **README.md** in pure Markdown format, ready to drop into your repo:
-
 ```markdown
 # AI-Powered Procurement Automation Platform
 
@@ -110,11 +108,8 @@ pip install -r requirements.txt
 
 ## 📄 License
 
-MIT License – feel free to use and adapt.
+MIT License
 
 ```
 
----
 
-Do you also want me to add a **Docker + docker-compose section** so you can spin up both Uvicorn and Streamlit with a single command?
-```
