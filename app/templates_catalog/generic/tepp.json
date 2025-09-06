@@ -7,63 +7,40 @@
     "version": "",
     "date": "",
     "prepared_by": "",
-    "approved_by": ""
+    "approved_by": "",
+    "term": "",
+    "notes": ""
   },
   "introduction": {
     "purpose": "",
     "background": "",
-    "objectives": "",
+    "objectives": [],
     "scope": "",
     "reference_documents": []
   },
   "probity": {
-    "principles": "",
-    "probity_advisor": {
-      "name": "",
-      "organisation": "",
-      "role": ""
-    },
+    "principles": [],
+    "probity_advisor": { "name": "", "organisation": "", "role": "" },
     "confidentiality_requirements": "",
-    "conflict_of_interest": {
-      "disclosure_process": "",
-      "management_process": ""
-    },
+    "conflict_of_interest": { "disclosure_process": "", "management_process": "" },
     "communication_protocols": "",
-    "record_keeping": ""
+    "record_keeping": "",
+    "authorised_contact_officer": { "name": "", "title": "", "email": "", "phone": "" }
   },
   "evaluation_governance": {
     "evaluation_committee": {
-      "members": [
-        {
-          "name": "",
-          "role": "",
-          "organisation": ""
-        }
-      ],
+      "members": [],
       "chairperson": "",
       "probity_advisor": "",
       "secretariat": ""
     },
-    "roles_and_responsibilities": {
-      "committee_members": "",
-      "chairperson": "",
-      "probity_advisor": "",
-      "secretariat": "",
-      "technical_advisors": ""
-    },
+    "roles_and_responsibilities": {},
     "meeting_procedures": "",
     "quorum_requirements": ""
   },
   "evaluation_process": {
     "overview": "",
-    "evaluation_stages": [
-      {
-        "stage_name": "",
-        "description": "",
-        "responsible_party": "",
-        "deliverables": ""
-      }
-    ],
+    "evaluation_stages": [],
     "receipt_and_registration_of_tenders": "",
     "compliance_check": "",
     "clarifications": "",
@@ -75,24 +52,16 @@
       "weightings": []
     }
   },
-  "evaluation_criteria": [
-    {
-      "criterion": "",
-      "weighting": "",
-      "subcriteria": [
-        {
-          "subcriterion": "",
-          "weighting": ""
-        }
-      ]
-    }
-  ],
+  "evaluation_criteria": [],
+  "pricing": {
+    "model": "",
+    "local_preference_policy": {},
+    "value_for_money": "",
+    "interviews_and_presentations": ""
+  },
   "decision_making": {
     "consensus_process": "",
-    "recommendation_report": {
-      "author": "",
-      "content_requirements": ""
-    },
+    "recommendation_report": { "author": "", "content_requirements": "" },
     "approval_authority": "",
     "escalation_procedures": ""
   },
@@ -102,11 +71,5 @@
     "storage_and_disposal": "",
     "confidentiality_agreements": ""
   },
-  "appendices": [
-    {
-      "appendix_title": "",
-      "content_reference": "",
-      "attachments": []
-    }
-  ]
+  "appendices": []
 }

@@ -1,42 +1,4 @@
-# This file originally contained HVAC‑specific prompting and hardcoded
-# subsections for a Tender Evaluation & Probity Plan (TEPP).  The
-# user asked to generalise the code so that it will work for any
-# domain/specification (e.g. air conditioning, truck procurement,
-# electrical works) without biasing the prompts toward AHU/HVAC.  In
-# addition to removing HVAC‑specific language from prompts and
-# queries, the following enhancements have been implemented:
-#
-# * Dynamic generation of technical subsection titles.  Instead of a
-#   fixed list of HVAC headings such as “Decommissioning & Removal”
-#   and “Electrical & Control Systems”, the new function
-#   `_gen_subsection_titles` asks the LLM (via `rag_json_plus`) to
-#   propose appropriate headings based on the current tender’s
-#   context.  This function returns a list of 4–6 concise titles
-#   reflecting the domain and stages of work described in the spec.
-#   A generic fallback is used only if no titles are returned.
-#
-# * Generic prompts for Section 2.  The `DESC_OVERVIEW_PROMPT` now
-#   instructs the model to summarise “the works” without listing
-#   HVAC items.  The `DESC_SUBSECTION_PROMPT_TMPL` similarly drops
-#   references to “HVAC AHU refurbishment” and instead asks for
-#   action‑oriented bullets suitable to the project’s scope.  The
-#   prompt continues to emphasise Australian context (AS/NZS,
-#   SafeWork NSW, etc.) but does not impose a particular domain.
-#
-# * Generalised search queries.  Functions `_gen_desc_overview` and
-#   `_gen_desc_subsection` no longer seed retrieval with terms like
-#   “scope summary ahu refurbishment” or “mechanical hvac”.  They
-#   query more generically on “scope summary” and the subsection
-#   title plus the tender name to let the vector store return
-#   domain‑appropriate fragments.
-#
-# * Avoidance of RAG scope leakage.  All retrievals now accept
-#   optional `extra_vss` and include the tender name and site as
-#   hints.  When using a shared vector store containing multiple
-#   specifications, it is recommended to provide `extra_vss` that
-#   contains only the vectors for the current document.  This, along
-#   with the domain‑agnostic prompts, minimises contamination from
-#   unrelated specifications.
+#app/services/compose/tepp.py
 
 from __future__ import annotations
 import calendar
@@ -163,6 +125,7 @@ CATEGORY_WEIGHT_RANGES: Dict[str, Dict[str, str]] = {
         "WHS": "0% to 10%",
     },
 }
+PURCHASE_CATEGORIES: List[str] = list(CATEGORY_WEIGHT_RANGES.keys())
 
 # =============================================================================
 # Section 1 & 2 prompts (schema-driven)
@@ -191,10 +154,6 @@ Guidance:
 Use ONLY the provided context where possible. If details are missing in context, use NSW/Australian council best practice.
 """
 
-# NOTE: The original overview prompt hard‑coded AHU/HVAC language.  It has been
-# replaced with a generic description.  The model will summarise "the works"
-# based on the retrieved context and hints, without biasing towards any
-# specific domain.
 DESC_OVERVIEW_PROMPT = """
 You draft Section 2 (Description of Requirement) OVERVIEW for a council TEPP.
 Provide:
@@ -203,12 +162,6 @@ Provide:
 Return STRICT JSON: { "overview": [string,...], "general": [string,...] }.
 """
 
-# NOTE: This template originally assumed a "construction HVAC AHU refurbishment scope".  The
-# new version makes no assumption about the domain.  The {title} placeholder
-# will be filled with an LLM‑generated subsection title reflecting the
-# specification’s domain.  The model is instructed to produce detailed,
-# actionable bullets appropriate to the project’s scope in the Australian
-# context.
 DESC_SUBSECTION_PROMPT_TMPL = """
 You draft Section 2 (Description of Requirement) – {title} for a council TEPP.
 Write a bullet list of detailed, specific, actionable items for {title}, suitable for the project's scope in NSW.
@@ -249,14 +202,6 @@ Return STRICT JSON: { "purpose_rft": [string, ...] }.
 def _gen_desc_overview(vs, tender_name: str, site_name: Optional[str], extra_vss=None):
     """
     Generate the overview and general requirements for the Description of Requirement.
-
-    The original implementation seeded retrieval with HVAC‑specific terms (e.g.,
-    "scope summary ahu refurbishment"), which caused the LLM to converge on
-    similar language even when the new specification belonged to a different
-    domain.  This function now uses generic queries and passes hints based on
-    the tender and site names.  To avoid cross‑document contamination, callers
-    should supply `extra_vss` containing vectors for only the current
-    specification.
     """
     hints = []
     if tender_name:
@@ -282,18 +227,12 @@ def _gen_desc_overview(vs, tender_name: str, site_name: Optional[str], extra_vss
 def _gen_subsection_titles(vs, tender_name: str, site_name: Optional[str] = None, extra_vss=None) -> List[str]:
     """
     Dynamically generate subsection titles for the technical requirements section.
-
-    The original code hard‑coded HVAC‑centric titles, which forced the LLM to
-    produce HVAC language irrespective of the input specification.  This
-    function asks the LLM to propose a list of titles appropriate to the
-    specification's domain and context.  It returns a list of strings.  If
-    generation fails or returns an empty list, a generic fallback is used.
     """
     base_prompt = """
     You are preparing the 'Technical Requirements' section of a Council Tender Evaluation & Probity Plan (TEPP).
     Based on the provided tender name and context, propose a list of 4 to 6 concise subsection titles that
     reflect the key stages or workstreams in the specification's scope (e.g., decommissioning, supply and installation,
-    electrical works, commissioning, maintenance).  Avoid HVAC‑specific language unless it is present in the context.
+    electrical works, commissioning, maintenance). Avoid domain bias unless present in the context.
     Return STRICT JSON: { "subsection_titles": [string, ...] }.
     """
     queries = [
@@ -306,7 +245,6 @@ def _gen_subsection_titles(vs, tender_name: str, site_name: Optional[str] = None
         titles = _as_list((out or {}).get("subsection_titles"))
     except Exception:
         titles = []
-    # Provide a generic fallback if no titles were generated
     if not titles:
         titles = [
             "Decommissioning & Removal",
@@ -321,12 +259,6 @@ def _gen_subsection_titles(vs, tender_name: str, site_name: Optional[str] = None
 def _gen_desc_subsection(vs, title: str, tender_name: str = "", site_name: Optional[str] = None, extra_vss=None):
     """
     Generate a bullet list for a specific technical subsection.
-
-    Queries have been generalised to avoid seeding HVAC‑specific terms.  The
-    tender and site names are included to focus retrieval on the current
-    specification.  If relevant context isn't found, the model may synthesize
-    based on the generic prompt.  The function returns a dict with 'title'
-    and 'bullets' fields.
     """
     queries = [
         f"{title} scope requirements",
@@ -385,11 +317,10 @@ def generate_section_aim(vs, tender_name: str, term_text: str, site_name: Option
 
 
 def generate_sections_1_2(vs, tender_name: str, term_text: str, site_name: Optional[str] = None, extra_vss=None) -> Dict[str, Any]:
-    """Orchestrate Section 1 & 2 generation with per‑subsection LLM calls."""
+    """Orchestrate Section 1 & 2 generation with per-subsection LLM calls."""
     aim = generate_section_aim(vs, tender_name=tender_name, term_text=term_text, site_name=site_name, extra_vss=extra_vss)
     ov = _gen_desc_overview(vs, tender_name, site_name, extra_vss=extra_vss)
 
-    # Dynamically determine subsection titles based on the specification
     subsection_titles = _gen_subsection_titles(vs, tender_name, site_name, extra_vss=extra_vss)
     technical_reqs = [_gen_desc_subsection(vs, t, tender_name, site_name, extra_vss=extra_vss) for t in subsection_titles]
 
@@ -441,7 +372,6 @@ Rules:
 - If no clear date, set commencement_date_text to null.
 - Add any short clarifying notes (e.g., dependencies/conditions) into notes.
 """
-
 
 def _fmt_date(d: date) -> str:
     return d.strftime("%d %b %Y")
@@ -597,7 +527,8 @@ def _parse_date_from_text(text: str) -> Optional[datetime]:
     return None
 
 
-def _fmt_date(dt: datetime) -> str:
+def _fmt_datetime(dt: datetime) -> str:
+    """Avoids shadowing the date-based _fmt_date()."""
     return f"{dt.day} {calendar.month_abbr[dt.month]} {dt.year}"
 
 
@@ -644,7 +575,7 @@ def _default_rationale_for(criterion: str, weight: str, parsed: Dict[str, Any]) 
     bits: List[str] = []
     c = (criterion or "").strip().lower()
     if c.startswith("price"):
-        bits.append("Price emphasised to deliver value for money on a high‑value construction.")
+        bits.append("Price emphasised to deliver value for money on a high-value construction.")
     if "relevant experience" in c:
         bits.append("Proven experience reduces delivery risk" + (" with BMCS integration." if rf.get("integration_risk") else "."))
     if "capability" in c and "management" not in c:
@@ -663,7 +594,7 @@ def _default_rationale_for(criterion: str, weight: str, parsed: Dict[str, Any]) 
             bits.append("Quality controls minimise rework and defects.")
     if "whs" in c or "work health & safety" in c:
         sc = rf.get("safety_criticality", 0)
-        bits.append("Safety‑critical activities demand strong WHS" + (f" (risk level {sc})." if sc else "."))
+        bits.append("Safety-critical activities demand strong WHS" + (f" (risk level {sc})." if sc else "."))
     if "sustainability" in c or "eeo" in c:
         bits.append("Council policy ties Sustainability/EEO to 10% of Price.")
     bits.append(f"Final weight used: {weight}.")
@@ -706,7 +637,7 @@ def _llm_weighting_decider(category: str,
     messages = [
         SystemMessage(content=(
             "You allocate tender evaluation weightings within strict policy ranges. "
-            "You must obey the ranges and explain the risk‑driven rationale. "
+            "You must obey the ranges and explain the risk-driven rationale. "
             "Return STRICT JSON only."
         )),
         HumanMessage(content=f"""Context:
@@ -776,7 +707,7 @@ Instructions:
 
     has_sust = cat_key in [
         "standard product or good",
-               "construction contract valued at over $249,999",
+        "construction contract valued at over $249,999",
         "consultancy contract valued at over $249,999",
         "service delivery contract valued at over $249,999",
     ]
@@ -854,12 +785,9 @@ def enrich_tepp_with_spec(tepp_json: Dict[str, Any],
     bmcs = parsed.get("bmcs", {})
     equip = parsed.get("equipment", {})
 
-    # Generate headline bits based on parsed equipment and integration.  These bits
-    # will appear in the summary of the description and are added only when
-    # relevant keys are present.  No HVAC‑specific defaults are injected.
     headline_bits = []
     if equip.get("chillers"):
-        headline_bits.append("Replacement/upgrade of water‑cooled heat pump chillers")
+        headline_bits.append("Replacement/upgrade of water-cooled heat pump chillers")
     if equip.get("coils", {}).get("evaporator_count") or equip.get("coils", {}).get("condenser_count"):
         headline_bits.append("AHU coil refurbishments")
     if equip.get("ec_fans", {}).get("count"):
@@ -907,7 +835,7 @@ def enrich_tepp_with_spec(tepp_json: Dict[str, Any],
         meth_lines.append("Provision for service/maintenance handover & schedules")
     meth["description"] = "; ".join([s for s in meth_lines if s])
 
-    qms_desc_bits = [(qms.get("description") or ""), "Quality plan incl. ITPs; as‑built docs; performance verification"]
+    qms_desc_bits = [(qms.get("description") or ""), "Quality plan incl. ITPs; as-built docs; performance verification"]
     qms["description"] = "; ".join(unique_keep_order([x for x in qms_desc_bits if x]))
     if whs:
         whs_c["mandatory"] = True
@@ -915,7 +843,7 @@ def enrich_tepp_with_spec(tepp_json: Dict[str, Any],
 
     vfm_list = _ensure_list_path(tepp_json, ["pricing", "value_for_money"])
     if maintenance or warranty_months:
-        vfm_list.append("Consider whole‑of‑life costs incl. maintenance and warranty obligations")
+        vfm_list.append("Consider whole-of-life costs incl. maintenance and warranty obligations")
     if equip.get("chillers"):
         vfm_list.append("Energy efficiency and control strategy for chillers/AHUs")
     tepp_json["pricing"]["value_for_money"] = unique_keep_order(vfm_list)
@@ -924,7 +852,7 @@ def enrich_tepp_with_spec(tepp_json: Dict[str, Any],
     def _risk(issue, consequence, action):
         risks.append({"issue": issue, "consequence": consequence, "action": action})
     if bmcs.get("integration"):
-        _risk("BMCS integration failure", "Loss of monitoring/control", "FAT; point‑to‑point I/O test; SAT with witness")
+        _risk("BMCS integration failure", "Loss of monitoring/control", "FAT; point-to-point I/O test; SAT with witness")
     if equip.get("ec_fans", {}).get("count"):
         _risk("EC fan performance shortfall", "Insufficient airflow/pressure", "Verify duty; commissioning with TAB report")
     if warranty_months:
@@ -956,7 +884,7 @@ def _build_section6_methodology_overview() -> str:
         "reproduced in this document, will evaluate all tenders. Compliance is generally taken to mean submission "
         "of the Tender by the closing date, in accordance with all lodgement instructions and provision of all "
         "information requested in the RFT (including any late tender provisions). Compliance criteria are not "
-        "scored or weighted; depending on the nature, extent and implications of partial or non‑compliance, a "
+        "scored or weighted; depending on the nature, extent and implications of partial or non-compliance, a "
         "Tender may be disqualified from further evaluation."
     )
 
@@ -975,7 +903,7 @@ def _build_section6_compliance_table() -> Dict[str, Any]:
             {"criterion": "Tenderer’s Statutory Declaration", "weight": "Nil"},
         ],
         "notes": [
-            "Compliance criteria are not scored or weighted. Non‑compliant tenders may be excluded from further evaluation."
+            "Compliance criteria are not scored or weighted. Non-compliant tenders may be excluded from further evaluation."
         ],
     }
 
@@ -987,7 +915,7 @@ def _build_section6_nonprice_rating_scale() -> List[Dict[str, Any]]:
         {"score": 3, "label": "Good", "description": "Reasonable achievement; errors/risks can be corrected with minimal effort."},
         {"score": 2, "label": "Adequate", "description": "Minimal achievement; issues possible to correct/overcome."},
         {"score": 1, "label": "Poor to Deficient", "description": "No/low achievement; numerous errors/risks/weaknesses."},
-        {"score": 0, "label": "Unacceptable", "description": "Totally deficient and non‑compliant."},
+        {"score": 0, "label": "Unacceptable", "description": "Totally deficient and non-compliant."},
     ]
 
 
@@ -1019,7 +947,6 @@ def _build_section7_blocks() -> Dict[str, Any]:
                     "Pw = Weighted Price Score",
                 ],
                 "formulae": [
-                    # IMPORTANT: match Council’s “spaced” style exactly if fed from policy docs at export time.
                     "Ps = 200 – (Pc / Pav × 100)",
                     "Pn = Ps / 200",
                     "Pw = Pn × (Price weighting)",
@@ -1056,7 +983,7 @@ def _build_section7_blocks() -> Dict[str, Any]:
             },
             "value_for_money": [
                 "‘Value for Money’ is assessed on the combined outcomes of qualitative criteria and price.",
-                "Consider quality of proposed services against whole‑of‑life costs and risk (capacity to deliver on‑time and on‑budget).",
+                "Consider quality of proposed services against whole-of-life costs and risk (capacity to deliver on-time and on-budget).",
             ],
         },
         "interviews_presentations": [
@@ -1064,7 +991,7 @@ def _build_section7_blocks() -> Dict[str, Any]:
             "in accordance with Section 6.4 Tenderer Presentations."
         ],
         "shortlisting_alternatives": [
-            "Where many tenders are received, clearly non‑competitive tenders with no reasonable prospect of best value "
+            "Where many tenders are received, clearly non-competitive tenders with no reasonable prospect of best value "
             "may be excluded from detailed evaluation. Reasons for exclusion must be defensible and recorded in the evaluation report."
         ],
         "alternative_tenders": [
@@ -1129,12 +1056,9 @@ def _assemble_section11_critical_dates(spec_summary: Any,
                                        vs_spec,
                                        extra_vss=None) -> List[str]:
     # For this TEPP flavour, force the Council wording if required by policy (keeps behaviour deterministic)
-    lines: List[str] = []
-    # If upstream feeds an exact Council line, prefer that:
     council_line = parsed.get("council_critical_line")
     if council_line:
         return [str(council_line).strip()]
-    # Default to the Council’s requirement noted in your checklist:
     return ["It is essential that the new contract be commenced by Aug 2025."]
 
 
@@ -1164,7 +1088,7 @@ _SECTION_ORDER = [
     "critical_dates",                   # 11
     "how_to_complete_tepp",             # 12
     "returnable_schedules",             # Annex/Appendix
-    "description",                      # Non‑numbered
+    "description",                      # Non-numbered
 ]
 
 
@@ -1335,6 +1259,10 @@ def compose_tepp(spec_summary: Any, parsed: Dict[str, Any], vs_spec, extra_vss: 
     em.pop("weighting_rationales_block", None)
     tepp.pop("weighting_rationales", None)
     tepp["evaluation_criteria"] = []
+    tepp.setdefault("meta", {})
+    tepp["meta"]["purchase_category_used"] = category
+    tepp["meta"]["ranges_used"] = ranges or {}
+
 
     # ---------- 6.2 Returnable Schedules Scoring ----------
     tepp.setdefault("tender_evaluation", {})
@@ -1369,7 +1297,6 @@ def compose_tepp(spec_summary: Any, parsed: Dict[str, Any], vs_spec, extra_vss: 
         vs_spec=vs_spec,
         extra_vss=extra_vss,
     )
-
 
     # ---------- FINAL order ----------
     tepp = _reorder_top_level(tepp)

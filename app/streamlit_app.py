@@ -2,21 +2,23 @@
 Streamlit user interface for generating tender documents.
 
 This app provides a clean, two-step UX:
-  1) Home: pick an Ollama model and tender category.
+  1) Home: pick an Ollama model, tender category, and purchase category.
   2) Upload: upload a spec, generate documents → redirect to Results.
   3) Results: view/edit the TEPP (with criteria table) and Returnables, and download DOCX.
 
 Run:
     streamlit run app/streamlit_app.py
 """
-import os, sys
-from pathlib import Path
-from typing import List, Dict
+import os
+import sys
 import uuid
 import json
 import subprocess
-import requests
+from pathlib import Path
+from typing import List, Dict, Optional
+
 import pandas as pd
+import requests
 import streamlit as st
 
 # --- Ensure the project root (parent of 'app') is on sys.path BEFORE importing app.* ---
@@ -43,6 +45,18 @@ from app.services.policy import scan_policy_files, extract_many, _build_ephemera
 from app.services.compose import compose_tepp, compose_returnable_schedules
 from app.services.docx_export import export_json_to_docx
 
+# NEW: bring in TEPP category ranges for the purchase category dropdown
+from app.services.compose.tepp import (
+    CATEGORY_WEIGHT_RANGES,
+    _llm_weighting_decider,
+    _extract_risk_factors,
+    _parse_percent,
+    _default_rationale_for,
+    _sanitize_llm_rationale,
+    _compose_sustainability_rationale,
+)
+
+PURCHASE_CATEGORIES: List[str] = list(CATEGORY_WEIGHT_RANGES.keys())
 
 # ---- Prompt (same as API) ----
 SPEC_SUMMARY_PROMPT = """You summarise government engineering tender specifications.
@@ -73,17 +87,14 @@ def _coerce_to_text(x) -> str:
         except Exception:
             return str(x)
     if isinstance(x, dict):
-        # Prefer common text keys if present
         for k in ("text", "content", "body", "value"):
             if k in x:
                 return _coerce_to_text(x[k])
-        # Fallback to JSON
         try:
             return json.dumps(x, ensure_ascii=False)
         except Exception:
             return str(x)
     if isinstance(x, (list, tuple)):
-        # Join lists of strings as lines
         try:
             return "\n".join(_coerce_to_text(i) for i in x)
         except Exception:
@@ -91,18 +102,17 @@ def _coerce_to_text(x) -> str:
     return str(x)
 
 
-def list_ollama_models(base_url: str) -> list[str]:
+def list_ollama_models(base_url: str) -> List[str]:
     """
     Return a list of model names available in the local Ollama registry.
-    Try REST first (/api/tags), then CLI. CLI fallback parses the default table
-    so it works on older Ollama versions without --format json.
+    Try REST first (/api/tags), then CLI. CLI fallback parses the default table.
     """
     # 1) REST
     try:
         resp = requests.get(f"{base_url.rstrip('/')}/api/tags", timeout=3)
         resp.raise_for_status()
         data = resp.json() or {}
-        models = []
+        models: List[str] = []
         for m in data.get("models", []):
             n = (m.get("name") or m.get("model") or "").strip()
             if n:
@@ -124,9 +134,9 @@ def list_ollama_models(base_url: str) -> list[str]:
     try:
         out = subprocess.check_output(["ollama", "list"], text=True, timeout=3)
         lines = [ln.strip() for ln in out.splitlines() if ln.strip()]
-        if lines and lines[0].lower().startswith("name"):  # header
+        if lines and lines[0].lower().startswith("name"):
             lines = lines[1:]
-        models = []
+        models: List[str] = []
         for ln in lines:
             parts = ln.split()
             if parts:
@@ -136,7 +146,7 @@ def list_ollama_models(base_url: str) -> list[str]:
         return []
 
 
-def _generate_documents(file_path: Path, model: str) -> Dict[str, Dict]:
+def _generate_documents(file_path: Path, model: str, purchase_category: Optional[str] = None) -> Dict[str, Dict]:
     """Core pipeline: extract → index → summarise/parse → compose TEPP/Returnables."""
     doc_id = str(uuid.uuid4())
     suffix = file_path.suffix or ".bin"
@@ -151,7 +161,7 @@ def _generate_documents(file_path: Path, model: str) -> Dict[str, Dict]:
         raise ValueError("Could not read text from the document.")
 
     # 2) Build vector store
-    chs = chunks(text)  # expects a str; now guaranteed
+    chs = chunks(text)
     build_index(doc_id, chs)
     vs = get_vs(doc_id)
 
@@ -177,7 +187,11 @@ def _generate_documents(file_path: Path, model: str) -> Dict[str, Dict]:
 
         parsed = parse_spec(text)
 
-        # 4) Optional policies → ephemeral VS (coerce each to str)
+        # Inject UI-selected purchase category (if provided)
+        if purchase_category and isinstance(purchase_category, str):
+            parsed["purchase_category"] = purchase_category
+
+        # 4) Optional policies → ephemeral VS
         policy_files = scan_policy_files()
         policy_texts = extract_many(policy_files)
         policy_chunks: List[str] = []
@@ -192,6 +206,12 @@ def _generate_documents(file_path: Path, model: str) -> Dict[str, Dict]:
         tepp = compose_tepp(spec_summary, parsed, vs, [vs_policy] if vs_policy else None)
         returnables = compose_returnable_schedules(spec_summary, parsed, non_negotiable_date=None)
 
+        # Persist meta for transparency
+        cat_key = (parsed.get("purchase_category") or "construction contract valued at over $249,999").strip().lower()
+        tepp.setdefault("meta", {})
+        tepp["meta"]["purchase_category_used"] = cat_key
+        tepp["meta"]["ranges_used"] = CATEGORY_WEIGHT_RANGES.get(cat_key, {})
+
         return {
             "spec_summary": spec_summary.model_dump(),
             "parsed": parsed,
@@ -204,7 +224,6 @@ def _generate_documents(file_path: Path, model: str) -> Dict[str, Dict]:
 
 def _inject_css():
     """Read and inject external CSS file."""
-    # default location: app/ui/theme.css (sibling folder `ui` next to this file)
     default_path = Path(__file__).parent / "ui" / "theme.css"
     css_path_str = os.getenv("APP_THEME_CSS", str(default_path))
     css_path = Path(css_path_str)
@@ -215,10 +234,9 @@ def _inject_css():
         st.warning(f"Could not read CSS at {css_path}: {e}")
 
 
-def _nav_set(view: str, extra: Dict[str, str] | None = None):
+def _nav_set(view: str, extra: Optional[Dict[str, str]] = None):
     """Set view in query params and trigger rerun."""
     payload = dict(st.query_params)
-    # Flatten list values from previous state
     for k, v in list(payload.items()):
         if isinstance(v, list) and v:
             payload[k] = v[0]
@@ -233,30 +251,32 @@ def _nav_set(view: str, extra: Dict[str, str] | None = None):
 def _pretty(label: str) -> str:
     return label.replace("_", " ").replace("-", " ").title()
 
+
 def _is_uniform_dict_list(xs: list) -> bool:
     if not xs or not all(isinstance(x, dict) for x in xs):
         return False
     keys = [tuple(sorted(x.keys())) for x in xs if isinstance(x, dict)]
     return len(set(keys)) == 1
 
-def _edit_table(records: list[dict], key: str, caption: str | None = None) -> list[dict]:
+
+def _edit_table(records: List[Dict], key: str, caption: Optional[str] = None) -> List[Dict]:
     df = pd.DataFrame(records) if records else pd.DataFrame([{}])
     edited = st.data_editor(
         df,
         key=key,
         num_rows="dynamic",
-        use_container_width=True,
         hide_index=True,
     )
     if caption:
         st.caption(caption)
     return edited.to_dict(orient="records")
 
+
 def _edit_scalar(label: str, value, key: str):
     if isinstance(value, bool):
         return st.checkbox(label, value=value, key=key)
-    # keep everything else stringly-typed (safer for downstream)
     return st.text_input(label, value="" if value is None else str(value), key=key)
+
 
 def _render_form(obj, key_prefix: str = ""):
     """
@@ -285,7 +305,6 @@ def _render_form(obj, key_prefix: str = ""):
     if isinstance(obj, list):
         if _is_uniform_dict_list(obj):
             return _edit_table(obj, key=f"{key_prefix}.table")
-        # fallback: free JSON editor for mixed/simple lists
         text = st.text_area(
             _pretty(key_prefix or "List"),
             value=json.dumps(obj, indent=2, ensure_ascii=False),
@@ -298,19 +317,132 @@ def _render_form(obj, key_prefix: str = ""):
             st.warning("Invalid JSON in list editor; keeping previous value.")
             return obj
 
-    # scalars
     return _edit_scalar(_pretty(key_prefix or "Value"), obj, key_prefix)
 
-def _get_tepp_criteria(tepp: dict) -> list[dict]:
+
+def _get_tepp_criteria(tepp: dict) -> List[Dict]:
     return (
         tepp.get("tender_evaluation", {})
-            .get("evaluation_methodology", {})
-            .get("required_criteria_table", [])
+        .get("evaluation_methodology", {})
+        .get("required_criteria_table", [])
     )
 
-def _set_tepp_criteria(tepp: dict, rows: list[dict]) -> None:
-    tepp.setdefault("tender_evaluation", {})\
+
+def _set_tepp_criteria(tepp: dict, rows: List[Dict]) -> None:
+    tepp.setdefault("tender_evaluation", {}) \
         .setdefault("evaluation_methodology", {})["required_criteria_table"] = rows
+
+
+def _dynamic_caption_for_category(category_key_lower: str) -> str:
+    mapping = {
+        "standard product or good": "Evaluation Criteria for standard products/goods ($250k+).",
+        "construction contract valued at over $249,999": "Evaluation Criteria for construction contracts ($250k+).",
+        "consultancy contract valued at over $249,999": "Evaluation Criteria for consultancy contracts ($250k+).",
+        "service delivery contract valued at over $249,999": "Evaluation Criteria for service delivery contracts ($250k+).",
+        "management contract valued at over $249,999": "Evaluation Criteria for management contracts ($250k+).",
+        "lease / license valued at over $249,999": "Evaluation Criteria for lease/licence ($250k+).",
+    }
+    return mapping.get(category_key_lower, "Evaluation Criteria.")
+
+
+def _recompute_weights_inplace(tepp: dict, parsed: dict, category_key_lower: str) -> None:
+    """Rebuild the Required Criteria table using the current purchase category + parsed features."""
+    ranges = CATEGORY_WEIGHT_RANGES.get(category_key_lower) or {}
+    risk_factors = _extract_risk_factors(parsed or {})
+    table_rows: List[Dict[str, str]] = []
+    price_weight_float: Optional[float] = None
+
+    llm_out = _llm_weighting_decider(category_key_lower, ranges, risk_factors) if ranges else None
+    if llm_out and isinstance(llm_out.get("weights"), dict):
+        ordered_crits = [
+            "Price (Full Cost)",
+            "Relevant Experience",
+            "Capability",
+            "Management & Financial Capacity",
+            "Quality Management",
+            "WHS",
+            "Sustainability and EEO & Fair Employment",
+        ]
+        weights_map = llm_out["weights"]
+        raw_rationales = llm_out.get("rationales", {}) or {}
+        crits = [c for c in ordered_crits if c in weights_map] + [c for c in weights_map if c not in ordered_crits]
+        for c in crits:
+            w = f"{weights_map[c]}%"
+            if c == "Price (Full Cost)":
+                price_weight_float = _parse_percent(w)
+            r = _sanitize_llm_rationale(raw_rationales.get(c, "")) or _default_rationale_for(c, w, parsed)
+            if c == "Sustainability and EEO & Fair Employment":
+                r = _compose_sustainability_rationale(w, price_weight_float)
+            table_rows.append({"criterion": c, "weight": w, "rationale": r})
+    else:
+        import re as _re
+
+        def _parse_range(range_str: str):
+            if not range_str:
+                return None
+            m = _re.match(r"\s*(\d+(?:\.\d+)?)%?\s*to\s*(\d+(?:\.\d+)?)%?", str(range_str).lower())
+            if m:
+                return float(m.group(1)), float(m.group(2))
+            m2 = _re.match(r"\s*(\d+(?:\.\d+)?)%", str(range_str).lower())
+            if m2:
+                v = float(m2.group(1)); return v, v
+            return None
+
+        mids: Dict[str, float] = {}
+        for crit, rg in (ranges or {}).items():
+            pr = _parse_range(rg)
+            if pr:
+                mids[crit] = (pr[0] + pr[1]) / 2.0
+
+        price = mids.get("Price (Full Cost)")
+        sust_applies = category_key_lower in [
+            "standard product or good",
+            "construction contract valued at over $249,999",
+            "consultancy contract valued at over $249,999",
+            "service delivery contract valued at over $249,999",
+        ]
+        sust = (price * 0.10) if (sust_applies and price is not None) else 0.0
+
+        others = {k: v for k, v in mids.items() if k != "Price (Full Cost)"}
+        if sust > 0:
+            others["Sustainability and EEO & Fair Employment"] = sust
+
+        rem = 100.0 - (price or 0.0) - (sust if sust > 0 else 0.0)
+        base_other_sum = sum(v for k, v in others.items() if k != "Sustainability and EEO & Fair Employment")
+        scaled: Dict[str, float] = {}
+
+        if base_other_sum > 0:
+            scale = rem / base_other_sum if base_other_sum else 1.0
+            for k, v in others.items():
+                if k != "Sustainability and EEO & Fair Employment":
+                    scaled[k] = v * scale
+            if sust > 0:
+                scaled["Sustainability and EEO & Fair Employment"] = sust
+
+        all_keys = ["Price (Full Cost)"] + list(scaled.keys())
+        rounded = {k: round(((price or 0.0) if k == "Price (Full Cost)" else scaled[k]), 1) for k in all_keys}
+        diff = round(100.0 - sum(rounded.values()), 1)
+        adjustable = [k for k in rounded if k not in ["Price (Full Cost)", "Sustainability and EEO & Fair Employment"] and rounded[k] > 0]
+        if abs(diff) > 0 and (adjustable or rounded):
+            target_key = adjustable[-1] if adjustable else (all_keys[-1] if all_keys else None)
+            if target_key:
+                rounded[target_key] = round(rounded[target_key] + diff, 1)
+
+        for c, wv in rounded.items():
+            w = f"{wv}%"
+            if c == "Price (Full Cost)":
+                price_weight_float = _parse_percent(w)
+            r = _default_rationale_for(c, w, parsed)
+            if c == "Sustainability and EEO & Fair Employment":
+                r = _compose_sustainability_rationale(w, price_weight_float)
+            table_rows.append({"criterion": c, "weight": w, "rationale": r})
+
+    em = tepp.setdefault("tender_evaluation", {}).setdefault("evaluation_methodology", {})
+    em["required_criteria_table"] = table_rows
+    em["required_criteria_caption"] = _dynamic_caption_for_category(category_key_lower)
+    tepp.setdefault("meta", {})
+    tepp["meta"]["purchase_category_used"] = category_key_lower
+    tepp["meta"]["ranges_used"] = CATEGORY_WEIGHT_RANGES.get(category_key_lower, {})
 
 
 # ==========================
@@ -332,23 +464,38 @@ def page_home():
     left, main, right = st.columns([1, 3, 1])
     with main:
         st.markdown(
-            '<div class="hero-bg fade-in center"><h3>Please Select The Tender Category & The AI You Want To Use</h3></div>',
+            '<div class="hero-bg fade-in center"><h3>Please Select The Tender Category, Purchase Category & AI</h3></div>',
             unsafe_allow_html=True
         )
 
-        # --- Category picker (moved here so it’s same width as the rest) ---
+        # --- Category picker (template bucket) ---
         cats = list_categories("tepp")
         default_cat = st.session_state.get("selected_category", "generic")
         if default_cat not in cats:
             default_cat = "generic"
         selected_category = st.selectbox(
-            "Tender category",
+            "Tender category (template)",
             cats,
             index=cats.index(default_cat),
             key="category_select",
+            help="Controls which TEPP/Returnables template is merged.",
         )
         st.session_state.selected_category = selected_category
-        st.caption(f"Category: `{selected_category}`")
+        st.caption(f"Template category: `{selected_category}`")
+
+        # --- Purchase category (drives evaluation weighting ranges) ---
+        default_purchase = st.session_state.get("purchase_category", "construction contract valued at over $249,999")
+        if default_purchase not in PURCHASE_CATEGORIES:
+            default_purchase = "construction contract valued at over $249,999"
+        selected_purchase_category = st.selectbox(
+            "Purchase category (for evaluation weighting)",
+            PURCHASE_CATEGORIES,
+            index=PURCHASE_CATEGORIES.index(default_purchase),
+            key="purchase_category_select",
+            help="Used to choose policy ranges for the evaluation criteria weighting.",
+        )
+        st.session_state.purchase_category = selected_purchase_category
+        st.caption(f"Weighting will use: `{selected_purchase_category}`")
 
         # --- Model picker ---
         options = st.session_state.ollama_models or []
@@ -368,7 +515,6 @@ def page_home():
                 index=default_index,
                 key="model_select",
             )
-
         st.session_state.selected_model = selected_model
         st.markdown(
             f'<p class="center muted">Using model: <code>{selected_model}</code></p>',
@@ -376,18 +522,25 @@ def page_home():
         )
 
         st.write("")  # spacer
-        if st.button("↻ Refresh models", key="refresh_models", use_container_width=True):
+        if st.button("↻ Refresh models", key="refresh_models"):
             st.session_state.ollama_models = list_ollama_models(OLLAMA_URL)
             st.rerun()
 
         st.write("")  # spacer
-        if st.button("Continue to Upload", use_container_width=True):
-            _nav_set("upload", {"model": st.session_state.selected_model, "category": selected_category})
+        if st.button("Continue to Upload"):
+            _nav_set("upload", {
+                "model": st.session_state.selected_model,
+                "category": selected_category,
+                "purchase_category": selected_purchase_category
+            })
 
 
 def page_upload():
     st.title("Upload Specification")
-    st.markdown('<div class="card fade-in">Upload your technical specification file. After generation you will be redirected to the results page.</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="card fade-in">Upload your technical specification file. After generation you will be redirected to the results page.</div>',
+        unsafe_allow_html=True
+    )
 
     uploaded_file = st.file_uploader(
         "Technical specification",
@@ -410,7 +563,11 @@ def page_upload():
 
         with st.spinner("Generating documents, please wait…"):
             try:
-                outputs = _generate_documents(temp_path, st.session_state.get("selected_model", "llama3.1:8b"))
+                outputs = _generate_documents(
+                    temp_path,
+                    st.session_state.get("selected_model", "llama3.1:8b"),
+                    purchase_category=st.session_state.get("purchase_category")
+                )
             except Exception as exc:
                 st.error(f"An error occurred during generation: {exc}")
                 return
@@ -422,10 +579,10 @@ def page_upload():
         # Apply category templates (deep-merge)
         selected_category = st.session_state.get("selected_category", "generic")
         tepp_tmpl = load_category_template("tepp", selected_category)
-        ret_tmpl  = load_category_template("returnable_schedules", selected_category)
+        ret_tmpl = load_category_template("returnable_schedules", selected_category)
 
         merged_tepp = deep_merge(tepp_tmpl, outputs["tepp"])
-        merged_ret  = deep_merge(ret_tmpl, outputs["returnables"])
+        merged_ret = deep_merge(ret_tmpl, outputs["returnables"])
 
         st.session_state["tepp"] = merged_tepp
         st.session_state["returnables"] = merged_ret
@@ -440,6 +597,9 @@ def page_results():
     tepp = st.session_state.get("tepp") or {}
     returnables = st.session_state.get("returnables") or {}
     spec_summary = st.session_state.get("spec_summary") or {}
+    parsed = st.session_state.get("parsed") or {}
+    chosen_purchase_category = st.session_state.get("purchase_category", "construction contract valued at over $249,999")
+    chosen_key = (chosen_purchase_category or "").strip().lower()
 
     tabs = st.tabs(["TEPP", "Returnables", "Raw JSON"])
     # ---------------- TEPP ----------------
@@ -448,14 +608,19 @@ def page_results():
 
         # ---- Overview (nice fields) ----
         with t1:
+            st.info(f"Purchase category used for evaluation weighting: **{chosen_purchase_category}**")
+            meta_ranges = (tepp.get("meta", {}) or {}).get("ranges_used", {})
+            with st.expander("Show policy ranges used", expanded=False):
+                st.json(meta_ranges)
+
             col1, col2 = st.columns(2)
             with col1:
                 tepp_title = st.text_input("Title", value=tepp.get("title") or spec_summary.get("title") or "")
-                tender_no  = st.text_input("Tender No.", value=tepp.get("tender_no", ""))
-                contract_no= st.text_input("Contract No.", value=tepp.get("contract_no", ""))
+                tender_no = st.text_input("Tender No.", value=tepp.get("tender_no", ""))
+                contract_no = st.text_input("Contract No.", value=tepp.get("contract_no", ""))
             with col2:
-                closing    = st.text_input("Closing Date/Time", value=tepp.get("closing_datetime", ""))
-                location   = st.text_input("Location / Site", value=tepp.get("location", ""))
+                closing = st.text_input("Closing Date/Time", value=tepp.get("closing_datetime", ""))
+                location = st.text_input("Location / Site", value=tepp.get("location", ""))
 
             c1, c2, c3 = st.columns(3)
             contact = tepp.get("contact", {}) or {}
@@ -478,9 +643,21 @@ def page_results():
 
         # ---- Evaluation Criteria (editable table) ----
         with t2:
+            st.caption("Re-run weighting strictly within policy ranges for the current purchase category.")
+            if st.button("Recompute weights from purchase category", key="recalc_weights"):
+                parsed["purchase_category"] = st.session_state.get("purchase_category", chosen_purchase_category)
+                _recompute_weights_inplace(tepp, parsed, (parsed.get("purchase_category") or "").strip().lower())
+                st.session_state["parsed"] = parsed
+                st.session_state["tepp"] = tepp
+                st.success("Weights recomputed from the current purchase category.")
+
+            em = tepp.setdefault("tender_evaluation", {}).setdefault("evaluation_methodology", {})
+            em["required_criteria_caption"] = _dynamic_caption_for_category(chosen_key)
+
             rows = _get_tepp_criteria(tepp)
             edited_rows = _edit_table(
-                rows, key="criteria_editor",
+                rows,
+                key="criteria_editor",
                 caption="Tip: add/remove rows; all cells are editable. Columns like weight can include % symbols."
             )
             if st.button("Save Criteria", key="save_criteria"):
@@ -502,9 +679,13 @@ def page_results():
             if st.button("Download TEPP (DOCX)", key="dl_tepp"):
                 docx_path = export_json_to_docx(st.session_state["tepp"], "Tender Evaluation & Probity Plan")
                 with open(docx_path, "rb") as f:
-                    st.download_button("Download TEPP", f.read(), file_name="tepp.docx",
-                                       mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                                       key="dlbtn_tepp")
+                    st.download_button(
+                        "Download TEPP",
+                        f.read(),
+                        file_name="tepp.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        key="dlbtn_tepp"
+                    )
         with cB:
             if st.button("Back to Home", key="home_btn"):
                 _nav_set("home")
@@ -515,7 +696,6 @@ def page_results():
             st.info("No Returnables found.")
         else:
             st.caption("Each schedule opens in its own section. Edit fields/tables directly.")
-            # Render top-level dict as expanders
             edited_returnables = {}
             for sched_name, sched_data in returnables.items():
                 with st.expander(_pretty(sched_name), expanded=False):
@@ -529,9 +709,13 @@ def page_results():
             if st.button("Download Returnables (DOCX)", key="dl_returnables"):
                 docx_path = export_json_to_docx(st.session_state["returnables"], "Returnable Schedules")
                 with open(docx_path, "rb") as f:
-                    st.download_button("Download Returnables", f.read(), file_name="returnables.docx",
-                                       mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                                       key="dlbtn_ret")
+                    st.download_button(
+                        "Download Returnables",
+                        f.read(),
+                        file_name="returnables.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        key="dlbtn_ret"
+                    )
 
     # ---------------- Raw JSON (for power users) ----------------
     with tabs[2]:
@@ -569,12 +753,20 @@ def main():
     if isinstance(view, list):
         view = view[0]
 
+    # Persist purchase category from query params (optional)
+    pc = qp.get("purchase_category", None)
+    if isinstance(pc, list):
+        pc = pc[0]
+    if pc:
+        st.session_state.purchase_category = pc
+
     if view == "home":
         page_home()
     elif view == "upload":
         page_upload()
     else:
         page_results()
+
 
 if __name__ == "__main__":
     main()
