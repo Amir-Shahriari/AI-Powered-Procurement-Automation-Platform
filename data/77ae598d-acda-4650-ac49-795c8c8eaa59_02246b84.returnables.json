@@ -1,0 +1,857 @@
+{
+  "reference_checklist": {
+    "schedules": [
+      {
+        "schedule": "Schedule 1",
+        "title": "Corporate information & Declaration"
+      },
+      {
+        "schedule": "Schedule 2",
+        "title": "Financial capacity"
+      },
+      {
+        "schedule": "Schedule 3",
+        "title": "Confidentiality and Conflict of Interest"
+      },
+      {
+        "schedule": "Schedule 4",
+        "title": "Key personnel"
+      },
+      {
+        "schedule": "Schedule 5",
+        "title": "Insurance"
+      },
+      {
+        "schedule": "Schedule 6",
+        "title": "Previous experience"
+      },
+      {
+        "schedule": "Schedule 7",
+        "title": "Current council clients"
+      },
+      {
+        "schedule": "Schedule 8",
+        "title": "Referees"
+      },
+      {
+        "schedule": "Schedule 9",
+        "title": "Service delivery & performance"
+      },
+      {
+        "schedule": "Schedule 10",
+        "title": "Fee structure"
+      },
+      {
+        "schedule": "Schedule 11",
+        "title": "Corporate social responsibility"
+      },
+      {
+        "schedule": "Schedule 12",
+        "title": "Sustainability"
+      },
+      {
+        "schedule": "Schedule 13",
+        "title": "Equal employment opportunity & fair employment"
+      },
+      {
+        "schedule": "Schedule 14",
+        "title": "Work, health & safety"
+      },
+      {
+        "schedule": "Schedule 15",
+        "title": "Modern slavery questionnaire"
+      },
+      {
+        "schedule": "Schedule 16",
+        "title": "Acknowledgement of addenda & Tenderer\u2019s declaration"
+      }
+    ],
+    "supporting_documents": [
+      "Certificates of incorporation/registration",
+      "Insurance certificates of currency",
+      "Third\u2011party accreditation certificates",
+      "Curriculum vitae/licences for key personnel",
+      "Quality management plans and inspection test plans",
+      "WHS manuals, policies, sample checklists and forms",
+      "Environmental management plans",
+      "EEO policy documents",
+      "Financial statements",
+      "Product catalogues/technical sheets",
+      "Draft layout diagrams",
+      "Warranty terms and conditions"
+    ]
+  },
+  "instructions": [
+    "Use the provided templates to complete the required Schedules.",
+    "Provide the requested information using the DOCX file and submit as a PDF.",
+    "If a schedule does not have enough space, include the information in a separate attachment and reference it in the schedule.",
+    "Unless otherwise stated, all documents (schedules and supporting documents) must be submitted in PDF format.",
+    "Prices in Schedule\u00a010 must be clear and unambiguous; replace zero/blank with 'included' or 'excluded' and provide an explanation if necessary. Council may reject tenders with ambiguous pricing."
+  ],
+  "schedule_11_corporate_social_responsibility": {
+    "csr_policy_or_plan_summary": "Carrier may donate funds, property, products, and services to reputable philanthropic organizations when provided openly and transparently for Philanthropic Purposes in approved focus areas.",
+    "recent_initiative_example": "Carrier may donate funds, property, products, and services to reputable philanthropic organizations when provided openly and transparently for Philanthropic Purposes in approved focus areas."
+  },
+  "schedule_8_referees": {
+    "referees": []
+  },
+  "schedule_5_insurance": {
+    "public_liability": {
+      "insurer": "$20,000,000.00",
+      "policy_amount": "$20,000,000.00",
+      "certificate_attached": "$20,000,000.00"
+    },
+    "workers_compensation": {
+      "insurer": "$8,891,324.00",
+      "policy_amount": "$8,891,324.00",
+      "no_of_workers_insured": "52",
+      "certificate_attached": "Yes"
+    },
+    "professional_indemnity": {
+      "insurer": "$10M",
+      "policy_amount": "$10,000,000",
+      "certificate_attached": "$10M"
+    },
+    "product_liability": {
+      "insurer": "$20,000,000.00",
+      "policy_amount": "$20,000,000.00",
+      "certificate_attached": "$20,000,000.00"
+    },
+    "other_insurance": [],
+    "subcontractors_insurance": [],
+    "prepared_to_increase_cover_to_meet_requirements": "$10 million",
+    "liability_cap_note": "$10,000,000"
+  },
+  "schedule_15_modern_slavery": {
+    "supplier_contact_details": {
+      "organisation_name": "Carrier Australia Pty Ltd",
+      "organisation_address": "Building F, Unit 1A,3-29 Birnie Ave, Lidcombe NSW 2141",
+      "abn": "Carrier Australia Pty Ltd",
+      "parent_company": "Joel Sayed",
+      "contact_person": "Joel Sayed",
+      "contact_email": "Joel.sayed@carriercom",
+      "contact_phone": "0429 210 574",
+      "date_of_completion": "17/06/2025",
+      "declaration_true_and_correct": "Yes"
+    },
+    "reporting_under_modern_slavery_act": {
+      "required_to_report": "Yes",
+      "statement_attached": "See attached.",
+      "preparation_activities": "Carrier Australia has considered the extent to which it may contribute to, cause or be linked to modern slavery risks in its operations and supply chains."
+    },
+    "policies_related_to_human_rights_and_ethics": {
+      "exists": "Yes",
+      "details": "Carrier Global has a Human Rights Policy based on American law to ensure modern slavery obligations fit consistently across all areas of international operations, including Australia."
+    },
+    "internal_ms_risk_management": {
+      "activities_exist": "Yes",
+      "details": "Carrier Australia assesses the risk of modern slavery as low both within its own operations and its supply of goods from entities controlled by Carrier Global or Carrier Australia."
+    },
+    "supply_chain_ms_risk_management": {
+      "activities_exist": "Yes",
+      "details": "Carrier Australia has considered the extent to which it may contribute to, cause or be linked to modern slavery risks in its operations and supply chains. Actions to date [CTX 3] ... As stated above, Carrier Australia assesses the risk of modern slavery as low both within its own operations and its supply of goods from entities controlled by Carrier Global or Carrier Australia. As to the provision of good and services sourced from within Australia from non-Carrier Australia businesses, Carrier Australi present a low risk of modern slavery. [CTX 4]"
+    },
+    "formal_supply_chain_risk_assessment": {
+      "undertaken": "Has your organisation formally undertaken a modern slavery risk assessment for your supply chain? Yes No If yes, please provide details. See attached.",
+      "details": "Carrier Australia has considered the extent to which it may contribute to, cause or be linked to modern slavery risks in its operations and supply chains."
+    },
+    "training_on_modern_slavery": {
+      "provided": "Yes",
+      "details": "Yes"
+    },
+    "countries_of_manufacture_and_raw_materials": []
+  },
+  "schedule_2_financial_capacity": {
+    "financial_institution": {
+      "name": "Westpac Banking Corporation",
+      "address": "",
+      "manager": "null",
+      "phone": "13 20 32",
+      "fax": "13 20 32",
+      "term_of_engagement": "3 + years",
+      "overdraft_limit": ""
+    },
+    "accountant": {
+      "company": "$1,903,122",
+      "address": "",
+      "contact": "Paulo Dalaota",
+      "phone": "13 20 32",
+      "fax": "13 20 32",
+      "term_of_engagement": "1 Year"
+    },
+    "financial_details_last_3_years": {
+      "annual_financial_statements_included": "Yes",
+      "if_no_reason": "1,230,821"
+    }
+  },
+  "schedules": [
+    {
+      "schedule": "Schedule 1",
+      "title": "Corporate Information & Declaration",
+      "sections": [
+        {
+          "heading": "Company Details",
+          "fields": [
+            "Legal Name (as per ASIC)",
+            "Trading Name",
+            "ABN/ACN",
+            "Entity Type (e.g., Pty Ltd, Partnership, Sole Trader)",
+            "Registered Address",
+            "Trading Address",
+            "Contact Person",
+            "Phone",
+            "Email"
+          ]
+        },
+        {
+          "heading": "Declaration",
+          "content": "I/We declare that we have read and understood the Conditions of Tendering and agree to be bound by them, that we are solvent and not under any form of external administration, that we have disclosed any conflicts of interest, that we hold or will obtain the required insurances and licences, and that this tender constitutes a firm offer for the period specified."
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 2",
+      "title": "Financial Capacity",
+      "sections": [
+        {
+          "heading": "Banking Details",
+          "fields": [
+            "Bank Name",
+            "Branch",
+            "Account Name",
+            "BSB & Account Number"
+          ]
+        },
+        {
+          "heading": "Accountant Details",
+          "fields": [
+            "Accountant/Firm Name",
+            "Address",
+            "Contact Name",
+            "Phone",
+            "Email"
+          ]
+        },
+        {
+          "heading": "Financial Statements",
+          "content": "Provide annual financial statements (balance sheet and profit/loss) for the last three years. If statements cannot be provided, explain why and supply alternative evidence of financial capacity."
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 3",
+      "title": "Confidentiality & Conflict of Interest",
+      "sections": [
+        {
+          "heading": "Confidentiality",
+          "content": "Acknowledge that all information provided by Council is confidential and must not be disclosed except as permitted."
+        },
+        {
+          "heading": "Conflict of Interest",
+          "content": "Disclose any actual, potential or perceived conflicts of interest that may influence your ability to perform the contract. Include details of the conflict and the proposed mitigation strategy.",
+          "table": {
+            "columns": [
+              "Conflict Description",
+              "Impact",
+              "Mitigation Strategy"
+            ],
+            "rows": []
+          }
+        },
+        {
+          "heading": "ICAC Guidance",
+          "content": "Refer to NSW ICAC guidance on managing conflicts of interest in procurement for further information."
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 4",
+      "title": "Key Personnel",
+      "sections": [
+        {
+          "heading": "Personnel Details",
+          "table": {
+            "columns": [
+              "Name",
+              "Proposed Role",
+              "Qualifications / Experience",
+              "Years in Role"
+            ],
+            "rows": []
+          }
+        },
+        {
+          "heading": "Supporting Documents",
+          "content": "Attach curriculum vitae and/or licences evidencing qualifications and experience for each proposed key personnel."
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 5",
+      "title": "Insurance",
+      "sections": [
+        {
+          "heading": "Insurance Certificates",
+          "table": {
+            "columns": [
+              "Insurance Type",
+              "Insurer",
+              "Policy Number",
+              "Limit of Indemnity",
+              "Expiry Date",
+              "Certificate Attached (Y/N)"
+            ],
+            "rows": [
+              [
+                "Public Liability (min $20m)",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment."
+              ],
+              [
+                "Professional Indemnity (min $10m \u2013 maintained 7 years post\u2011expiry)",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment."
+              ],
+              [
+                "Product Liability (min $10m)",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment."
+              ],
+              [
+                "Workers\u2019 Compensation (as required under NSW law)",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment.",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment."
+              ]
+            ]
+          }
+        },
+        {
+          "heading": "Subcontractor Insurances",
+          "table": {
+            "columns": [
+              "Subcontractor Name",
+              "Insurance Type",
+              "Limit of Indemnity",
+              "Expiry Date"
+            ],
+            "rows": []
+          },
+          "content": "List insurances held by all subcontractors. Tenderers may be required to increase cover limits if Council deems necessary."
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 6",
+      "title": "Previous Experience",
+      "sections": [
+        {
+          "heading": "Relevant Projects",
+          "content": "Provide details of at least three relevant projects completed in the last five years, including client name, project description, contract value, start and finish dates, and your scope of work.",
+          "table": {
+            "columns": [
+              "Client",
+              "Project Description",
+              "Contract Value",
+              "Start Date",
+              "Completion Date",
+              "Scope of Work"
+            ],
+            "rows": []
+          }
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 7",
+      "title": "Current Council Clients",
+      "sections": [
+        {
+          "heading": "Councils Serviced",
+          "content": "List any councils or local government organisations you are currently providing services to and the number of years you have been engaged.",
+          "table": {
+            "columns": [
+              "Council",
+              "Years of Service"
+            ],
+            "rows": []
+          }
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 8",
+      "title": "Referees",
+      "sections": [
+        {
+          "heading": "Client Referees",
+          "content": "Provide details for at least two senior client referees (up to four may be provided).",
+          "table": {
+            "columns": [
+              "Organisation",
+              "Project",
+              "Years (From\u2013To)",
+              "Contact Name",
+              "Position",
+              "Phone",
+              "Email"
+            ],
+            "rows": []
+          }
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 9",
+      "title": "Service Delivery & Performance",
+      "sections": [
+        {
+          "heading": "Methodology & Resources",
+          "content": "Describe your methodology for delivering the works, including sequencing of activities, resource allocations (personnel, plant, equipment, suppliers and subcontractors), and how you will ensure quality outcomes."
+        },
+        {
+          "heading": "Quality & Accreditations",
+          "content": "Outline your quality management system, including reference to any third\u2011party accreditations and inspection test plans (ITPs). Attach sample reports where available."
+        },
+        {
+          "heading": "Milestones",
+          "table": {
+            "columns": [
+              "Milestone Description",
+              "Target Date"
+            ],
+            "rows": [
+              [
+                "Site establishment",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment."
+              ],
+              [
+                "Removal of existing equipment",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment."
+              ],
+              [
+                "Delivery and installation of major equipment",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment."
+              ],
+              [
+                "Mechanical and electrical integration",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment."
+              ],
+              [
+                "Testing & commissioning",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment."
+              ],
+              [
+                "Handover and defects liability period commencement",
+                "This tables the principle work-steps proposed to deliver this project Before commencing any works: \u2022 Approval gained by Superintend for SWMS, Product and Access WARRANTY & DEFECTS LIABILITY Pricing includes a 12-month parts and labour warranty term inclusive of quarterly servicing of the new equipment."
+              ]
+            ]
+          },
+          "content": "Populate the milestones table with the key deliverables for this project. If Council has mandated a fixed date for commencement or completion (e.g., start of operations by TBA), ensure your program aligns with that date."
+        },
+        {
+          "heading": "Disruption Minimisation",
+          "content": "Explain how you will minimise disruption to Council operations and stakeholders during the works."
+        },
+        {
+          "heading": "Q&A Confirmations",
+          "content": "Confirm that you will provide the following information as part of your tender or prior to award: product catalogues/technical sheets, draft layout diagrams/drawings, crew qualifications and experience, warranty terms, equipment origin (country of manufacture), and details of any proposed subcontractors."
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 10",
+      "title": "Fee Structure",
+      "sections": [
+        {
+          "heading": "Performance / Technical Specification",
+          "content": "List the key performance requirements and technical specifications for the major equipment or services to be supplied. For example, device capacities, ratings, compliance standards, control interfaces, and any basis\u2011of\u2011design references.",
+          "table": {
+            "columns": [
+              "Item Description",
+              "Specification",
+              "Basis of Design / Reference",
+              "Quantity"
+            ],
+            "rows": []
+          }
+        },
+        {
+          "heading": "Pricing Table",
+          "content": "Provide a lump sum price in Australian dollars for each scope package. Pricing must include GST, levies, duties, overheads and all other costs necessary to perform the works. Prices must be valid for the tender validity period.",
+          "table": {
+            "columns": [
+              "Scope Item",
+              "Ex\u2011GST",
+              "GST",
+              "Incl\u2011GST",
+              "Total"
+            ],
+            "rows": []
+          }
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 11",
+      "title": "Corporate Social Responsibility",
+      "sections": [
+        {
+          "heading": "CSR Policy / Initiatives",
+          "content": "Describe your organisation\u2019s corporate social responsibility policy or a relevant CSR initiative."
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 12",
+      "title": "Sustainability",
+      "sections": [
+        {
+          "heading": "Sustainability Practices",
+          "content": "Explain your organisation\u2019s understanding of sustainability and outline the practices or initiatives you have in place to support sustainable procurement and operations."
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 13",
+      "title": "Equal Employment Opportunity & Fair Employment",
+      "sections": [
+        {
+          "heading": "Policies & Evidence",
+          "content": "Provide copies of your organisation\u2019s policies and evidence of practices relating to equal employment opportunity and fair employment. This may include recruitment and training policies, anti\u2011discrimination and harassment policies, consultation and dispute resolution processes."
+        },
+        {
+          "heading": "Nominated Representative",
+          "fields": [
+            "Name",
+            "Position",
+            "Phone",
+            "Email"
+          ]
+        },
+        {
+          "heading": "Industrial Relations & Commitments",
+          "content": "State any past breaches of wage or superannuation obligations and confirm rectification. Provide your commitments to employing Aboriginal and Torres Strait Islander peoples, apprentices and trainees, and your acknowledgement of the Industrial Relations Undertaking."
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 14",
+      "title": "Work, Health & Safety (WHS)",
+      "sections": [
+        {
+          "heading": "Acknowledgement of Council WHS Policy",
+          "content": "Acknowledge that you have read Council\u2019s WHS Policy and will comply with all WHS obligations applicable to the contract."
+        },
+        {
+          "heading": "Required WHS Evidence",
+          "content": "Provide copies of your WHS manuals, policies and procedures; descriptions of WHS responsibilities and consultation processes; sample checklists and inspection forms; records of WHS incidents and corrective actions; training records; risk assessments/SWMS; registers and SDS; plant and equipment maintenance records; permit\u2011to\u2011work samples; and a site\u2011specific WHS plan for a similar project."
+        },
+        {
+          "heading": "Chain of Responsibility (CoR)",
+          "content": "If transport of goods is involved, provide evidence of your Chain of Responsibility compliance, including a CoR policy, risk register, KPIs, training records, fleet maintenance and diary records, and subcontractor pre\u2011engagement audits."
+        },
+        {
+          "heading": "Required WHS Forms",
+          "content": "Attach the completed WHS Forms (Appendices\u00a01\u20133) and WHS Policy (Appendix\u00a04)."
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 15",
+      "title": "Modern Slavery Questionnaire",
+      "sections": [
+        {
+          "heading": "Supplier Declarations",
+          "content": "Provide details of whether your organisation is reporting under the Australian Modern Slavery Act. Attach any modern slavery policies and describe your due diligence processes, training initiatives and supply chain risk assessments. List the countries of manufacture for products or components relevant to this tender."
+        }
+      ]
+    },
+    {
+      "schedule": "Schedule 16",
+      "title": "Acknowledgement of Addenda & Tenderer\u2019s Declaration",
+      "sections": [
+        {
+          "heading": "Addenda Acknowledgement",
+          "table": {
+            "columns": [
+              "Addendum No.",
+              "Date Issued",
+              "Title / Subject",
+              "Acknowledged (Y/N)"
+            ],
+            "rows": []
+          },
+          "content": "List all addenda issued for this RFT and indicate acknowledgment."
+        },
+        {
+          "heading": "Declaration",
+          "content": "I/We declare that we have received all addenda listed above, that our tender complies with all requirements of the tender documents except as noted, that the information provided in all returnable schedules is true and correct, and that our offer remains open for the tender validity period (e.g., 120 days or as specified)."
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "part_label": "Part 5 Returnable Schedules",
+    "procurement_type": "Request for tender",
+    "project_title": "BLCS Main Pool Hall Heating & Ventilation - AHU 1 & 3 Refurbishments",
+    "site": "https://carcgl.sharepoint.com/sites/AdvantecNSWMechSales/Shared Documents/Joel Sayed/New Projects/Max Webber Library/Project Site Environmental Management Plan OCT 2024.docx",
+    "contract_number": "",
+    "trim_file_number": "69",
+    "tenderer_placeholder": "(Tenderer Name)"
+  },
+  "schedule_4_key_personnel": {
+    "people": [],
+    "cvs_attached": "Joel Sayed, Abu Asadullah, Mark Cannan"
+  },
+  "schedule_13_eeo_and_fair_employment": {
+    "policies": {
+      "recruitment": {},
+      "training_and_development": {},
+      "equal_employment_opportunity": {},
+      "anti_discrimination": {},
+      "unionism": {},
+      "consultation": {},
+      "dispute_resolution": {},
+      "other": []
+    },
+    "management_representative": {
+      "exists": "Yes",
+      "name": "Natalia Lane",
+      "phone_email": "0447485842"
+    },
+    "wages_and_super_compliance": {
+      "any_breaches": "No",
+      "breach_details_and_rectifications": "No"
+    },
+    "aboriginal_and_torres_strait_islander_employment": {
+      "policy_exists": "Yes",
+      "staff_numbers_and_history": "3 apprentices, 1 x 3rd year, 1 x 2nd year and 1 x 1st year.",
+      "contract_commitment_statement": "\u2612 Yes \u2610 No"
+    },
+    "apprenticeships_and_traineeships": {
+      "offered": "3 apprentices, 1 x 3rd year, 1 x 2nd year and 1 x 1st year.",
+      "details": "3 apprentices, 1 x 3rd year, 1 x 2nd year and 1 x 1st year."
+    },
+    "other_relevant_skills_details": "The organisation nominated a management representative to oversight the implementation of these policies."
+  },
+  "schedule_6_previous_experience": {
+    "total_years_providing_required_services": "20 years",
+    "years_for_state_or_local_government": "20+ years",
+    "projects": [],
+    "additional_projects_attachment_refs": []
+  },
+  "meta": {
+    "document_type": "returnable_schedules",
+    "rft_title": "Qualitative (Sustainability) (Carrier Australia Pty Ltd)",
+    "contract_no": "C11/2025",
+    "trim_file_no": "F25/971",
+    "tenderer_name": "null",
+    "version": "3",
+    "created_at": "18/02/2025",
+    "prepared_by": "Roslan Roslan"
+  },
+  "schedule_7_current_clients": {
+    "clients": []
+  },
+  "schedule_9_service_delivery_performance": {
+    "capability_summary": {
+      "licences_and_qualifications": "Licences- Non High Risk Work National Code Equipment Class Comments Blasting Explosive User License C Car LR Truck - light rigid GVM 4.5 to 8T MR Truck - medium rigid GVM > 8T HR Truck - heavy rigid GVM > 8T & > 2 axles HC Truck - heavy combination Semi- trailer, truck & dog (trailer GVM > 9T) MC Truck - multi combination B double or road train PWC Personal Watercraft License Certificates of competency",
+      "principal_address": "Level 1, 8 Nexus Court, Mulgrave, Victoria 3170",
+      "organisation_and_key_staff": "Carrier Australia Business Operating System (BOS) is centrally managed and controlled as well as internally and externally audited for compliance.",
+      "resources": {
+        "workforce_size": "null",
+        "plant_and_equipment": [],
+        "suppliers_and_subcontractors": []
+      },
+      "quality_management_plan": "The company has established a documented quality management system, process and procedures that are designed to comply to the requirements of the ISO 9001:2015 standards.",
+      "inspection_and_testing_plan": "simulating peak operating conditions. \u2022 Integration testing with BMCS, ensuring seamless automation and fault detection capabilities. \u2022 Coordination with Council representatives for operational handover, including an in-depth training session for maintenance personnel. \u2022 Submission of testing and commissioning reports, including thermal imaging analysis and performance validation.",
+      "accreditations": [],
+      "methodology_and_procedures": "The Carrier Australia Business Operating System (BOS) is centrally managed and controlled as well as internally and externally audited for compliance.",
+      "supporting_evidence_refs": []
+    },
+    "programme": {
+      "required_dates": "25 Aug 2025",
+      "milestones": [],
+      "non_negotiable_milestones": [],
+      "minimise_disruption_strategy": "Minimise disruption strategy: The project team\u2019s delivery will ensure that the building services are not affected so that the installation will be seamless during the delivery of the project."
+    },
+    "tender_questions": {}
+  },
+  "appendices": {
+    "appendix_1": {
+      "code": "WHS051.5",
+      "title": "Contractor WHS Code of Conduct",
+      "type": "form"
+    },
+    "appendix_2": {
+      "code": "WHS051.11",
+      "title": "Contractor Scope of Works & Requirements",
+      "type": "form"
+    },
+    "appendix_3": {
+      "code": "WHS051.8",
+      "title": "Subcontractor Statement",
+      "type": "form"
+    },
+    "appendix_4": {
+      "code": "WHS POL 100",
+      "title": "WHS Policy",
+      "type": "information"
+    }
+  },
+  "schedule_14_work_health_and_safety": {
+    "acknowledges_whs_policy_100": "\u2612 Verification / Safety Audit Latest WHS audits or inspection report by SafeWork NSW or 3rd party auditor \u2610",
+    "forms_required": {},
+    "verification_documents": {},
+    "injuries_and_incidents": {},
+    "training_records": {},
+    "risk_assessments": {},
+    "construction_work_whs": {},
+    "chain_of_responsibility": {}
+  },
+  "schedule_10_fee_structure": {
+    "pricing_currency": "Australian dollars",
+    "lump_sum_basis": "included",
+    "gst_inclusive": "$698,762.00 + GST",
+    "validity_period_days": "30",
+    "inclusions_notes": "included",
+    "exclusions_notes": "null",
+    "line_items": [],
+    "pricing_totals": {
+      "subtotal_excl_gst": "102,945.70",
+      "gst": "$102,945.70",
+      "total_incl_gst": "$247,020.40"
+    }
+  },
+  "schedule_3_confidentiality_and_conflict_of_interest": {
+    "confidentiality_basis": "You may only disclose information about the Contract if it is: \u2022 already in the public domain, other than as a result of your own acts or omissions \u2022 required by law, court order, tribunal or another regulatory body, as long as you notify us of the need to disclose this.",
+    "conflict_of_interest_statement": "I am not aware of any conflicts of interest other than those in Part 5 Schedule 3.",
+    "conflicts": [],
+    "guidance_acknowledged": "I specifically note and accept the: \u2022 professional indemnity insurance requirements (see section Part 5 Schedule 5 and clauses 1.1m)\u2013p) of the Conditions of engagement) \u2022 liability conditions (see section 4.2 of the Conditions of engagement)"
+  },
+  "schedule_12_sustainability": {
+    "sustainability_understanding": "Carrier will support Eligible Recipient Organizations that promote environmental responsibility through sustainable building practices.",
+    "organisational_practices_and_examples": "Carrier will support Eligible Recipient Organizations that promote environmental responsibility through sustainable building practices."
+  },
+  "supporting_information": [
+    "Compliance with the tender requirements",
+    "Relevant experience, qualifications and licences",
+    "Capacity, including past performance and resources",
+    "Methodology to undertake the works",
+    "Management & financial capacity (including financial statements for the last 3 years)",
+    "Quality management (policy, management plan, forms and checklists)",
+    "WHS management (completed Council WHS forms, WHS policy & plan, safe work method statements, checklists and forms)",
+    "Sustainable environmental management (policy and plan)",
+    "Copies of certificates for required third\u2011party accreditations and insurances",
+    "Equal employment opportunity and fair employment evidence",
+    "Any additional relevant information that may assist in assessing the tender"
+  ],
+  "schedule_16_acknowledgement_of_addenda_and_declaration": {
+    "addenda": [],
+    "tenderer_declaration": {
+      "tenderer_name": "Carrier Australia Pty Ltd",
+      "occupation_or_role": "Mechanical Engineering Contractor",
+      "offers_to_supply_per_rft_pricing_schedule": "The Tenderer offers to supply the requirement, described in RFT issued by Blacktown City Council, in accordance with the Pricing Schedule contained in its Tender.",
+      "agrees_to_comply_with_tender_obligations": "I (name) Joel Sayed of (tenderer) Carrier Australia Pty Ltd being (occupation) Mechanical Engineering Contractor Declare that: \uf0fd The Tenderer offers to supply the requirement, described in RFT issued by Blacktown City Council, in accordance with the Pricing Schedule contained in its Tender. \uf0fd",
+      "confirms_capacity_to_bid_no_restrictions": "The Tenderer offers to supply the requirement, described in RFT issued by Blacktown City Council, in accordance with the Pricing Schedule contained in its Tender.",
+      "consents_to_council_checks": "I (name) Joel Sayed of (tenderer) Carrier Australia Pty Ltd being (occupation) Mechanical Engineering Contractor Declare that: \uf0fd The Tenderer offers to supply the requirement, described in RFT issued by Blacktown City Council, in accordance with the Pricing Schedule contained in its Tender. \uf0fd",
+      "validity_period_days": "120 days"
+    },
+    "signature": {
+      "name": "Joel Sayed",
+      "date": "28/10/2022"
+    }
+  },
+  "schedule_1_corporate_information_and_declaration": {
+    "company_details": {
+      "trading_name": "Carrier Australia Pty Ltd",
+      "legal_name": "Carrier Australia Pty Ltd",
+      "abn": "A8A8FE5E-961D-4770-97AC-2678B0B2590E",
+      "acn": "117 282 149",
+      "entity_type": "Entity",
+      "trading_address": "Building F, Unit 1A, 3-29 Birnie Ave, Lidcombe NSW 2141",
+      "phone": "1300 130 750",
+      "fax": "3172"
+    },
+    "contact_details": {
+      "name": "Joel Sayed",
+      "position": "Joel Sayed",
+      "address": "Building F, Unit 1A, 3-29 Birnie Ave, Lidcombe NSW 2141",
+      "phone": "1300 130 750",
+      "mobile": "0429210574",
+      "email": "corporateresponsibility@carrier.com"
+    },
+    "declaration": {
+      "declarant": {
+        "name": "Joel Sayed",
+        "address": "Building F, Unit 1A, 3-29 Birnie Ave, Lidcombe NSW 2141",
+        "occupation": "Mechanical Engineering Contractor"
+      },
+      "authorised_to_declare": "I declare that the company listed above: \u2022 has authorised me to make this declaration personally and on its behalf",
+      "solvent": "solvent",
+      "no_insolvency_event": "I declare that this Response to C11/2025 is: \u2022 conforming, complete and meets all requirements,",
+      "no_conflict_of_interest_for_contract": "I am not aware of any conflicts of interest other than those in Part 5 Schedule 3.",
+      "accepts_conditions_of_tender_and_engagement": "I accept the Conditions of tender and engagement.",
+      "agrees_to_be_bound": "I declare that this Response to C11/2025 is: \u2022 conforming, complete and meets all requirements,",
+      "response_type": "conforming",
+      "alternative_response_reference": "I declare that this Response to C11/2025 is: \u2022 conforming, complete and meets all requirements,",
+      "conflicts_declared_in_schedule_3": "You must declare a conflict if one arises at any time.",
+      "acknowledgements": {},
+      "confidentiality_commitments": {},
+      "industrial_relations_commitments": {},
+      "electronic_signature_acknowledged": "Joel Sayed",
+      "signature": {
+        "name": "Joel Sayed",
+        "date": "30 April 2025"
+      }
+    }
+  },
+  "submission_checklist": {
+    "returnable_schedules": {
+      "schedule_1_corporate_information_and_declaration": false,
+      "schedule_2_financial_capacity": false,
+      "schedule_3_confidentiality_and_conflict_of_interest": false,
+      "schedule_4_key_personnel": false,
+      "schedule_5_insurance": false,
+      "schedule_6_previous_experience": false,
+      "schedule_7_current_clients": false,
+      "schedule_8_referees": false,
+      "schedule_9_service_delivery_performance": false,
+      "schedule_10_fee_structure": false,
+      "schedule_11_corporate_social_responsibility": false,
+      "schedule_12_sustainability": false,
+      "schedule_13_eeo_and_fair_employment": false,
+      "schedule_14_work_health_and_safety": false,
+      "schedule_15_modern_slavery": false,
+      "schedule_16_acknowledgement_of_addenda_and_declaration": false
+    },
+    "appendices": {},
+    "supporting_documents": {
+      "certificate_of_business_registration": false,
+      "insurance_certificates_of_currency": false,
+      "cvs_for_key_personnel": false,
+      "licences_tickets_registrations": false,
+      "financial_statements_last_3_years": false,
+      "third_party_accreditation_certificates": false,
+      "quality_management_policy_and_plan": false,
+      "inspection_and_testing_plans": false,
+      "whs_system_verification": false,
+      "whs_management_plan_policy_swms_checklists_forms": false,
+      "environmental_policy_and_plan": false,
+      "eeo_policy_and_awards": false,
+      "other": []
+    }
+  }
+}

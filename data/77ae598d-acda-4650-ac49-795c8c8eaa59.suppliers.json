@@ -1,0 +1,22 @@
+[
+  {
+    "id": "02246b84",
+    "name": "Carrier Australia Pty Ltd",
+    "filename": "Blacktown-Leisure-Centre---AHU-1-and-3-49cc05.pdf",
+    "uploaded_at": "2025-09-07T02:03:58.351789",
+    "returnables_path": "data/77ae598d-acda-4650-ac49-795c8c8eaa59_02246b84.returnables.json",
+    "raw_path": "data/77ae598d-acda-4650-ac49-795c8c8eaa59_supplier_02246b84.pdf",
+    "vs_backend": "faiss_gpu",
+    "vs_location": "faiss/77ae598d-acda-4650-ac49-795c8c8eaa59_supplier_02246b84"
+  },
+  {
+    "id": "26cbb895",
+    "name": "BMG Air Conditioning Pty Ltd",
+    "filename": "C112025-Part-5-Returnable-Schedules-9690fe.pdf",
+    "uploaded_at": "2025-09-07T02:10:42.990411",
+    "returnables_path": "data/77ae598d-acda-4650-ac49-795c8c8eaa59_26cbb895.returnables.json",
+    "raw_path": "data/77ae598d-acda-4650-ac49-795c8c8eaa59_supplier_26cbb895.pdf",
+    "vs_backend": "faiss_gpu",
+    "vs_location": "faiss/77ae598d-acda-4650-ac49-795c8c8eaa59_supplier_26cbb895"
+  }
+]

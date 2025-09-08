@@ -1,0 +1,572 @@
+{
+  "probity_and_accountability": {
+    "probity": "",
+    "confidentiality_and_conflict": "",
+    "security_and_confidentiality": "",
+    "authorised_contact_officer": {
+      "name": null,
+      "title": null,
+      "email": null,
+      "phone": null
+    },
+    "advertising_rft": "",
+    "receipt_of_tenders": "",
+    "late_tenders": "",
+    "requests_for_clarification": "",
+    "critical_issues_or_risks": [],
+    "risks": [
+      {
+        "issue": "BMCS integration failure",
+        "consequence": "Loss of monitoring/control",
+        "action": "FAT; point-to-point I/O test; SAT with witness"
+      },
+      {
+        "issue": "EC fan performance shortfall",
+        "consequence": "Insufficient airflow/pressure",
+        "action": "Verify duty; commissioning with TAB report"
+      },
+      {
+        "issue": "Warranty service response",
+        "consequence": "Extended downtime",
+        "action": "Specify response/rectification times & contacts"
+      }
+    ]
+  },
+  "debriefing_unsuccessful": "Debriefing may be offered upon request. Only general comments on the tenderer’s own submission; no comparisons; no scoring details.",
+  "purpose_rft": [
+    "To provide all equipment, labour, materials, power, consumables etc., for testing & commissioning of the mechanical services plant room.",
+    "To ensure that any and all works are undertaken fully in accordance with proper BCC WHS requirements."
+  ],
+  "debriefing": "The Evaluation Panel may arrange for the debriefing of any unsuccessful Tenderers who request such a debriefing. The purpose of the debriefing is to provide Tenderers with general comments regarding evaluation of the Tenderer’s submission against the criteria. If undertaken, the debriefing process will be conducted by at least two members of the Evaluation Committee and may be carried out by telephone or letter. The debriefing process will be limited to the unsuccessful Tenderer’s offer. No comparisons will be made with the successful Tender and the debriefing process will not be used to justify the selection of the successful Tender. No scoring details will be provided.",
+  "tenderer_presentations": [
+    "Tenderers may be invited to interview to clarify their tender. No new or additional information will be requested or permitted at this stage (see Section 3.8 – Requests for Clarification). Answers must be factual and unbiased; no personal opinions are to be expressed."
+  ],
+  "decision_making": {
+    "consensus_process": "",
+    "recommendation_report": {
+      "author": "",
+      "content_requirements": ""
+    },
+    "approval_authority": "",
+    "escalation_procedures": ""
+  },
+  "contract_management": "The contract will be managed by Manager City Fleet or delegate.",
+  "how_to_complete_tepp": [
+    "1) Title Page — Replace Tender Number, Name and Term.",
+    "2) 1. Aim — Update Tender Name and Term.",
+    "3) 2. Description of Requirement — Replace with contract description and main requirements.",
+    "4) 2.1 Desired Outcomes — Insert procurement outcomes (value for money, timely delivery, etc.).",
+    "5) 2.2 Purpose of RFT — Replace with reasons for this tender (or EOI/Quotation).",
+    "… (continue your internal guidance list as needed) …",
+    "Update footer to correct Tender Number and Tender Name."
+  ],
+  "shortlisting": "Clearly non-competitive tenders may be excluded with reasons recorded.",
+  "critical_dates": [
+    "It is essential that the new contract be commenced by Aug 2025."
+  ],
+  "desired_outcomes": [
+    "Reliable delivery of all equipment within specified timeframes.",
+    "Timely completion of the project, adhering to a schedule that minimizes disruption during leisner centre's operating hours (6:00am - 9:00pm).",
+    "High-quality workmanship and materials used in all aspects of crane hoisting.",
+    "Compliance with BCC WHS requirements, SafeWork NSW regulations, Service Australia standards, and Council jurisdiction for safety measures during the works.",
+    "Effective management to ensure safe passage through leisure centre's areas without disrupting staff or patrons' activities significantly.",
+    "Proper recycling of all redundant equipment in accordance with NSW/Australian environmental standards, ensuring no waste is left on site and proper documentation for evidence submission as required by the council."
+  ],
+  "appendices": [],
+  "table_of_contents": [
+    {
+      "n": "1.",
+      "title": "Aim"
+    },
+    {
+      "n": "2.",
+      "title": "Description of Requirement"
+    },
+    {
+      "n": "2.1",
+      "title": "Desired Outcomes"
+    },
+    {
+      "n": "2.2",
+      "title": "Purpose of Request for Tender (RFT)"
+    },
+    {
+      "n": "3.",
+      "title": "Probity and Accountability"
+    },
+    {
+      "n": "3.1",
+      "title": "Probity"
+    },
+    {
+      "n": "3.2",
+      "title": "Confidentiality and Conflict of Interest"
+    },
+    {
+      "n": "3.3",
+      "title": "Security and Confidentiality"
+    },
+    {
+      "n": "3.4",
+      "title": "Authorised Contact Officer"
+    },
+    {
+      "n": "3.5",
+      "title": "Advertising the RFT"
+    },
+    {
+      "n": "3.6",
+      "title": "Receipt of Tenders"
+    },
+    {
+      "n": "3.7",
+      "title": "Late Tenders"
+    },
+    {
+      "n": "3.8",
+      "title": "Requests for Clarification"
+    },
+    {
+      "n": "3.9",
+      "title": "Critical issues or risks"
+    },
+    {
+      "n": "4.",
+      "title": "Evaluation Committee"
+    },
+    {
+      "n": "5.",
+      "title": "Evaluation Schedule"
+    },
+    {
+      "n": "6.",
+      "title": "Tender Evaluation"
+    },
+    {
+      "n": "6.1",
+      "title": "Evaluation Methodology"
+    },
+    {
+      "n": "6.1.1",
+      "title": "Compliance Criteria"
+    },
+    {
+      "n": "6.1.2",
+      "title": "Required Criteria"
+    },
+    {
+      "n": "6.2",
+      "title": "Returnable Schedules Scoring"
+    },
+    {
+      "n": "7.",
+      "title": "Pricing"
+    },
+    {
+      "n": "7.1.1",
+      "title": "Pricing Model"
+    },
+    {
+      "n": "7.1.2",
+      "title": "Local Preference Policy"
+    },
+    {
+      "n": "7.1.3",
+      "title": "Value for Money"
+    },
+    {
+      "n": "7.1.4",
+      "title": "Interviews and Presentation Criteria"
+    },
+    {
+      "n": "7.2",
+      "title": "Short-listing / Setting Aside Tenders"
+    },
+    {
+      "n": "7.3",
+      "title": "Alternative Tenders"
+    },
+    {
+      "n": "7.4",
+      "title": "Tenderer Presentations"
+    },
+    {
+      "n": "7.5",
+      "title": "Evaluation Report"
+    },
+    {
+      "n": "8.",
+      "title": "Contract Negotiations"
+    },
+    {
+      "n": "9.",
+      "title": "Debriefing of Unsuccessful Tenderers"
+    },
+    {
+      "n": "10.",
+      "title": "Contract Management"
+    },
+    {
+      "n": "11.",
+      "title": "Critical dates"
+    },
+    {
+      "n": "12.",
+      "title": "How to Complete the TEPP"
+    }
+  ],
+  "description_of_requirement": [
+    "The BLCS Main Pool Hall Heating & Ventilation - AHU 1 & 3 Refurbishments involve the comprehensive upgrade of existing heating, ventilation and air conditioning systems within a leisure centre's main pool hall. This includes replacing outdated equipment with new reverse cycle water-cooled heat pump chillers to enhance energy efficiency.",
+    "The refurbishment also encompasses the installation of additional plant room external wall louvers for better access during delivery and retrieval processes, as well as making good any disturbances caused by these activities.",
+    "General:\n• All work must be carried out under a Council TEPP with an Electrical Contractors license.\n• The installation of the new chiller systems shall comply with AS1677.2 and any other relevant SAA publications covering design, manufacture or installation requirements for electrical equipment in accordance with local Electricity Supply Authority regulations.\n• Licensed Personnel Only access to switchboards is mandatory where all work must be carried out by suitably qualified tradespersons experienced in the relevant trade and compliant with WorkSafe NSW regulations and Council WHS requirements.\n• The Contractor shall provide a detailed schedule showing proposed sequences of works, durations for which various areas will need to be available, considering leisure centre's operational hours (6:00am - 9:00pm daily) with minimal disruption during peak times and ensuring that noisy work is limited or scheduled outside typical working hours.\n• All materials used in the refurbishment must comply with relevant Australian Standards, including those for electrical installations (AS/IEC standards), mechanical services, air & water systems, wiring diagrams, fire safety measures such as intumescent fittings where penetrating a fire wall is required."
+  ],
+  "document_metadata": {
+    "project_name": "BLCS Main Pool Hall Heating & Ventilation - AHU 1 & 3 Refurbishments",
+    "approved_by": "",
+    "date": "",
+    "version": "",
+    "contract_number": "",
+    "notes": "",
+    "prepared_by": "",
+    "term": "For a term of 12 months.",
+    "tender_number": "",
+    "document_title": "Tender Evaluation and Probity Plan"
+  },
+  "evaluation_committee": null,
+  "aim": {
+    "intro": "The Request for Tender (RFT) is for the BLCS Main Pool Hall Heating & Ventilation - AHU 1 & 3 Refurbishments to Council for the service of procurement, installation, and integration of specified works. The tender period spans over a duration agreed upon in context.",
+    "body": "This Tender Evaluation and Probity Plan (TEPP) is the planning and control document in conducting the evaluation of tenders received in response to RFT. It sets out: • processes and principles for evaluating tenders; • individual's responsibilities, including ensuring all work complies with BCC WHS requirements and proper crane usage approvals are obtained from Council before hoisting equipment; • the evaluation schedule based on a detailed program submitted by tenderer to minimize disruption during peak hours of leisure centre operation (6:00am - 9:00pm daily); and • reporting requirements, including making good all disturbed work surfaces as per context."
+  },
+  "contract_negotiations": "A period of negotiation with the successful Tenderer may arise following completion of the Tender phase and will commence subject to approval by the Director. This period will result in the executed copies of the contractual documentation being completed and will necessitate a combination of meetings comprising formal written obligations to be resolved. The role of the negotiators is to ensure that the negotiation approach is appropriate to the nature of the project, is open and fair, meets the needs of the Tenderer and can be accommodated within the Tenderer’s resources. Negotiations must not result in material changes to the requirements of the Tender. The outcome of the negotiations will be reflected in the final contract and all negotiation discussions and outcomes will be documented.",
+  "pricing": {
+    "interviews_and_presentation_criteria": "Scores may be revised following interviews/presentations of shortlisted tenderers.",
+    "value_for_money": [
+      "Assessed on qualitative outcomes + price: quality and fitness for purpose vs whole-of-life costs vs risk.",
+      "Consider whole-of-life costs incl. maintenance and warranty obligations",
+      "Energy efficiency and control strategy for chillers/AHUs",
+      "‘Value for Money’ is assessed on the combined outcomes of qualitative criteria and price.",
+      "Consider quality of proposed services against whole-of-life costs and risk (capacity to deliver on-time and on-budget)."
+    ],
+    "local_preference_policy": {
+      "definitions": [
+        "Blacktown City Local supplier: principal place of business (not a PO Box) located within Blacktown City LGA.",
+        "Western Sydney Council supplier: principal place of business (not a PO Box) located within a Western Sydney Council LGA."
+      ],
+      "western_sydney_discount": "2.5% discount capped at $25,000 for suppliers located in Western Sydney councils",
+      "policy_ref": "Procurement Policy P000553.1",
+      "western_sydney_councils": [
+        "Blue Mountains City Council",
+        "City of Parramatta Council",
+        "Cumberland City Council",
+        "Fairfield City Council",
+        "Hawkesbury City Council",
+        "Liverpool City Council",
+        "Parramatta City Council",
+        "Penrith City Council",
+        "The Hills Shire Council"
+      ],
+      "blacktown_lga_discount": "5% discount capped at $50,000 for suppliers located in Blacktown City LGA",
+      "application_note": "For any suppliers eligible for local preference, provide the confirming address in the third tab of the tender evaluation spreadsheet."
+    },
+    "interviews_and_presentations": "",
+    "pricing_model_text": "Pricing for tender evaluation will be normalised; the lowest fee achieves the maximum score (equal to the price weighting). State Government method:\nPs = 200 – (Pc / Pav × 100)\nPn = Ps / 200\nPw = Pn × [Price Weight]\nPc = Total Net Cost, Pav = Average of Total Net Costs.",
+    "model": {
+      "narrative": "Pricing for tender evaluation will be normalised; the lowest fee achieves the maximum score equal to the Price criterion weighting. In accordance with State Government scoring, the Total Net Cost for tender evaluation is normalised and weighted for comparison as follows.",
+      "variables": [
+        "Pc = Total Net Cost calculated for tender evaluation",
+        "Pav = Average of all Total Net Costs",
+        "Ps = Price Score",
+        "Pn = Normalised Price Score",
+        "Pw = Weighted Price Score"
+      ],
+      "formulae": [
+        "Ps = 200 – (Pc / Pav × 100)",
+        "Pn = Ps / 200",
+        "Pw = Pn × (Price weighting)"
+      ],
+      "notes": [
+        "The total score each Tenderer receives provides a numeric basis for comparison.",
+        "Recommendation on the preferred Tender will be based on scoring comparisons.",
+        "The basis of any increase will be calculated for the full term of the contract, including optional extensions."
+      ]
+    }
+  },
+  "reporting": null,
+  "interviews_presentations": [
+    "Final scores may be revised following interviews/presentations conducted with shortlisted Tenderers, in accordance with Section 6.4 Tenderer Presentations."
+  ],
+  "evaluation_criteria": [],
+  "meta": {
+    "purchase_category_used": "service delivery contract valued at over $249,999",
+    "ranges_used": {
+      "Price (Full Cost)": "30% to 50%",
+      "Relevant Experience": "10% to 30%",
+      "Capability": "10% to 30%",
+      "Management & Financial Capacity": "5% to 10%",
+      "Quality Management": "5% to 10%",
+      "WHS": "5% to 10%"
+    }
+  },
+  "evaluation_process": {
+    "overview": "",
+    "evaluation_stages": [],
+    "receipt_and_registration_of_tenders": "",
+    "compliance_check": "",
+    "clarifications": "",
+    "presentations_or_interviews": "",
+    "site_visits": "",
+    "scoring_methodology": {
+      "scale": "",
+      "definitions": "",
+      "weightings": []
+    }
+  },
+  "introduction": {
+    "purpose": "",
+    "background": "",
+    "objectives": [],
+    "scope": "",
+    "reference_documents": []
+  },
+  "evaluation_report": [
+    "On completion of the evaluation, results will be documented in a Council Report including:",
+    "• a summary of the evaluation method,",
+    "• the number of tenders received,",
+    "• the relative ranking of tenders,",
+    "• the recommendation of the preferred tender, and",
+    "• the rationale used to select the preferred supplier.",
+    "The report will highlight key issues for negotiation/ongoing scrutiny, be considered by the Tender Review Committee, and, if approved, be endorsed by all Committee Members and presented to the Ordinary Council Meeting for adoption. The ultimate decision maker is Blacktown City Council’s elected officials."
+  ],
+  "performance_monitoring": {
+    "note": "The tender document outlines the comprehensive requirements for a refurbishment project at Blacktown Leisure Centre's Main Pool Hall Heating & Ventilation AHU systems, specifically focusing on BLCS-001 TECHNICAL REQUIREMENTS. The contractor is responsible for ensuring all wiring penetrates the fire wall with specialized intumescent fittings and must submit detailed test logs prior to testing.",
+    "items": []
+  },
+  "evaluation_schedule": [
+    {
+      "task": "Review Testing & Commissioning plan and witness tests",
+      "responsible": null,
+      "due": null
+    },
+    {
+      "task": "Review maintenance schedules and O&M handover",
+      "responsible": null,
+      "due": null
+    },
+    {
+      "task": "Review BMCS HLI/point list and integration test records",
+      "responsible": null,
+      "due": null
+    }
+  ],
+  "description": {
+    "summary": [
+      "The BLCS Main Pool Hall Heating & Ventilation - AHU 1 & 3 Refurbishments involve the comprehensive upgrade of existing heating, ventilation and air conditioning systems within a leisure centre's main pool hall. This includes replacing outdated equipment with new reverse cycle water-cooled heat pump chillers to enhance energy efficiency.",
+      "The refurbishment also encompasses the installation of additional plant room external wall louvers for better access during delivery and retrieval processes, as well as making good any disturbances caused by these activities.",
+      "Scope includes: Replacement/upgrade of water-cooled heat pump chillers; AHU coil refurbishments; 8 EC plug fans; BMCS integration (e.g., BACnet HLI)"
+    ]
+  },
+  "evaluation_methodology": {
+    "compliance_criteria": [
+      "Comply with SafeWork NSW / Council WHS",
+      "Provide PPE for all on-site workers",
+      "Electrical work to AS/NZS 3000",
+      "Provide commissioning plan and evidence of tests per Section 10"
+    ],
+    "required_criteria": [
+      {
+        "name": "Methodology",
+        "weight": 12.5,
+        "description": "Commissioning plan covering: 10.1 General; Provide all equipment, labour, materials, power, consumables, etc. to conduct testing and; commissioning. The Contractor shall carry out his own tests to verify operation and performance; before requesting Council to attend inspections. Submit fully detailed Test Log sheets for inspection; prior to any testing taking place. The Test Log sheets shall be A4 in size and present a clear and; precise record of all tests to be carried out.…; BMCS integration/HLI (BACnet) with IO schedules and point lists; Program includes defects liability / warranty of 12 months; Provision for service/maintenance handover & schedules",
+        "mandatory": false
+      },
+      {
+        "name": "Quality",
+        "weight": 5.0,
+        "description": "Quality plan incl. ITPs; as-built docs; performance verification",
+        "mandatory": false
+      },
+      {
+        "name": "Work Health & Safety",
+        "weight": 5.0,
+        "description": "Comply with SafeWork NSW / Council WHS; Provide PPE for all on-site workers; Electrical work to AS/NZS 3000",
+        "mandatory": true
+      }
+    ]
+  },
+  "evaluation_governance": {
+    "evaluation_committee": {
+      "members": [],
+      "chairperson": "",
+      "probity_advisor": "",
+      "secretariat": ""
+    },
+    "roles_and_responsibilities": {},
+    "meeting_procedures": "",
+    "quorum_requirements": ""
+  },
+  "invoicing": null,
+  "tender_evaluation": {
+    "methodology_text": "The Evaluation Committee, in accordance with the methodology specified in the RFT and reproduced here, will evaluate all tenders.",
+    "evaluation_methodology": {
+      "compliance_criteria": [
+        {
+          "criterion": "Tender Details",
+          "weight": "Nil"
+        },
+        {
+          "criterion": "Compliance of RFT Terms & Conditions",
+          "weight": "Nil"
+        },
+        {
+          "criterion": "Tenderer’s Statutory Declaration",
+          "weight": "Nil"
+        }
+      ],
+      "required_criteria_table": [
+        {
+          "criterion": "Price (Full Cost)",
+          "weight": "40.0%",
+          "rationale": "Given the high value of this contract and its potential impact on long-term operational costs, a significant portion is allocated to price. However, it's important not to overlook other factors that contribute directly to project success"
+        },
+        {
+          "criterion": "Relevant Experience",
+          "weight": "21.4%",
+          "rationale": "A substantial weight given due to experience being crucial for understanding the complexity of service delivery and ensnerity in handling similar projects with high stakes involved"
+        },
+        {
+          "criterion": "Capability",
+          "weight": "15.4%",
+          "rationale": "Given its importance, a significant portion is allocated here. The ability to deliver on time and within budget indicates capability"
+        },
+        {
+          "criterion": "Management & Financial Capacity",
+          "weight": "6.4%",
+          "rationale": "A moderate weight assigned due to the need for strong financial management in handling such high-value contracts"
+        },
+        {
+          "criterion": "Quality Management",
+          "weight": "7.7%",
+          "rationale": "Given its importance, a significant portion is allocated here. Quality assurance ensures that services are delivered as per standards and expectations"
+        },
+        {
+          "criterion": "WHS",
+          "weight": "5.1%",
+          "rationale": "Safety-critical activities demand strong WHS (risk level 3). Final weight used: 5.1%."
+        },
+        {
+          "criterion": "Sustainability and EEO & Fair Employment",
+          "weight": "4.0%",
+          "rationale": "Council policy ties Sustainability/EEO to 10% of the Price weighting. Price is 40.0%, so Sustainability is 4.0%. Final weight used: 4.0%."
+        }
+      ],
+      "overview": "The Evaluation Committee, in accordance with the evaluation methodology specified in the RFT and reproduced in this document, will evaluate all tenders. Compliance is generally taken to mean submission of the Tender by the closing date, in accordance with all lodgement instructions and provision of all information requested in the RFT (including any late tender provisions). Compliance criteria are not scored or weighted; depending on the nature, extent and implications of partial or non-compliance, a Tender may be disqualified from further evaluation.",
+      "compliance_criteria_table": {
+        "title": "6.1.1 Compliance Criteria",
+        "render_hint": "table",
+        "columns": [
+          {
+            "key": "criterion",
+            "label": "Compliance Criteria"
+          },
+          {
+            "key": "weight",
+            "label": "Weight"
+          }
+        ],
+        "rows": [
+          {
+            "criterion": "Tender Details",
+            "weight": "Nil"
+          },
+          {
+            "criterion": "Compliance of RFT Terms & Conditions",
+            "weight": "Nil"
+          },
+          {
+            "criterion": "Tenderer’s Statutory Declaration",
+            "weight": "Nil"
+          }
+        ],
+        "notes": [
+          "Compliance criteria are not scored or weighted. Non-compliant tenders may be excluded from further evaluation."
+        ]
+      },
+      "non_price_rating_scale": [
+        {
+          "score": 5,
+          "label": "Exceptional",
+          "description": "Fully compliant; no risks or weaknesses."
+        },
+        {
+          "score": 4,
+          "label": "Superior",
+          "description": "Sound achievement; minor risks/weaknesses may be acceptable."
+        },
+        {
+          "score": 3,
+          "label": "Good",
+          "description": "Reasonable achievement; errors/risks can be corrected with minimal effort."
+        },
+        {
+          "score": 2,
+          "label": "Adequate",
+          "description": "Minimal achievement; issues possible to correct/overcome."
+        },
+        {
+          "score": 1,
+          "label": "Poor to Deficient",
+          "description": "No/low achievement; numerous errors/risks/weaknesses."
+        },
+        {
+          "score": 0,
+          "label": "Unacceptable",
+          "description": "Totally deficient and non-compliant."
+        }
+      ],
+      "required_criteria_caption": "Evaluation Criteria for Construction contract, for purchases $250,000 and over (inclusive of GST). The LLM-generated table and rationales apply."
+    },
+    "returnable_schedules_scoring": {},
+    "section_6_2_title": "6.2 RETURNABALE SCHEDULES SCORING",
+    "returnable_scoring": {}
+  },
+  "probity_requirements": {
+    "audit_trail": "",
+    "document_security": "",
+    "storage_and_disposal": "",
+    "confidentiality_agreements": ""
+  },
+  "probity": {
+    "principles": [],
+    "probity_advisor": {
+      "name": "",
+      "organisation": "",
+      "role": ""
+    },
+    "confidentiality_requirements": "",
+    "conflict_of_interest": {
+      "disclosure_process": "",
+      "management_process": ""
+    },
+    "communication_protocols": "",
+    "record_keeping": "",
+    "authorised_contact_officer": {
+      "name": "",
+      "title": "",
+      "email": "",
+      "phone": ""
+    }
+  },
+  "shortlisting_alternatives": [
+    "Where many tenders are received, clearly non-competitive tenders with no reasonable prospect of best value may be excluded from detailed evaluation. Reasons for exclusion must be defensible and recorded in the evaluation report."
+  ],
+  "technical_requirements": [
+    "Switchboards Compliance:\n• Provide a plinth with SS Tray under the feet of each closed system, drained to waste.\n• Install corrosion coupons for testing every three months in compliance with AS/NZS standards and local Electricity Supply Authority requirements.\n• Ensure all equipment supplied and work done adheres strictly to this specification along with S.A.A. Wiring Rules, latest issue or amendment used where applicable.\n• Verify switchboard compliance through a type test certificate from an accredited testing laboratory as per AS 61439 standards and local Electricity Supply Authority requirements.\n• Label all sections of the SCA clearly with 'Authorised Personnel Only' for safety, except where specified otherwise in drawings or by other contexts requiring different labeling to comply with NSW/Australian best practices.\n• Arrange connections neatly and securely as per AS 3000 standards, ensuring no more than two cables terminate at any one terminal point unless specifically stated for Compressor and Condenser motors which may be directly terminated on respective Contactors/over-loads in compliance with local regulations.\n• Install all wiring neatly arranged as per Electrical Design Guide requirements, using V75 thermoplastic insulated copper stranded cables of Australian manufacture where applicable and avoiding statutory fire rating unless specified for certain installations to adhere strictly to NSW/Australian standards.\n• Ensure all conduits and ducts access is provided by removable aluminium gland plates, with front switchboard doors fully dust sealed as per best practices in the industry.\n• Install wiring penetrating a fire wall using special intumescent fittings to comply with NSW/Australian standards for safety and integrity of building services installations.\n• Conduct comprehensive testing including visual inspections, water-test drains checks, power cabling terminations megger tests, control cables electrical continuity verifications before requesting Council attendance to ensure full compliance with the Electrical Design Guide as per NSW/Australian standards.\n• Provide fully detailed Test Log sheets for inspection prior to any testing taking place in accordance with best practices and local council requirements, ensuring a clear record of all tests carried out is maintained.",
+    "Electrical Installation Requirements:\n• All equipment supplied and work done shall comply with the specification, S.A.A Wiring Rules (AS/NZS 4829), any other relevant publications covering design, manufacture or installation of electrical equipment.\n• Use only a licensed electrician for all on-site tasks to ensure safety and adherence to regulations.\n• Ensure that the switchboard complies with AS/NZS 61439 standards. The supplier must provide proof through type test certificates from an accredited testing laboratory.\n• Label all sections of the SCA clearly as indicated on drawings, including 'Authorised Personnel Only' for switching sub-systems and circuitry to prevent unauthorized access.\n• Provide LED pilot light indications with clear run/fault labels for main components. Individual control fault lights must also be provided.\n• All cables not enclosed shall be neatly arranged, loosely tied where necessary, supported neatly and terminated at approved terminal blocks without exceeding two terminations per block.\n• Direct power cabling to Compressor and Condenser motors may terminate on respective Contactors/over-loads as specified in the drawings.\n• Install all wiring penetrating a fire wall using special intumescent fittings rated for that duty, following AS3000 standards where applicable.\n• Conduct testing and commissioning before Council inspections. Submit detailed Test Log sheets on A4 size prior to any tests taking place.",
+    "Building Management Control System Upgrade:\n• Extend the existing BMCS to control new works, logic identical to refurbished AHU 2.\n• Supply and install necessary additional points with web-connectivity (BACnet IP), trending capability, and downloadable documentation capability for touch screen interface.\n• Re-engineer and reprogram BMCS along with other associated works to control new ventilation and heating systems fully.\n• Integrate the new Chiller BACnet High Level Interface gateway with the BMS as specified. Provide Device Instance, IP details, mapping table for HLI points including safety features like reverse rotation (phase reversal), low water temperature detection etc.\n• Test and commission the installation of all works related to AHU 1 & 3 refurbishments along with associated electrical system modifications as per existing power supply diagram SKM-02. Ensure compliance with relevant Australian Standards, SafeWork NSW regulations, Council WHS requirements.\n• Allow progressive fine-tuning of control logic after Commissioning up to the end of Defects Liability Period without additional cost.\n• Remove and dispose existing filter bags in AHU Plenums & Associated Works. Reinstate new 600x600, 600mm deep bag air filters as per requirement SKM-01.\n• Sand rusty areas, treat surfaces with paint to a minimum thickness of 2.0mm or thicker aluminium checkered plates over existing discharge floors in AHU Plenums & Associated Works section.\n• Remove and dispose off-site the following items within the sections of AHU 1 & 3: air-to-air heat exchanger, frames, condensate sump and drainpipes; badly corroded exhaust air fan with associated discharge duct up to joint below roof.\n• Install new minimum 2.0mm or thicker aluminium checkered plates over the existing discharge floors in AHU Plenums & Associated Works section after removing old ones and disposing of them off-site as per requirement SKM-01.\n• Remove sections of sheet metal ductwork above AHUs to allow connection for new exhaust configuration. Ensure all hoisting, lifting, hauling, protection is done in accordance with SafeWork NSW regulations and council best practices without additional cost as per requirement SKM-09.\n• Make good of any disturbed work or damage caused by the works including damages to grounds during crane lift. Ensure all surfaces are made whole to Council's satisfaction, remove debris from site post completion.",
+    "Accessories and Features for Chiller Systems:\n• Ensure all chillers are factory tested at full thermal load, including each capacity step.\n• Use scroll type compressors with soft start capability in the design of new or refurbished air handling units (AHUs).\n• Incorporate condenser and evaporator components that match manufacturer specifications for optimal performance.\n• Install main circuit breakers complete with electrical disconnect/isolation capabilities directly on-site to ensure safety during maintenance periods.\n• Engage local distributors of the chiller brand or equivalent quality suppliers in Australia for readily available service and spare parts post installation.\n• Follow manufacturer's recommendations strictly regarding handling, installation, commissioning, and ongoing technical support.",
+    "Coil Design, Performance & Condensate Handling:\n• Design coils with condensate trays to collect all condensation occurring inside the unit.\n• Install drift eliminators at upstream of evaporator coils similar to existing units for improved air quality and efficiency.\n• Supply new EC plug-in exhaust fans (4 off) in each AHUs, replacing centrifugal ones with a capacity of 2800 l/s each.\n• Install condensate sumps common to the cool side of heat recovery coils for efficient water management and reuse within system limits.\n• Design overall insulation using foil faced foam shield type pipe insulation, ensuring minimum temperature drop across chilled water piping with a VSD controlled by internal controller.\n• Install brazed plate condenser heat exchangers made from Type 316L stainless steel for durability and corrosion resistance in the evaporator coils."
+  ],
+  "alternative_tenders": [
+    "Alternative tenders will be evaluated in accordance with the RFT evaluation methodology reproduced in this document."
+  ]
+}
