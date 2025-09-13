@@ -1,0 +1,32 @@
+[
+  {
+    "id": "634375ee",
+    "name": "e.g., Pty Ltd",
+    "filename": "C112025_SDE_Returnable-Schedules.pdf",
+    "uploaded_at": "2025-09-13T04:30:04.615132",
+    "returnables_path": "data/e3c39936-ff51-46fa-80b2-298c40047031_634375ee.returnables.json",
+    "raw_path": "data/e3c39936-ff51-46fa-80b2-298c40047031_supplier_634375ee.pdf",
+    "vs_backend": "faiss_gpu",
+    "vs_location": "faiss/e3c39936-ff51-46fa-80b2-298c40047031_supplier_634375ee"
+  },
+  {
+    "id": "96a4dc5c",
+    "name": "e.g., Pty Ltd",
+    "filename": "C112025_SDE_Returnable-Schedules.pdf",
+    "uploaded_at": "2025-09-13T04:30:41.129538",
+    "returnables_path": "data/e3c39936-ff51-46fa-80b2-298c40047031_96a4dc5c.returnables.json",
+    "raw_path": "data/e3c39936-ff51-46fa-80b2-298c40047031_supplier_96a4dc5c.pdf",
+    "vs_backend": "faiss_gpu",
+    "vs_location": "faiss/e3c39936-ff51-46fa-80b2-298c40047031_supplier_96a4dc5c"
+  },
+  {
+    "id": "0a6cb9aa",
+    "name": "e.g., Pty Ltd",
+    "filename": "C112025-Part-5-Returnable-Schedules-9690fe.pdf",
+    "uploaded_at": "2025-09-13T05:07:44.413647",
+    "returnables_path": "data/e3c39936-ff51-46fa-80b2-298c40047031_0a6cb9aa.returnables.json",
+    "raw_path": "data/e3c39936-ff51-46fa-80b2-298c40047031_supplier_0a6cb9aa.pdf",
+    "vs_backend": "faiss_gpu",
+    "vs_location": "faiss/e3c39936-ff51-46fa-80b2-298c40047031_supplier_0a6cb9aa"
+  }
+]

@@ -317,8 +317,14 @@ def rag_json(
         return _try_parse_json(resp)
     except Exception:
         repair = messages + [HumanMessage(content="Respond again as STRICT JSON only. No prose.")]
-        resp2 = _llm(json_mode=True).invoke(repair).content
-        return _try_parse_json(resp2)
+        try:
+            resp2 = _llm(json_mode=True).invoke(repair).content
+        except Exception:
+            return {}
+        try:
+            return _try_parse_json(resp2)
+        except Exception:
+            return {}
 
 
 # -------------------------------
@@ -387,5 +393,11 @@ def rag_json_plus(
         return _try_parse_json(resp)
     except Exception:
         repair = messages + [HumanMessage(content="Respond again as STRICT JSON only. No prose.")]
-        resp2 = _llm(json_mode=True).invoke(repair).content
-        return _try_parse_json(resp2)
+        try:
+            resp2 = _llm(json_mode=True).invoke(repair).content
+        except Exception:
+            return {}
+        try:
+            return _try_parse_json(resp2)
+        except Exception:
+            return {}

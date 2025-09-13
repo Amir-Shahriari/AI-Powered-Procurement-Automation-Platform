@@ -18,7 +18,7 @@ class Settings:
 
     # ---- Gemini ----
     GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
-    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "000")
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
     # ---- Ollama (local) ----
     OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")

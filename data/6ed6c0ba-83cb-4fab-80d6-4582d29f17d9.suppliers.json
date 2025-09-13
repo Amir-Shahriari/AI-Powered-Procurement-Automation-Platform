@@ -1,0 +1,12 @@
+[
+  {
+    "id": "1d0c51db",
+    "name": "e.g., Pty Ltd",
+    "filename": "C112025_SDE_Returnable-Schedules.pdf",
+    "uploaded_at": "2025-09-13T05:13:29.167023",
+    "returnables_path": "data/6ed6c0ba-83cb-4fab-80d6-4582d29f17d9_1d0c51db.returnables.json",
+    "raw_path": "data/6ed6c0ba-83cb-4fab-80d6-4582d29f17d9_supplier_1d0c51db.pdf",
+    "vs_backend": "faiss_gpu",
+    "vs_location": "faiss/6ed6c0ba-83cb-4fab-80d6-4582d29f17d9_supplier_1d0c51db"
+  }
+]

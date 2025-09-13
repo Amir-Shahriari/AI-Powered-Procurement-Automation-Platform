@@ -1,0 +1,18 @@
+{
+  "users": [
+    {
+      "username": "Admin",
+      "salt": "3a6f23f4f766ea5cbecf668e9ccfda6d",
+      "hash": "a9be66f3cabda42ec2efec69b2c132be4236d88067500ef69dfb8bc3ca26a36a",
+      "is_admin": true,
+      "created_at": "2025-09-09T04:09:30.174385Z"
+    },
+    {
+      "username": "Mohsen",
+      "salt": "df6ba224fe6ef6883be1b23b7dc4e034",
+      "hash": "dcad4589d0b998c24e1a72e7e9a83514653e8bf4e190b643a7e685d83b323adf",
+      "is_admin": false,
+      "created_at": "2025-09-10T01:11:33.928332Z"
+    }
+  ]
+}

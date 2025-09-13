@@ -1,22 +1,23 @@
 /* =========================
-   Dark Slate + Violet Theme
+   Light Slate + Violet Theme
    ========================= */
 
-/* Theme tokens */
+/* ---- Theme tokens ---- */
 :root{
-  --bg:        #0f172a;   /* page background (slate-900) */
-  --panel:     #101826;   /* cards / panels */
-  --panel-2:   #0b1220;   /* deeper surface for contrast */
-  --text:      #e5e7eb;   /* primary text */
-  --muted:     #94a3b8;   /* secondary text */
-  --border:    #223048;   /* subtle borders */
-  --accent:    #8b5cf6;   /* primary violet */
-  --accent-600:#7c3aed;   /* hover */
-  --accent-700:#6d28d9;   /* active / stronger */
-  --shadow-lg: 0 18px 40px rgba(2,6,23,.45), 0 6px 18px rgba(2,6,23,.35);
+  color-scheme: light;
+  --bg:        #f8fafc;   /* page background (slate-50) */
+  --panel:     #ffffff;   /* cards / panels */
+  --panel-2:   #f9fafb;   /* soft surface */
+  --text:      #0f172a;   /* primary text (slate-900) */
+  --muted:     #475569;   /* secondary text (slate-600) */
+  --border:    #e2e8f0;   /* borders (slate-200) */
+  --accent:    #7c3aed;   /* primary violet */
+  --accent-600:#6d28d9;   /* hover */
+  --accent-700:#5b21b6;   /* active / stronger */
+  --shadow-lg: 0 12px 28px rgba(2,6,23,.10), 0 4px 14px rgba(2,6,23,.06);
 }
 
-/* --- Base --- */
+/* ---- Global resets ---- */
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
@@ -28,66 +29,198 @@ img{max-width:100%;display:block}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 
-/* Header / nav */
-.header-shadow{
-  box-shadow:none;
-  border-bottom:1px solid rgba(148,163,184,.12);
-  background:linear-gradient(180deg, rgba(16,24,38,.85), rgba(16,24,38,.65));
+/* ---- Force light backgrounds across Streamlit containers ---- */
+html, body, .stApp,
+[data-testid="stAppViewContainer"],
+[data-testid="stAppViewBlock"],
+[data-testid="stVerticalBlock"],
+section.main, .main, .block-container {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* ---- Header & Sidebar ---- */
+[data-testid="stHeader"]{
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.72)) !important;
+  border-bottom: 1px solid var(--border) !important;
   backdrop-filter: blur(6px);
 }
-.nav-link{opacity:.9;transition:opacity .15s ease}
-.nav-link:hover{opacity:1;text-decoration:underline}
+[data-testid="stSidebar"]{
+  background: var(--panel) !important;
+  border-right: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
 
-/* Inputs (covers most Streamlit inputs generically) */
+/* ---- Cards / panels ---- */
+.card{
+  background: linear-gradient(180deg, var(--panel), var(--panel-2)) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: .75rem !important;
+  padding: 1.1rem;
+  box-shadow: var(--shadow-lg);
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.card:hover{
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(124,58,237,.25);
+}
+
+/* ---- Expanders ---- */
+[data-testid="stExpander"]{
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: .6rem !important;
+}
+[data-testid="stExpander"] .streamlit-expanderHeader{
+  background: var(--panel) !important;
+  color: var(--text) !important;
+}
+
+/* ===============================
+   Tables & Editable Data Editors
+   =============================== */
+
+/* Outer containers */
+[data-testid="stDataFrame"],
+[data-testid="stDataEditor"],
+[data-testid="stTable"]{
+  background: #fff !important;
+  border: 1px solid var(--border) !important;
+  border-radius: .6rem !important;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Ensure the internal grid and headers are light */
+[data-testid="stDataFrame"] [role="grid"],
+[data-testid="stDataEditor"] [role="grid"],
+[data-testid="stTable"] table{
+  background:#fff !important;
+  color:var(--text) !important;
+}
+
+/* Table header & cells */
+[data-testid="stDataFrame"] [role="columnheader"],
+[data-testid="stDataFrame"] [role="gridcell"],
+[data-testid="stDataEditor"] [role="columnheader"],
+[data-testid="stDataEditor"] [role="gridcell"],
+[data-testid="stTable"] th,
+[data-testid="stTable"] td{
+  background:#fff !important;
+  color:var(--text) !important;
+  border-color:var(--border) !important;
+}
+
+/* Row index / corner cells */
+[data-testid="stDataFrame"] [data-testid="stIndexColumn"],
+[data-testid="stDataFrame"] [data-testid="stRowHeader"],
+[data-testid="stDataEditor"] [data-testid="stIndexColumn"],
+[data-testid="stDataEditor"] [data-testid="stRowHeader"]{
+  background:#fff !important;
+  color:var(--text) !important;
+  border-color:var(--border) !important;
+}
+
+/* Hover/selection states */
+[data-testid="stDataFrame"] [role="gridcell"][data-selected="true"],
+[data-testid="stDataEditor"] [role="gridcell"][data-selected="true"]{
+  background:#f1f5f9 !important; /* slate-100 */
+  outline: 1px solid var(--accent-600) !important;
+  outline-offset: -1px !important;
+}
+[data-testid="stDataFrame"] [role="row"]:hover [role="gridcell"],
+[data-testid="stDataEditor"] [role="row"]:hover [role="gridcell"]{
+  background:#f8fafc !important; /* slate-50 */
+}
+
+/* Editable inputs inside Data Editor cells */
+[data-testid="stDataEditor"] input,
+[data-testid="stDataEditor"] textarea,
+[data-testid="stDataEditor"] select{
+  background:#fff !important;
+  color:var(--text) !important;
+  border:1px solid var(--border) !important;
+  border-radius:.4rem !important;
+}
+
+/* Sticky header shadow hint */
+[data-testid="stDataFrame"] [role="columnheader"],
+[data-testid="stDataEditor"] [role="columnheader"]{
+  box-shadow: inset 0 -1px 0 var(--border);
+}
+
+/* When Streamlit renders "styled" tables */
+[data-testid="stStyledTableContainer"]{
+  background:#fff !important;
+  border:1px solid var(--border) !important;
+  border-radius:.6rem !important;
+  overflow:hidden;
+}
+
+/* ============================
+   Inputs, Selects, Textareas
+   ============================ */
 input, select, textarea, [role="combobox"], .stSelectbox, .stTextInput, .stTextArea{
-  background:var(--panel);
+  background:#fff !important;
   color:var(--text) !important;
   border:1px solid var(--border) !important;
   border-radius:.6rem !important;
 }
-input::placeholder, textarea::placeholder{color:var(--muted)}
-/* Baseweb (Streamlit) focus ring fallback */
+input::placeholder, textarea::placeholder{color:#94a3b8}
 :focus{outline:2px solid transparent}
 :focus-visible{outline:2px solid var(--accent-600); outline-offset:2px}
 
-/* Buttons (Streamlit buttons) */
+/* BaseWeb (internal) input shells */
+[data-baseweb="input"], [data-baseweb="textarea"], [data-baseweb="select"]{
+  background:#fff !important;
+  color:var(--text) !important;
+  border:1px solid var(--border) !important;
+  border-radius:.6rem !important;
+}
+
+/* File Uploader (dropzone) */
+[data-testid="stFileUploaderDropzone"]{
+  background:#fff !important;
+  border:1px dashed var(--border) !important;
+  color:var(--muted) !important;
+  border-radius:.75rem !important;
+}
+[data-testid="stFileUploaderDropzone"] *{
+  color:inherit !important;
+  fill:currentColor !important;
+}
+
+/* Tabs */
+div[data-baseweb="tab-panel"]{
+  background:var(--panel) !important;
+  border:1px solid var(--border) !important;
+  border-radius:.6rem !important;
+}
+
+/* Buttons */
 .stButton > button, .stDownloadButton > button{
-  position:relative;display:inline-block;border:1px solid transparent;border-radius:.6rem;
+  position:relative;display:inline-block;border:1px solid transparent;border-radius:.6rem !important;
   padding:.8rem 1.2rem;background:var(--accent-600);color:#fff;font-weight:600;cursor:pointer;
   transition:transform .15s ease, background .15s ease, box-shadow .15s ease;
-  box-shadow:0 6px 18px rgba(124,58,237,.25);
+  box-shadow:0 8px 18px rgba(109,40,217,.20);
 }
 .stButton > button:hover, .stDownloadButton > button:hover{background:var(--accent-700)}
 .stButton > button:active, .stDownloadButton > button:active{transform:translateY(1px) scale(.99)}
-.stButton[data-ripple] > button::after{
-  content:"";position:absolute;inset:0;opacity:0;transition:opacity .25s ease;
-  background:radial-gradient(140px 140px at var(--rx,50%) var(--ry,50%), rgba(255,255,255,.18) 0, transparent 60%);
+/* Secondary / ghost (Streamlit sets kind attr sometimes) */
+button[kind="secondary"]{
+  background:#fff !important; color:var(--accent) !important; border:1px solid var(--border) !important;
 }
-.stButton[data-ripple]:hover > button::after{opacity:1}
+button[kind="secondary"]:hover{background:#fafafa !important}
 
-/* Cards */
-.card{
-  background:linear-gradient(180deg, var(--panel), var(--panel-2));
-  border:1px solid var(--border);
-  border-radius:.75rem;padding:1.1rem;
-  transition:transform .25s ease, box-shadow .25s ease, background .25s ease, border-color .25s ease;
-}
-.card:hover{
-  transform:translateY(-3px);
-  box-shadow:var(--shadow-lg);
-  border-color:rgba(139,92,246,.35);
-}
+/* Make primary actions fill card width (optional) */
+.stButton > button{ width:100%; box-shadow:0 10px 24px rgba(109,40,217,.15); }
 
-/* Subtle page fade */
-.fade-in{animation:fadeIn .6s ease-out both}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none}}
-
-/* Animated hero background (dark-friendly) */
+/* ---- Hero / decorative sections (optional) ---- */
 .hero-bg{
   background:
-    radial-gradient(1200px 600px at 10% -20%, rgba(124,58,237,.18) 10%, transparent 60%),
-    radial-gradient(1000px 600px at 110% 20%, rgba(139,92,246,.16) 10%, transparent 55%),
-    linear-gradient(120deg, rgba(16,24,38,1), rgba(11,18,32,1) 50%, rgba(16,24,38,1));
+    radial-gradient(900px 500px at 10% -10%, rgba(124,58,237,.12) 10%, transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgba(139,92,246,.10) 10%, transparent 55%),
+    linear-gradient(120deg, #ffffff, #f9fafb 50%, #ffffff);
   animation:gradientShift 12s ease-in-out infinite alternate;
   border-radius:1rem;padding:2rem;margin-bottom:1rem;border:1px solid var(--border);
 }
@@ -96,39 +229,111 @@ input::placeholder, textarea::placeholder{color:var(--muted)}
   100%{background-position:10% -10%, 95% 15%, 0% 0%}
 }
 
-/* Simple containers */
+/* ---- Layout helpers ---- */
 .container{max-width:72rem;margin-inline:auto;padding-inline:1rem}
 .center{text-align:center}
+.muted{color:var(--muted)}
+.page-header{display:flex;justify-content:center;padding:.5rem 0 1rem}
+.page-header h1{margin:0;text-align:center}
 
-/* Footer */
-.footer{
-  background:var(--panel);
-  color:var(--muted);
-  text-align:center;padding:1.1rem;
-  border-top:1px solid var(--border);
+/* ---- Data containers polish ---- */
+.stDataFrame, .stDataEditor{
+  border-radius:.6rem !important;
+  overflow:hidden !important;
+  border:1px solid var(--border) !important;
+  background:#fff !important;
 }
-/* Make primary actions look “cardy” */
-.stButton > button{
-  width:100%;
-  box-shadow:0 10px 24px rgba(93,104,138,.18);
+
+/* ---- Horizontal rule ---- */
+.hr, hr{border:none;border-top:1px solid var(--border);opacity:.9}
+
+/* ---- Scrollbars (light) ---- */
+*::-webkit-scrollbar{height:10px;width:10px}
+*::-webkit-scrollbar-track{background:#f1f5f9}
+*::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:8px;border:2px solid #f1f5f9}
+*::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+
+/* ---- Code blocks (keep light) ---- */
+.stCodeBlock, pre, code{
+  background:#fff !important;
+  color:#1f2937 !important;
+  border:1px solid var(--border) !important;
+  border-radius:.6rem !important;
 }
-/* Centered page header bar */
-.page-header{
-  display:flex; align-items:center; justify-content:center;
-  padding: 0.5rem 0 1rem; margin-bottom:.5rem;
+
+/* ---- Toasts / status boxes ---- */
+[data-testid="stAlert"]{
+  background:#fff !important;
+  border:1px solid var(--border) !important;
+  border-radius:.6rem !important;
+  color:var(--text) !important;
 }
-.page-header h1{ margin:0; text-align:center; }
 
-/* Helpers */
-.center{ text-align:center; }
-.muted{ color: var(--muted); }
+/* ---- Keep Plotly/Altair canvases on light panels ---- */
+.js-plotly-plot, .vega-embed, canvas, svg{
+  background:#fff !important;
+}
 
-/* Keep headers centered across pages */
-.page-header{ display:flex; justify-content:center; padding:.5rem 0 1rem }
-.page-header h1{ margin:0; text-align:center }
+/* ---- Nav link aesthetic (optional) ---- */
+.header-shadow{
+  box-shadow:none;
+  border-bottom:1px solid rgba(2,6,23,.06);
+  background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.65));
+  backdrop-filter: blur(6px);
+}
+.nav-link{opacity:.9;transition:opacity .15s ease}
+.nav-link:hover{opacity:1;text-decoration:underline}
 
-/* Make Streamlit data editor feel like a sheet */
-.stDataFrame, .stDataEditor{ border-radius: .6rem; overflow: hidden; border:1px solid var(--border) }
+/* =========================
+   Streamlit Selectbox (BaseWeb)
+   ========================= */
 
-/* Utility: progress/strips that looked too light in dark mode */
-.hr, hr{border:none;border-top:1px solid var(--border);opacity:.6}
+/* Shell + input area */
+[data-testid="stSelectbox"] > div[data-baseweb="select"],
+div[data-baseweb="select"]{
+  background:#fff !important;
+  color:var(--text) !important;
+}
+div[data-baseweb="select"] > div{
+  background:#fff !important;
+  border:1px solid var(--border) !important;
+  border-radius:.6rem !important;
+}
+
+/* The actual combobox area (click target) */
+div[data-baseweb="select"] [role="combobox"]{
+  background:#fff !important;
+  color:var(--text) !important;
+  border-radius:.6rem !important;
+}
+
+/* Chevron / icons */
+div[data-baseweb="select"] svg{
+  fill: var(--muted) !important;
+}
+
+/* The dropdown popover panel */
+div[data-baseweb="popover"]{
+  /* let the menu handle its own background */
+  background: transparent !important;
+}
+
+/* The dropdown menu */
+div[data-baseweb="menu"]{
+  background:#fff !important;
+  border:1px solid var(--border) !important;
+  border-radius:.6rem !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* Menu options */
+div[data-baseweb="menu"] li[role="option"]{
+  background:#fff !important;
+  color:var(--text) !important;
+  border-color: var(--border) !important;
+}
+div[data-baseweb="menu"] li[aria-selected="true"],
+div[data-baseweb="menu"] li[aria-activedescendant],
+div[data-baseweb="menu"] li:hover{
+  background:#f8fafc !important; /* subtle hover */
+}

@@ -1,3 +1,4 @@
+
 #app/routers/api.py
 
 import uuid
@@ -56,7 +57,6 @@ from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import FileResponse
 
 from ..repo.records import load_record
-from ..services.evaluation import generate_evaluation_excel
 router = APIRouter()
 
 SPEC_SUMMARY_PROMPT = """You summarise government engineering tender specifications.

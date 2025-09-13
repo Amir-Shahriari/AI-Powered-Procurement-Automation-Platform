@@ -14,6 +14,7 @@ from ..config import settings
 from .textio import extract_text, chunks
 from .vectorstores import build_index, get_vs, _faiss_path, _chroma_name
 from .returnables_supplier import fill_returnables_from_supplier
+from .llm import rag_json
 
 # Excel generation
 from openpyxl import Workbook
@@ -95,16 +96,229 @@ def _get_nested(d: Dict[str, Any], path: List[str]) -> Any:
             return None
     return cur
 
+def _as_string(value: Any) -> Optional[str]:
+    """
+    Extract a human string from heterogeneous returnables field values.
+    Common shapes:
+      - "Acme Pty Ltd"
+      - {"value": "Acme Pty Ltd", ...}
+      - {"text": "Acme Pty Ltd"}
+      - {"answer": "Acme Pty Ltd"}
+      - [{"value": "Acme Pty Ltd"}, ...]
+    """
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        # Prefer common payload keys, including nested under "value"
+        prefer_keys = ["value", "text", "answer", "response", "selected", "name"]
+        for k in prefer_keys:
+            if k in value:
+                s = _as_string(value.get(k))
+                if s:
+                    return s
+        # Avoid label-like keys
+        avoid_keys = {"label", "title", "question", "prompt", "heading", "field", "key"}
+        for k, v in value.items():
+            if k in avoid_keys:
+                continue
+            s = _as_string(v)
+            if s:
+                return s
+    if isinstance(value, list):
+        for el in value:
+            s = _as_string(el)
+            if s:
+                return s
+    return None
+
+def _is_generic_label(s: str) -> bool:
+    s_l = (s or "").strip().lower()
+    if not s_l:
+        return True
+    generic = {
+        "name","company name","organisation name","organization name","business name",
+        "legal name","trading name","details legal name","details trading name",
+        "enter company name","enter legal name"
+    }
+    return s_l in generic or s_l.startswith("details ") or s_l.startswith("enter ")
+
+def _looks_like_company_name(s: str) -> bool:
+    if not isinstance(s, str):
+        return False
+    s_clean = re.sub(r"\s+", " ", s).strip()
+    if not s_clean:
+        return False
+    # Prefer common company suffixes
+    if re.search(r"\b(pty|pte|ltd|limited|inc|llc|llp|gmbh|s\.a\.|s\.r\.l\.|plc|corp|corporation)\b", s_clean, re.IGNORECASE):
+        return True
+    # At least two words with letters
+    words = [w for w in re.split(r"[^A-Za-z]+", s_clean) if w]
+    return len(words) >= 2 and len(s_clean) >= 4
+
 def _supplier_display_name(ret: Dict[str, Any], fallback: str) -> str:
     """
-    Try common spots in your Returnables JSON to get the supplier name.
-    Falls back to provided label (e.g., filename stem).
+    Extract company name from populated returnables JSON.
+    The returnables should already be populated by fill_returnables_from_supplier.
     """
-    legal = _get_nested(ret, ["schedule_1_corporate_information_and_declaration", "company_details", "legal_name"])
-    trading = _get_nested(ret, ["schedule_1_corporate_information_and_declaration", "company_details", "trading_name"])
-    tenderer = _get_nested(ret, ["schedule_16_acknowledgement_of_addenda_and_declaration", "tenderer_declaration", "tenderer_name"])
-    contact_name = _get_nested(ret, ["schedule_1_corporate_information_and_declaration", "contact_details", "name"])
-    return _first_nonempty(legal, trading, tenderer, contact_name, fallback) or fallback
+    print(f"DEBUG: Extracting name from populated returnables, fallback: {fallback}")
+    
+    # First, try to get the company name from Schedule 1 - Corporate Information & Declaration
+    schedule1 = _get_nested(ret, ["schedule_1_corporate_information_and_declaration"])
+    if isinstance(schedule1, dict):
+        print(f"DEBUG: Found Schedule 1 with keys: {list(schedule1.keys())}")
+        
+        # Check company_details first
+        company_details = schedule1.get("company_details", {})
+        if isinstance(company_details, dict):
+            print(f"DEBUG: Company details keys: {list(company_details.keys())}")
+            
+            # Priority order for company name fields
+            name_fields = ["legal_name", "trading_name", "company_name", "organisation_name", "organization_name", "business_name"]
+            
+            for field in name_fields:
+                value = company_details.get(field)
+                if value:
+                    # Extract string value from potentially complex structure
+                    name = _as_string(value)
+                    print(f"DEBUG: {field} -> {value} -> extracted: {name}")
+                    
+                    if name and not _is_generic_label(name) and _looks_like_company_name(name):
+                        print(f"DEBUG: Found valid company name in {field}: {name}")
+                        return name.strip()
+        
+        # Check contact_details as fallback
+        contact_details = schedule1.get("contact_details", {})
+        if isinstance(contact_details, dict):
+            print(f"DEBUG: Contact details keys: {list(contact_details.keys())}")
+            
+            contact_name_fields = ["company_name", "organisation_name", "organization_name", "name"]
+            for field in contact_name_fields:
+                value = contact_details.get(field)
+                if value:
+                    name = _as_string(value)
+                    print(f"DEBUG: Contact {field} -> {value} -> extracted: {name}")
+                    
+                    if name and not _is_generic_label(name) and _looks_like_company_name(name):
+                        print(f"DEBUG: Found valid company name in contact {field}: {name}")
+                        return name.strip()
+    
+    # If Schedule 1 didn't work, try other common locations
+    other_paths = [
+        ["schedule_16_acknowledgement_of_addenda_and_declaration", "tenderer_declaration", "tenderer_name"],
+        ["schedule_16_acknowledgement_of_addenda_and_declaration", "tenderer_declaration", "company_name"],
+        ["company_name"],
+        ["organization_name"],
+        ["organisation_name"],
+        ["legal_name"],
+        ["trading_name"],
+    ]
+    
+    for path in other_paths:
+        value = _get_nested(ret, path)
+        if value:
+            name = _as_string(value)
+            print(f"DEBUG: Path {path} -> {value} -> extracted: {name}")
+            
+            if name and not _is_generic_label(name) and _looks_like_company_name(name):
+                print(f"DEBUG: Found valid company name at {path}: {name}")
+                return name.strip()
+    
+    # Last resort: extract from all text content
+    print("DEBUG: No structured name found, trying text extraction")
+    text_content = _extract_text_from_returnables(ret)
+    if text_content:
+        # Look for company names with business suffixes
+        company_pattern = r'\b([A-Z][A-Za-z\s&.,\-]{2,50}?\s+(?:PTE?\.?|LTD\.?|LIMITED|INC\.?|INCORPORATED|CORP\.?|CORPORATION))\b'
+        matches = re.findall(company_pattern, text_content, re.IGNORECASE)
+        for match in matches:
+            cleaned = match.strip()
+            if (len(cleaned) > 3 and len(cleaned) < 100 and 
+                cleaned.lower() not in ["name", "company name", "organization name", "business name", "legal name"] and
+                re.search(r'[a-z]', cleaned)):
+                print(f"DEBUG: Found company name in text: {cleaned}")
+                return cleaned
+    
+    print(f"DEBUG: No company name found, using fallback: {fallback}")
+    return fallback
+
+def _extract_text_from_returnables(ret: Dict[str, Any]) -> str:
+    """Extract all text content from returnables for pattern matching."""
+    text_parts = []
+    
+    def extract_text_recursive(obj):
+        if isinstance(obj, dict):
+            for value in obj.values():
+                extract_text_recursive(value)
+        elif isinstance(obj, list):
+            for item in obj:
+                extract_text_recursive(item)
+        elif isinstance(obj, str):
+            text_parts.append(obj)
+    
+    extract_text_recursive(ret)
+    return ' '.join(text_parts)
+
+def _extract_company_name_from_raw_text(raw_path: Path) -> Optional[str]:
+    """Extract company name directly from raw document text, focusing on Schedule 1."""
+    try:
+        text = extract_text(raw_path)
+        if not text:
+            return None
+        
+        print(f"DEBUG: Raw text length: {len(text)}")
+        print(f"DEBUG: First 500 chars: {text[:500]}")
+        
+        def _schedule1_block(t: str) -> Optional[str]:
+            # Find Schedule 1 section and slice until the next schedule header
+            m1 = re.search(r"(?is)\bSchedule\s*1[^a-zA-Z][\s\S]*?(?=\bSchedule\s*[2-9]|$)", t)
+            if m1:
+                block = m1.group(0)
+                print(f"DEBUG: Found Schedule 1 block, length: {len(block)}")
+                print(f"DEBUG: Schedule 1 content: {block[:300]}")
+                return block
+            return None
+
+        # Get Schedule 1 block
+        schedule1_text = _schedule1_block(text)
+        if not schedule1_text:
+            print("DEBUG: No Schedule 1 block found")
+            return None
+
+        # Look for company names in Schedule 1 - more specific patterns
+        patterns = [
+            # Direct company name patterns (like "SDE Consultants Pty Ltd")
+            r'\b([A-Z][A-Za-z\s&.,\-]{2,50}?\s+(?:PTE?\.?|LTD\.?|LIMITED|INC\.?|INCORPORATED|CORP\.?|CORPORATION|LLC|LLP|CO\.?|COMPANY))\b',
+            # After "Trading name" or "Legal name" labels
+            r'(?:Trading\s+name|Legal\s+name|Company\s+name|Organisation\s+name|Organization\s+name)[:\s]*([A-Z][A-Za-z\s&.,\-]{2,50}?)(?:\s|$)',
+            # After "Company:" or "Name:" labels
+            r'(?:Company|Name)[:\s]*([A-Z][A-Za-z\s&.,\-]{2,50}?)(?:\s|$)',
+            # Standalone company names (capitalized words with business suffix)
+            r'\b([A-Z][A-Za-z\s&.,\-]{3,40}?\s+(?:PTE?\.?|LTD\.?|LIMITED))\b',
+        ]
+
+        # Search within Schedule 1 block only
+        for i, pattern in enumerate(patterns):
+            print(f"DEBUG: Trying pattern {i+1}: {pattern}")
+            matches = re.findall(pattern, schedule1_text, re.IGNORECASE | re.MULTILINE)
+            print(f"DEBUG: Found {len(matches)} matches: {matches}")
+            
+            for match in matches:
+                cleaned = match.strip()
+                # Clean up common artifacts
+                cleaned = re.sub(r'^[:\-\s]+|[:\-\s]+$', '', cleaned)
+                
+                if (len(cleaned) > 3 and len(cleaned) < 100 and 
+                    cleaned.lower() not in ["name", "company name", "organization name", "business name", "legal name", "trading name"] and
+                    not re.match(r'^[A-Z\s]+$', cleaned) and  # Not all caps
+                    re.search(r'[a-z]', cleaned)):  # Has lowercase letters
+                    print(f"DEBUG: Returning company name: {cleaned}")
+                    return cleaned
+
+        print("DEBUG: No valid company name found in Schedule 1")
+        return None
+    except Exception as e:
+        print(f"DEBUG: Exception in raw text extraction: {e}")
+        return None
 
 
 # =============================================================================
@@ -135,18 +349,16 @@ def save_supplier_returnables(rec_id: str, sup_id: str, payload: Dict[str, Any])
 # Supplier processing (fill returnables from uploaded files)
 # =============================================================================
 
-def process_suppliers(rec_id: str, files: List[UploadFile], base_returnables: Dict[str, Any]) -> List[Dict[str, Any]]:
+def process_suppliers(rec_id: str, files: List[UploadFile], base_returnables: Dict[str, Any], input_type: str = "responses") -> List[Dict[str, Any]]:
     """
-    For each uploaded supplier file:
-      - extract text
-      - build vector store
-      - fill a deep copy of baseline Returnables using supplier docs
-      - write supplier-specific Returnables JSON
-      - append to {rec_id}.suppliers.json manifest
-    Returns the updated manifest list.
+    Ingest supplier materials and persist a per-supplier Returnables JSON.
+
+    input_type:
+      - "responses": supplier provides general response docs; we RAG-fill a blank RS.
+      - "filled_returnables": supplier provides their already-filled Returnable Schedule
+        (JSON preferred; PDF/DOCX supported via targeted Schedule 1 extraction).
     """
     if not files:
-        # Give the caller whatever we can rediscover, so subsequent evaluation works.
         items = _load_suppliers(rec_id)
         if not items:
             items = _rebuild_suppliers_manifest_from_disk(rec_id)
@@ -154,47 +366,159 @@ def process_suppliers(rec_id: str, files: List[UploadFile], base_returnables: Di
                 _save_suppliers(rec_id, items)
         return items
 
+    input_type = (input_type or "responses").strip().lower()
+    if input_type not in {"responses", "filled_returnables"}:
+        input_type = "responses"
+
     manifest = _load_suppliers(rec_id)
 
     for up in files:
         if not up or not up.filename:
             continue
+        # avoid dupes on Streamlit re-runs
+        try:
+            if any((s.get("filename") or "") == up.filename for s in manifest):
+                continue
+        except Exception:
+            pass
 
         sup_id = str(uuid.uuid4())[:8]
         suffix = Path(up.filename).suffix or ".bin"
         raw_path = _data_dir() / f"{rec_id}_supplier_{sup_id}{suffix}"
 
-        # Persist raw file
+        # Persist raw upload
         with open(raw_path, "wb") as f:
             f.write(up.file.read())
 
-        # Extract text & build VS
-        text = ""
-        try:
-            text = extract_text(raw_path)
-        except Exception:
+        filled: Dict[str, Any]
+        supplier_name: Optional[str] = None
+        vs_loc: Optional[str] = None
+
+        # ---------- PATH A: Supplier uploaded a filled Returnable Schedule ----------
+        if input_type == "filled_returnables":
+            if suffix.lower() == ".json":
+                # Direct JSON returnables from supplier (best path)
+                try:
+                    filled = json.loads(Path(raw_path).read_text(encoding="utf-8"))
+                except Exception:
+                    filled = json.loads(json.dumps(base_returnables))  # blank fallback
+                # name: strictly from Schedule 1 first, then fallback
+                supplier_name = _supplier_display_name(filled, Path(up.filename).stem)
+            else:
+                # PDF/DOCX: build a small VS and extract ONLY the fields we need
+                text = ""
+                try:
+                    text = extract_text(raw_path)
+                except Exception:
+                    text = ""
+                if not text.strip():
+                    filled = json.loads(json.dumps(base_returnables))
+                    supplier_name = Path(up.filename).stem
+                else:
+                    chs = chunks(text)
+                    build_index(f"{rec_id}_supplier_{sup_id}", chs)
+                    vs = get_vs(f"{rec_id}_supplier_{sup_id}")
+
+                    # Start from blank RS but only request the minimal fields
+                    filled = json.loads(json.dumps(base_returnables))
+
+                    # Targeted Schedule 1 extraction (no broad scan)
+                    try:
+                        schedule1 = rag_json(
+                            vs,
+                            prompt=(
+                                "Extract ONLY Schedule 1 Corporate Information & Declaration fields "
+                                "(company_details.legal_name, company_details.trading_name, contact_details.*). "
+                                "Do NOT return placeholders; return nulls if unknown. Return STRICT JSON."
+                            ),
+                            field_queries=[
+                                "Schedule 1 Corporate Information company name legal_name trading_name",
+                                "Corporate Information Declaration contact details company",
+                            ],
+                            max_ctx=6,
+                            min_chars=1200,
+                        ) or {}
+                    except Exception:
+                        schedule1 = {}
+
+                    # Merge schedule1 (if any) into filled structure
+                    if isinstance(schedule1, dict) and schedule1:
+                        filled.setdefault("schedule_1_corporate_information_and_declaration", {})
+                        filled["schedule_1_corporate_information_and_declaration"].update(schedule1)
+
+                    # Prefer structured name from Schedule 1; no generic placeholders
+                    name_from_rs = _supplier_display_name(filled, Path(up.filename).stem)
+                    if name_from_rs and not _is_generic_label(name_from_rs):
+                        supplier_name = name_from_rs
+
+                    vs_loc = (
+                        str(_faiss_path(f"{rec_id}_supplier_{sup_id}"))
+                        if settings.VECTOR_BACKEND == "faiss_gpu"
+                        else _chroma_name(f"{rec_id}_supplier_{sup_id}")
+                    )
+
+        # ---------- PATH B: Supplier uploaded general response docs ----------
+        if input_type == "responses":
+            # Extract text, index, fill full RS
             text = ""
+            try:
+                text = extract_text(raw_path)
+            except Exception:
+                text = ""
 
-        if not text.strip():
-            # record a stub supplier so user can fix manually
-            filled = json.loads(json.dumps(base_returnables))  # deep clone
-            supplier_name = Path(up.filename).stem
-            vs_loc = None
-        else:
-            chs = chunks(text)
-            build_index(f"{rec_id}_supplier_{sup_id}", chs)
-            vs = get_vs(f"{rec_id}_supplier_{sup_id}")
+            if not text.strip():
+                filled = json.loads(json.dumps(base_returnables))
+                supplier_name = Path(up.filename).stem
+            else:
+                chs = chunks(text)
+                build_index(f"{rec_id}_supplier_{sup_id}", chs)
+                vs = get_vs(f"{rec_id}_supplier_{sup_id}")
 
-            # Fill using supplier docs
-            filled = fill_returnables_from_supplier(base_returnables, [vs])
-            supplier_name = _supplier_display_name(filled, Path(up.filename).stem)
+                filled = fill_returnables_from_supplier(base_returnables, [vs])
 
-            # Vector store location (optional)
+                # 1) Try strict structured name from Schedule 1
+                name_from_rs = _supplier_display_name(filled, Path(up.filename).stem)
+                if name_from_rs and not _is_generic_label(name_from_rs):
+                    supplier_name = name_from_rs
+
+                # 2) If still missing/generic, a tiny targeted RAG for company name
+                if not supplier_name or _is_generic_label(supplier_name):
+                    try:
+                        company_extraction = rag_json(
+                            vs,
+                            prompt=(
+                                "Return STRICT JSON {'company_name': <actual company name>} "
+                                "for the Tenderer. Do NOT return example/placeholder text."
+                            ),
+                            field_queries=[
+                                "Schedule 1 company details legal name",
+                                "Schedule 1 company details trading name",
+                                "tenderer company name",
+                            ],
+                            max_ctx=6,
+                            min_chars=1000,
+                        ) or {}
+                        n = company_extraction.get("company_name") if isinstance(company_extraction, dict) else None
+                        if isinstance(n, str) and n.strip() and not _is_generic_label(n):
+                            supplier_name = n.strip()
+                    except Exception:
+                        pass
+
+                # 3) Last resort: regex within Schedule 1 block
+                if not supplier_name or _is_generic_label(supplier_name):
+                    from_raw = _extract_company_name_from_raw_text(raw_path)
+                    if from_raw and not _is_generic_label(from_raw):
+                        supplier_name = from_raw
+
             vs_loc = (
                 str(_faiss_path(f"{rec_id}_supplier_{sup_id}"))
                 if settings.VECTOR_BACKEND == "faiss_gpu"
                 else _chroma_name(f"{rec_id}_supplier_{sup_id}")
             )
+
+        # ---- FINAL GUARANTEE: never persist None/generic name ----
+        if not supplier_name or _is_generic_label(supplier_name):
+            supplier_name = Path(up.filename).stem
 
         # Save supplier-specific returnables
         out_path = _path_supplier_returnables(rec_id, sup_id)

@@ -1,5 +1,4 @@
-#app/services/compose/tepp.py
-
+# app/services/compose/tepp.py
 from __future__ import annotations
 import calendar
 from datetime import datetime, date, timedelta
@@ -18,20 +17,28 @@ from .returnables import compose_returnable_schedules
 # Small safety helpers (type normalisers)
 # =============================================================================
 
+def _to_str(x) -> str:
+    """Coerce unknown LLM field types into a safe string."""
+    if x is None:
+        return ""
+    if isinstance(x, str):
+        return x
+    if isinstance(x, dict) and "text" in x and isinstance(x["text"], str):
+        # common pattern when models wrap text
+        return x["text"]
+    try:
+        return json.dumps(x, ensure_ascii=False)
+    except Exception:
+        return str(x)
+
+
 def _ensure_dict(obj: Dict[str, Any], key: str) -> Dict[str, Any]:
-    """Ensure obj[key] is a dict; if not present or wrong type, replace with {} and return it."""
     val = obj.get(key)
     if not isinstance(val, dict):
         obj[key] = {}
     return obj[key]
 
-
 def _ensure_list_path(root: Dict[str, Any], path: List[str]) -> List[Any]:
-    """
-    Ensure a nested path exists and is a list at the leaf.
-    Any non-list at the leaf is converted to a single-item list (unless None -> []).
-    Returns the ensured list reference.
-    """
     cur = root
     for i, k in enumerate(path):
         last = i == len(path) - 1
@@ -51,18 +58,16 @@ def _ensure_list_path(root: Dict[str, Any], path: List[str]) -> List[Any]:
             if not isinstance(v, dict):
                 cur[k] = {}
             cur = cur[k]
-    return []  # unreachable
-
+    return []
 
 def _as_list(v) -> List[str]:
     if not v:
         return []
     if isinstance(v, list):
-        return [x for x in v if isinstance(x, str) and x.strip()]
-    if isinstance(v, str) and v.strip():
-        return [v.strip()]
+        return [str(x) for x in v if isinstance(x, (str, int, float, bool)) and str(x).strip()]
+    if isinstance(v, (str, int, float, bool)) and str(v).strip():
+        return [str(v).strip()]
     return []
-
 
 def _join_bullets(lines: List[str]) -> str:
     cleaned: List[str] = []
@@ -75,9 +80,11 @@ def _join_bullets(lines: List[str]) -> str:
     return "\n".join(cleaned)
 
 # =============================================================================
-# Evaluation criteria ranges per purchase category.
+# Category ranges (NO “over $249,999” variants)
 # =============================================================================
+
 CATEGORY_WEIGHT_RANGES: Dict[str, Dict[str, str]] = {
+    # Standard goods
     "standard product or good": {
         "Price (Full Cost)": "40% to 60%",
         "Relevant Experience": "10% to 30%",
@@ -85,7 +92,8 @@ CATEGORY_WEIGHT_RANGES: Dict[str, Dict[str, str]] = {
         "Management & Financial Capacity": "5% to 10%",
         "WHS": "5% to 10%",
     },
-    "construction contract valued at over $249,999": {
+    # Construction
+    "construction contract": {
         "Price (Full Cost)": "35% to 60%",
         "Relevant Experience": "10% to 20%",
         "Capability": "10% to 20%",
@@ -93,14 +101,16 @@ CATEGORY_WEIGHT_RANGES: Dict[str, Dict[str, str]] = {
         "Quality Management": "5% to 10%",
         "WHS": "5% to 10%",
     },
-    "consultancy contract valued at over $249,999": {
+    # Consultancy
+    "consultancy contract": {
         "Price (Full Cost)": "25% to 50%",
         "Relevant Experience": "10% to 30%",
         "Capability": "10% to 30%",
         "Management & Financial Capacity": "5% to 10%",
         "WHS": "5% to 10%",
     },
-    "service delivery contract valued at over $249,999": {
+    # Service delivery
+    "service delivery contract": {
         "Price (Full Cost)": "30% to 50%",
         "Relevant Experience": "10% to 30%",
         "Capability": "10% to 30%",
@@ -108,7 +118,8 @@ CATEGORY_WEIGHT_RANGES: Dict[str, Dict[str, str]] = {
         "Quality Management": "5% to 10%",
         "WHS": "5% to 10%",
     },
-    "management contract valued at over $249,999": {
+    # Management / Lease
+    "management contract": {
         "Price (Full Cost)": "30% to 50%",
         "Relevant Experience": "10% to 30%",
         "Capability": "10% to 30%",
@@ -116,7 +127,7 @@ CATEGORY_WEIGHT_RANGES: Dict[str, Dict[str, str]] = {
         "Quality Management": "5% to 10%",
         "WHS": "0% to 10%",
     },
-    "lease / license valued at over $249,999": {
+    "lease / license": {
         "Price (Full Cost)": "30% to 50%",
         "Relevant Experience": "10% to 30%",
         "Capability": "10% to 30%",
@@ -127,8 +138,58 @@ CATEGORY_WEIGHT_RANGES: Dict[str, Dict[str, str]] = {
 }
 PURCHASE_CATEGORIES: List[str] = list(CATEGORY_WEIGHT_RANGES.keys())
 
+# Map common synonyms → canonical key in CATEGORY_WEIGHT_RANGES
+_CATEGORY_SYNONYMS = {
+    "construction": "construction contract",
+    "construction contract": "construction contract",
+    "consultancy": "consultancy contract",
+    "consultant": "consultancy contract",
+    "service delivery": "service delivery contract",
+    "service": "service delivery contract",
+    "management": "management contract",
+    "lease": "lease / license",
+    "licence": "lease / license",
+    "license": "lease / license",
+    "goods": "standard product or good",
+    "standard goods": "standard product or good",
+    "standard product": "standard product or good",
+}
+
+# Strip any “valued at over $249,999” / “over 249,999” qualifiers, then normalise
+_OVER_CLAUSE = re.compile(
+    r"(valued\s+at\s+over\s+\$?\s*249,?999|over\s+\$?\s*249,?999)",
+    re.IGNORECASE,
+)
+
+def _normalise_category(cat: Optional[str]) -> str:
+    if not cat:
+        return "construction contract"
+    key = str(cat).strip().lower()
+    key = _OVER_CLAUSE.sub("", key)  # drop the threshold wording if present
+    key = re.sub(r"\s+", " ", re.sub(r"[^\w\s/]", " ", key)).strip()
+
+    if key in CATEGORY_WEIGHT_RANGES:
+        return key
+    if key in _CATEGORY_SYNONYMS:
+        return _CATEGORY_SYNONYMS[key]
+
+    # fuzzy contains checks
+    if "construction" in key:
+        return "construction contract"
+    if "consult" in key:
+        return "consultancy contract"
+    if "service" in key:
+        return "service delivery contract"
+    if "manage" in key:
+        return "management contract"
+    if "lease" in key or "license" in key or "licence" in key:
+        return "lease / license"
+    if "good" in key or "product" in key:
+        return "standard product or good"
+    return "construction contract"
+
 # =============================================================================
-# Section 1 & 2 prompts (schema-driven)
+# Section 1 & 2 prompts (schema-driven) with strong fallbacks
 # =============================================================================
 
 AIM_SECTION_PROMPT = """
@@ -196,53 +257,48 @@ Return STRICT JSON: { "purpose_rft": [string, ...] }.
 """
 
 # =============================================================================
-# Generators for Section 1 & 2
+# Generators for Section 1 & 2 (more tolerant + fallbacks)
 # =============================================================================
 
 def _gen_desc_overview(vs, tender_name: str, site_name: Optional[str], extra_vss=None):
-    """
-    Generate the overview and general requirements for the Description of Requirement.
-    """
     hints = []
     if tender_name:
         hints.append(f"Tender: {tender_name}")
     if site_name:
         hints.append(f"Site: {site_name}")
-    q = [
-        "description of requirement overview",
-        "scope summary",
-        tender_name or "",
-        site_name or "",
-    ]
+    q = ["description of requirement overview", "scope summary", tender_name or "", site_name or ""]
     prompt = DESC_OVERVIEW_PROMPT
     if hints:
         prompt += ("\n\nHints:\n" + "\n".join(f"- {h}" for h in hints))
-    out = rag_json_plus(vs, prompt, q, extra_vss=extra_vss, max_ctx=10, min_chars=2800, allow_synthesis=True)
-    return {
-        "overview": _as_list((out or {}).get("overview")),
-        "general": _as_list((out or {}).get("general")),
-    }
-
+    out = rag_json_plus(
+        vs, prompt, q, extra_vss=extra_vss, max_ctx=10, min_chars=1200, allow_synthesis=True
+    ) or {}
+    overview = _as_list(out.get("overview"))
+    general = _as_list(out.get("general"))
+    if not overview:
+        overview = [f"This procurement relates to {tender_name or 'the specified works'} for Council."]
+    if len(general) < 5:
+        general = unique_keep_order(general + [
+            "Comply with relevant AS/NZS standards and NSW WHS legislation",
+            "Hold all required licences and insurances before commencing works",
+            "Provide detailed program and milestones; notify of delays immediately",
+            "Attend mandatory site visit and verify dimensions/conditions",
+            "Minimise disruption to Council operations and the public",
+        ])[:8]
+    return {"overview": overview, "general": general}
 
 def _gen_subsection_titles(vs, tender_name: str, site_name: Optional[str] = None, extra_vss=None) -> List[str]:
-    """
-    Dynamically generate subsection titles for the technical requirements section.
-    """
     base_prompt = """
-    You are preparing the 'Technical Requirements' section of a Council Tender Evaluation & Probity Plan (TEPP).
+    You are preparing the 'Technical Requirements' section of a Council TEPP.
     Based on the provided tender name and context, propose a list of 4 to 6 concise subsection titles that
     reflect the key stages or workstreams in the specification's scope (e.g., decommissioning, supply and installation,
     electrical works, commissioning, maintenance). Avoid domain bias unless present in the context.
     Return STRICT JSON: { "subsection_titles": [string, ...] }.
     """
-    queries = [
-        "technical requirements subsection titles",
-        tender_name or "",
-        site_name or "",
-    ]
+    queries = ["technical requirements subsection titles", tender_name or "", site_name or ""]
     try:
-        out = rag_json_plus(vs, base_prompt, queries, extra_vss=extra_vss, max_ctx=8, min_chars=2000, allow_synthesis=True)
-        titles = _as_list((out or {}).get("subsection_titles"))
+        out = rag_json_plus(vs, base_prompt, queries, extra_vss=extra_vss, max_ctx=8, min_chars=900, allow_synthesis=True) or {}
+        titles = _as_list(out.get("subsection_titles"))
     except Exception:
         titles = []
     if not titles:
@@ -255,75 +311,109 @@ def _gen_subsection_titles(vs, tender_name: str, site_name: Optional[str] = None
         ]
     return titles
 
-
 def _gen_desc_subsection(vs, title: str, tender_name: str = "", site_name: Optional[str] = None, extra_vss=None):
-    """
-    Generate a bullet list for a specific technical subsection.
-    """
-    queries = [
-        f"{title} scope requirements",
-        f"{title} {tender_name}" if tender_name else title,
-        tender_name or "",
-        site_name or "",
-    ]
+    queries = [f"{title} scope requirements", f"{title} {tender_name}" if tender_name else title, tender_name or "", site_name or ""]
     prompt = DESC_SUBSECTION_PROMPT_TMPL.format(title=title)
-    out = rag_json_plus(vs, prompt, queries, extra_vss=extra_vss, max_ctx=8, min_chars=2200, allow_synthesis=True)
-    return {"title": title, "bullets": _as_list((out or {}).get("bullets"))}
-
+    out = rag_json_plus(vs, prompt, queries, extra_vss=extra_vss, max_ctx=8, min_chars=800, allow_synthesis=True) or {}
+    bullets = _as_list(out.get("bullets"))
+    if len(bullets) < 5:
+        bullets = unique_keep_order(bullets + [
+            "Provide method statements and SWMS for all high-risk activities",
+            "Coordinate works with other trades and Council representatives",
+            "Verify dimensions and services prior to fabrication/installation",
+            "Test and commission to manufacturer and AS/NZS requirements",
+            "Provide as-built documentation and O&M manuals at completion",
+        ])[:10]
+    return {"title": title, "bullets": bullets}
 
 def _gen_invoicing(vs, extra_vss=None):
-    out = rag_json_plus(vs, DESC_INVOICING_PROMPT, ["invoicing requirements council", "payment terms progress payments"], extra_vss=extra_vss, allow_synthesis=True)
-    return _as_list((out or {}).get("invoicing"))
-
+    out = rag_json_plus(vs, DESC_INVOICING_PROMPT, ["invoicing requirements council", "payment terms progress payments"], extra_vss=extra_vss, allow_synthesis=True) or {}
+    items = _as_list(out.get("invoicing"))
+    if len(items) < 4:
+        items = [
+            "Invoices must be itemised and reference purchase order and contract number",
+            "Standard 30 day payment terms from receipt of valid tax invoice",
+            "Milestone/progress claims to align with agreed program and deliverables",
+            "Variations require prior written approval by Council",
+        ]
+    return items
 
 def _gen_reporting(vs, extra_vss=None):
-    out = rag_json_plus(vs, DESC_REPORTING_PROMPT, ["reporting weekly final report as-built"], extra_vss=extra_vss, allow_synthesis=True)
-    return _as_list((out or {}).get("reporting"))
-
+    out = rag_json_plus(vs, DESC_REPORTING_PROMPT, ["reporting weekly final report as-built"], extra_vss=extra_vss, allow_synthesis=True) or {}
+    items = _as_list(out.get("reporting"))
+    if len(items) < 4:
+        items = [
+            "Weekly progress report with status, risks, and updated program",
+            "Monthly summary including KPI performance and incidents",
+            "Final report pack including commissioning results and certificates",
+            "Provide as-built drawings, O&M manuals and warranties",
+        ]
+    return items
 
 def _gen_performance(vs, extra_vss=None):
-    out = rag_json_plus(vs, DESC_PERFORMANCE_PROMPT, ["performance monitoring criteria council contract"], extra_vss=extra_vss, allow_synthesis=True)
-    return {
-        "note": ((out or {}).get("note") or "").strip(),
-        "criteria": _as_list((out or {}).get("criteria")),
-    }
-
+    out = rag_json_plus(vs, DESC_PERFORMANCE_PROMPT, ["performance monitoring criteria council contract"], extra_vss=extra_vss, allow_synthesis=True) or {}
+    note = (out.get("note") or "").strip() or "Performance will be monitored against agreed KPIs and contract requirements."
+    criteria = _as_list(out.get("criteria")) or [
+        "On-time delivery vs program",
+        "Quality of workmanship and defect rate",
+        "Compliance with WHS and environmental obligations",
+        "Responsiveness to Council requests",
+        "Customer/stakeholder satisfaction",
+    ]
+    return {"note": note, "criteria": criteria}
 
 def _gen_outcomes(vs, extra_vss=None):
-    out = rag_json_plus(vs, DESC_OUTCOMES_PROMPT, ["desired outcomes council procurement"], extra_vss=extra_vss, allow_synthesis=True)
-    return _as_list((out or {}).get("desired_outcomes"))
-
+    out = rag_json_plus(vs, DESC_OUTCOMES_PROMPT, ["desired outcomes council procurement"], extra_vss=extra_vss, allow_synthesis=True) or {}
+    items = _as_list(out.get("desired_outcomes"))
+    if len(items) < 7:
+        items = [
+            "Reliable delivery to program",
+            "High quality workmanship and materials",
+            "Qualified and competent staff",
+            "Effective communication and complaint management",
+            "Strong WHS culture with zero harm",
+            "Robust contract administration and reporting",
+            "Value for money over the whole-of-life",
+        ]
+    return items
 
 def _gen_purpose_rft(vs, tender_name: Optional[str], extra_vss=None):
     base_q = ["purpose of rft council legislative", "panel or single supplier", tender_name or ""]
-    out = rag_json_plus(vs, DESC_PURPOSE_RFT_PROMPT, base_q, extra_vss=extra_vss, allow_synthesis=True)
-    return _as_list((out or {}).get("purpose_rft"))
-
+    out = rag_json_plus(vs, DESC_PURPOSE_RFT_PROMPT, base_q, extra_vss=extra_vss, allow_synthesis=True) or {}
+    items = _as_list(out.get("purpose_rft"))
+    if len(items) < 3:
+        items = [
+            "Set out the requirements, terms and evaluation method for the procurement",
+            "Identify either a single supplier or a panel arrangement as permitted by legislation",
+            "Achieve best value consistent with Council policies and probity",
+        ]
+    return items
 
 def generate_section_aim(vs, tender_name: str, term_text: str, site_name: Optional[str] = None, extra_vss=None) -> Dict[str, str]:
     title_hint = tender_name or "this procurement"
     prompt = AIM_SECTION_PROMPT.replace("{PROJECT_TITLE}", title_hint)
-    queries = [
-        "tender title or document title",
-        "scope of works",
-        "term defects liability warranty months",
-        tender_name or "",
-        site_name or "",
-    ]
-    out = rag_json_plus(vs, prompt, queries, extra_vss=extra_vss, max_ctx=8, min_chars=2000, allow_synthesis=True)
-    intro = (out or {}).get("intro") or ""
-    body = (out or {}).get("body") or ""
-    return {"intro": intro.strip(), "body": body.strip()}
-
+    queries = ["tender title or document title", "scope of works", "term defects liability warranty months", tender_name or "", site_name or ""]
+    out = rag_json_plus(vs, prompt, queries, extra_vss=extra_vss, max_ctx=8, min_chars=900, allow_synthesis=True) or {}
+    intro = _to_str(out.get("intro")).strip()
+    body  = _to_str(out.get("body")).strip()
+    if not intro:
+        intro = f"The Request for Tender (RFT) is for the {title_hint} to Council for the service of the procurement, installation, and integration of the specified works. {term_text or ''}".strip()
+    if not body:
+        body = (
+            "This Tender Evaluation and Probity Plan (TEPP) is the planning and control document in conducting the "
+            "evaluation of Tenders received in response to the RFT. The TEPP sets out:\n"
+            "• the processes and principles to be followed when evaluating Tenders;\n"
+            "• individual’s responsibilities;\n"
+            "• the evaluation schedule; and\n"
+            "• reporting requirements."
+        )
+    return {"intro": intro, "body": body}
 
 def generate_sections_1_2(vs, tender_name: str, term_text: str, site_name: Optional[str] = None, extra_vss=None) -> Dict[str, Any]:
-    """Orchestrate Section 1 & 2 generation with per-subsection LLM calls."""
     aim = generate_section_aim(vs, tender_name=tender_name, term_text=term_text, site_name=site_name, extra_vss=extra_vss)
     ov = _gen_desc_overview(vs, tender_name, site_name, extra_vss=extra_vss)
-
     subsection_titles = _gen_subsection_titles(vs, tender_name, site_name, extra_vss=extra_vss)
     technical_reqs = [_gen_desc_subsection(vs, t, tender_name, site_name, extra_vss=extra_vss) for t in subsection_titles]
-
     invoicing = _gen_invoicing(vs, extra_vss=extra_vss)
     reporting = _gen_reporting(vs, extra_vss=extra_vss)
     perf = _gen_performance(vs, extra_vss=extra_vss)
@@ -353,7 +443,6 @@ def generate_sections_1_2(vs, tender_name: str, term_text: str, site_name: Optio
         "summary": ov.get("overview", []),
     }
 
-
 # =============================================================================
 # Commencement date helpers (kept for compatibility)
 # =============================================================================
@@ -376,25 +465,18 @@ Rules:
 def _fmt_date(d: date) -> str:
     return d.strftime("%d %b %Y")
 
-
 def _parse_date_any(s: str) -> Optional[date]:
     if not s:
         return None
     s_clean = s.strip()
-    fmts = [
-        "%d/%m/%Y", "%d-%m-%Y", "%Y-%m-%d", "%d.%m.%Y",
-        "%d %b %Y", "%d %B %Y",
-        "%b %d %Y", "%B %d %Y",
-        "%b %Y", "%B %Y",
-    ]
+    fmts = ["%d/%m/%Y", "%d-%m-%Y", "%Y-%m-%d", "%d.%m.%Y", "%d %b %Y", "%d %B %Y", "%b %d %Y", "%B %d %Y", "%b %Y", "%B %Y"]
     for f in fmts:
         try:
             dt = datetime.strptime(s_clean, f)
             return dt.date()
         except Exception:
             pass
-    m = re.search(r"(?i)\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|"
-                  r"Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b[\s,/-]*([12]\d{3})", s_clean)
+    m = re.search(r"(?i)\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b[\s,/-]*([12]\d{3})", s_clean)
     if m:
         for fmt in ("%d %B %Y", "%d %b %Y"):
             try:
@@ -408,7 +490,6 @@ def _parse_date_any(s: str) -> Optional[date]:
         except Exception:
             pass
     return None
-
 
 def _get_title_date(spec_summary: Any) -> Optional[date]:
     for attr in ["title_date", "issue_date", "published_date", "created_date"]:
@@ -430,27 +511,18 @@ def _get_title_date(spec_summary: Any) -> Optional[date]:
         return parsed
     return date.today()
 
-
 def _gen_commencement_from_spec(vs_spec, extra_vss=None) -> tuple[Optional[str], List[str]]:
     out = rag_json_plus(
         vs_spec,
         _COMMENCE_EXTRACTION_PROMPT,
-        [
-            "contract commencement date",
-            "commence services start date",
-            "mobilisation start",
-            "start of services",
-            "program start",
-        ],
+        ["contract commencement date", "commence services start date", "mobilisation start", "start of services", "program start"],
         extra_vss=extra_vss,
         max_ctx=8,
         allow_synthesis=True,
     ) or {}
     return (out.get("commencement_date_text"), (out.get("notes") or []))
 
-
-def _apply_commencement_policy(title_dt: Optional[date],
-                               extracted_text: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+def _apply_commencement_policy(title_dt: Optional[date], extracted_text: Optional[str]) -> tuple[Optional[str], Optional[str]]:
     title_base = title_dt or date.today()
     policy_min = title_base + timedelta(days=26)
     chosen: Optional[date] = None
@@ -476,7 +548,6 @@ def _apply_commencement_policy(title_dt: Optional[date],
         )
     return (f"Contract Commencement: {_fmt_date(final)}", policy_note)
 
-
 # =============================================================================
 # Title-date parsing helpers (legacy compat)
 # =============================================================================
@@ -485,13 +556,11 @@ _MONTHS = {m.lower(): i for i, m in enumerate(calendar.month_name) if m}
 _ABBR = {m.lower(): i for i, m in enumerate(calendar.month_abbr) if m}
 _MONTH_LOOKUP = {**_MONTHS, **_ABBR}
 
-
 def _try_parse_dt(y: int, m: int, d: int) -> Optional[datetime]:
     try:
         return datetime(y, m, d)
     except Exception:
         return None
-
 
 def _parse_date_from_text(text: str) -> Optional[datetime]:
     if not text:
@@ -499,18 +568,14 @@ def _parse_date_from_text(text: str) -> Optional[datetime]:
     s = " " + text.strip() + " "
     m = re.search(r"\b(\d{1,2})\s+([A-Za-z]{3,9})\.?\s+(\d{4})\b", s)
     if m:
-        d = int(m.group(1))
-        mon = m.group(2).lower()
-        y = int(m.group(3))
+        d = int(m.group(1)); mon = m.group(2).lower(); y = int(m.group(3))
         mm = _MONTH_LOOKUP.get(mon)
         if mm:
             dt = _try_parse_dt(y, mm, d)
             if dt: return dt
     m = re.search(r"\b([A-Za-z]{3,9})\.?\s+(\d{4})\b", s)
     if m:
-        mon = m.group(1).lower()
-        y = int(m.group(2))
-        mm = _MONTH_LOOKUP.get(mon)
+        mon = m.group(1).lower(); y = int(m.group(2)); mm = _MONTH_LOOKUP.get(mon)
         if mm:
             dt = _try_parse_dt(y, mm, 1)
             if dt: return dt
@@ -526,11 +591,8 @@ def _parse_date_from_text(text: str) -> Optional[datetime]:
         if dt: return dt
     return None
 
-
 def _fmt_datetime(dt: datetime) -> str:
-    """Avoids shadowing the date-based _fmt_date()."""
     return f"{dt.day} {calendar.month_abbr[dt.month]} {dt.year}"
-
 
 def _get_title_date_legacy(spec_summary: Any) -> Optional[datetime]:
     for attr in ("title_date", "issue_date", "publish_date", "created_at"):
@@ -545,6 +607,9 @@ def _get_title_date_legacy(spec_summary: Any) -> Optional[datetime]:
     title = getattr(spec_summary, "title", "") or ""
     return _parse_date_from_text(title)
 
+# =============================================================================
+# Risk, rationale, weighting helpers
+# =============================================================================
 
 def _extract_risk_factors(parsed: Dict[str, Any]) -> Dict[str, Any]:
     risks: Dict[str, Any] = {}
@@ -562,13 +627,11 @@ def _extract_risk_factors(parsed: Dict[str, Any]) -> Dict[str, Any]:
     risks["has_quality_requirements"] = bool((parsed or {}).get("quality", []))
     return risks
 
-
 def _parse_percent(s: str) -> Optional[float]:
     if not s:
         return None
     m = re.search(r"(-?\d+(?:\.\d+)?)\s*%", str(s))
     return float(m.group(1)) if m else None
-
 
 def _default_rationale_for(criterion: str, weight: str, parsed: Dict[str, Any]) -> str:
     rf = _extract_risk_factors(parsed)
@@ -600,7 +663,6 @@ def _default_rationale_for(criterion: str, weight: str, parsed: Dict[str, Any]) 
     bits.append(f"Final weight used: {weight}.")
     return " ".join(bits).strip()
 
-
 def _sanitize_llm_rationale(text: str) -> str:
     if not text:
         return ""
@@ -610,7 +672,6 @@ def _sanitize_llm_rationale(text: str) -> str:
     text = text.replace(placeholder, "10% of Price")
     text = re.sub(r"\s{2,}", " ", text).strip(" .")
     return text
-
 
 def _compose_sustainability_rationale(final_w: str, price_w_float: Optional[float]) -> str:
     if price_w_float is not None:
@@ -622,11 +683,8 @@ def _compose_sustainability_rationale(final_w: str, price_w_float: Optional[floa
         )
     return f"Council policy ties Sustainability/EEO to 10% of the Price weighting. Final weight used: {final_w}."
 
-
-def _llm_weighting_decider(category: str,
-                           ranges: Dict[str, str],
-                           risk_factors: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    cat_key = (category or "").strip().lower()
+def _llm_weighting_decider(category: str, ranges: Dict[str, str], risk_factors: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    cat_key = _normalise_category(category)
     if not ranges:
         return None
     constraint_lines = [f"- {crit}: {rg}" for crit, rg in ranges.items()]
@@ -641,7 +699,7 @@ def _llm_weighting_decider(category: str,
             "Return STRICT JSON only."
         )),
         HumanMessage(content=f"""Context:
-Purchase category: {category}
+Purchase category: {cat_key}
 Allowed ranges (percent of total):
 {constraints_txt}
 
@@ -662,8 +720,7 @@ Instructions:
   "weights": {{"Price (Full Cost)": number, "...": number}},
   "rationales": {{"Price (Full Cost)": "reason", "...": "reason"}}
 }}
-"""
-    )
+""")
     ]
     try:
         raw = _llm(json_mode=True).invoke(messages).content
@@ -705,13 +762,8 @@ Instructions:
         v = max(mn, min(mx, v))
         clamped[crit] = v
 
-    has_sust = cat_key in [
-        "standard product or good",
-        "construction contract valued at over $249,999",
-        "consultancy contract valued at over $249,999",
-        "service delivery contract valued at over $249,999",
-    ]
     sust_key = "Sustainability and EEO & Fair Employment"
+    has_sust = sust_key in parsed_ranges
     if has_sust:
         price_v = clamped.get("Price (Full Cost)")
         if price_v is None:
@@ -759,13 +811,11 @@ Instructions:
 
     return {"weights": rounded, "rationales": rationales}
 
-
 # =============================================================================
 # Deterministic enrichment from parsed spec & policy (hardened)
 # =============================================================================
-def enrich_tepp_with_spec(tepp_json: Dict[str, Any],
-                          spec_summary: Any,
-                          parsed: Dict[str, Any]) -> Dict[str, Any]:
+
+def enrich_tepp_with_spec(tepp_json: Dict[str, Any], spec_summary: Any, parsed: Dict[str, Any]) -> Dict[str, Any]:
     tepp_json.setdefault("evaluation_methodology", {})
     _ensure_list_path(tepp_json, ["evaluation_methodology", "compliance_criteria"])
     _ensure_list_path(tepp_json, ["evaluation_methodology", "required_criteria"])
@@ -826,8 +876,7 @@ def enrich_tepp_with_spec(tepp_json: Dict[str, Any],
     if tests:
         meth_lines.append("Commissioning plan covering: " + "; ".join(tests[:6]) + ("…" if len(tests) > 6 else ""))
     if bmcs.get("integration"):
-        proto = ", ".join(bmcs.get("protocols") or [])
-        proto = proto or "BACnet"
+        proto = ", ".join(bmcs.get("protocols") or []) or "BACnet"
         meth_lines.append(f"BMCS integration/HLI ({proto}) with IO schedules and point lists")
     if warranty_months:
         meth_lines.append(f"Program includes defects liability / warranty of {warranty_months} months")
@@ -874,10 +923,10 @@ def enrich_tepp_with_spec(tepp_json: Dict[str, Any],
         )
     return tepp_json
 
-
 # =============================================================================
 # Section 6 builders (static narrative + compliance table + rubrics)
 # =============================================================================
+
 def _build_section6_methodology_overview() -> str:
     return (
         "The Evaluation Committee, in accordance with the evaluation methodology specified in the RFT and "
@@ -887,7 +936,6 @@ def _build_section6_methodology_overview() -> str:
         "scored or weighted; depending on the nature, extent and implications of partial or non-compliance, a "
         "Tender may be disqualified from further evaluation."
     )
-
 
 def _build_section6_compliance_table() -> Dict[str, Any]:
     return {
@@ -907,7 +955,6 @@ def _build_section6_compliance_table() -> Dict[str, Any]:
         ],
     }
 
-
 def _build_section6_nonprice_rating_scale() -> List[Dict[str, Any]]:
     return [
         {"score": 5, "label": "Exceptional", "description": "Fully compliant; no risks or weaknesses."},
@@ -918,13 +965,8 @@ def _build_section6_nonprice_rating_scale() -> List[Dict[str, Any]]:
         {"score": 0, "label": "Unacceptable", "description": "Totally deficient and non-compliant."},
     ]
 
-
 def _build_section6_returnable_scoring_rubrics() -> Dict[str, Any]:
-    # Keep your existing long rubrics payload here.
-    return {
-        # (unchanged; omitted for brevity in this snippet)
-    }
-
+    return {"note": "See evaluation workbook and schedules for detailed rubrics.", "rubrics": []}
 
 # =============================================================================
 # Section 7 builders (Pricing & related)
@@ -966,15 +1008,9 @@ def _build_section7_blocks() -> Dict[str, Any]:
                     "Western Sydney Council supplier: principal place of business (not a PO Box) located within a Western Sydney Council LGA."
                 ],
                 "western_sydney_councils": [
-                    "Blue Mountains City Council",
-                    "City of Parramatta Council",
-                    "Cumberland City Council",
-                    "Fairfield City Council",
-                    "Hawkesbury City Council",
-                    "Liverpool City Council",
-                    "Parramatta City Council",
-                    "Penrith City Council",
-                    "The Hills Shire Council",
+                    "Blue Mountains City Council", "City of Parramatta Council", "Cumberland City Council",
+                    "Fairfield City Council", "Hawkesbury City Council", "Liverpool City Council",
+                    "Parramatta City Council", "Penrith City Council", "The Hills Shire Council",
                 ],
                 "application_note": (
                     "For any suppliers eligible for local preference, provide the confirming address in the third tab of the "
@@ -1015,7 +1051,6 @@ def _build_section7_blocks() -> Dict[str, Any]:
         ],
     }
 
-
 # =============================================================================
 # Sections 8–10 (static narratives)
 # =============================================================================
@@ -1046,21 +1081,21 @@ def _build_sections_8_9_10_static() -> Dict[str, str]:
         ),
     }
 
-
 # =============================================================================
 # Section 11 (Critical dates)
 # =============================================================================
 
-def _assemble_section11_critical_dates(spec_summary: Any,
-                                       parsed: Dict[str, Any],
-                                       vs_spec,
-                                       extra_vss=None) -> List[str]:
-    # For this TEPP flavour, force the Council wording if required by policy (keeps behaviour deterministic)
+def _assemble_section11_critical_dates(spec_summary: Any, parsed: Dict[str, Any], vs_spec, extra_vss=None) -> List[str]:
     council_line = parsed.get("council_critical_line")
     if council_line:
         return [str(council_line).strip()]
-    return ["It is essential that the new contract be commenced by Aug 2025."]
-
+    title_dt = _get_title_date(spec_summary)
+    extracted, notes = _gen_commencement_from_spec(vs_spec, extra_vss=extra_vss)
+    final_text, policy_note = _apply_commencement_policy(title_dt, extracted)
+    out = [final_text] if final_text else []
+    if policy_note:
+        out.append(policy_note)
+    return out or ["It is essential that the new contract be commenced in a timely manner."]
 
 # =============================================================================
 # Final document ordering helpers
@@ -1069,28 +1104,27 @@ def _assemble_section11_critical_dates(spec_summary: Any,
 _SECTION_ORDER = [
     "document_metadata",
     "table_of_contents",
-    "aim",                              # 1
-    "description_of_requirement",       # 2
+    "aim",
+    "description_of_requirement",
     "technical_requirements",
     "invoicing",
     "reporting",
     "performance_monitoring",
-    "desired_outcomes",                 # 2.1
-    "purpose_rft",                      # 2.2
-    "probity_and_accountability",       # 3
-    "evaluation_committee",             # 4
-    "evaluation_schedule",              # 5
-    "tender_evaluation",                # 6 (contains 6.1.x & 6.2.x)
-    "pricing",                          # 7
-    "contract_negotiations",            # 8
-    "debriefing",                       # 9
-    "contract_management",              # 10
-    "critical_dates",                   # 11
-    "how_to_complete_tepp",             # 12
-    "returnable_schedules",             # Annex/Appendix
-    "description",                      # Non-numbered
+    "desired_outcomes",
+    "purpose_rft",
+    "probity_and_accountability",
+    "evaluation_committee",
+    "evaluation_schedule",
+    "tender_evaluation",
+    "pricing",
+    "contract_negotiations",
+    "debriefing",
+    "contract_management",
+    "critical_dates",
+    "how_to_complete_tepp",
+    "returnable_schedules",
+    "description",
 ]
-
 
 def _reorder_top_level(tepp: Dict[str, Any]) -> Dict[str, Any]:
     ordered = OrderedDict()
@@ -1102,10 +1136,10 @@ def _reorder_top_level(tepp: Dict[str, Any]) -> Dict[str, Any]:
             ordered[k] = v
     return dict(ordered)
 
+# =============================================================================
+# Main composer
+# =============================================================================
 
-# =============================================================================
-# Main composer (with hardened type handling)
-# =============================================================================
 def compose_tepp(spec_summary: Any, parsed: Dict[str, Any], vs_spec, extra_vss: Optional[List[Any]]):
     tepp = load_tepp_template()
 
@@ -1113,35 +1147,27 @@ def compose_tepp(spec_summary: Any, parsed: Dict[str, Any], vs_spec, extra_vss: 
     _ensure_dict(tepp, "document_metadata")
     tepp["document_metadata"]["document_title"] = "Tender Evaluation and Probity Plan"
     tepp["document_metadata"]["tender_number"] = getattr(spec_summary, "tender_no", "") or ""
-    tepp["document_metadata"]["project_name"]  = getattr(spec_summary, "title", "") or ""
+
+    # Use the manually-typed project/folder name if provided by the UI (page_upload).
+    # Just set parsed["project_name"] = project_name before calling compose_tepp().
+    project_name = (parsed or {}).get("project_name") \
+                   or getattr(spec_summary, "title", "") \
+                   or ""
+    tepp["document_metadata"]["project_name"] = project_name
+
     term = parsed.get("term") or "For a term of 12 months."
     tepp["document_metadata"]["term"] = term
 
     # ---------- 1. Aim ----------
-    tender_name = tepp["document_metadata"]["project_name"] or "this procurement"
+    tender_name = project_name or "this procurement"
     site_name = parsed.get("site_name") or None
     aim_gen = generate_section_aim(vs_spec, tender_name=tender_name, term_text=term, site_name=site_name, extra_vss=extra_vss)
     tepp.setdefault("aim", {})
-    if aim_gen and (aim_gen["intro"] or aim_gen["body"]):
-        tepp["aim"]["intro"] = aim_gen["intro"]
-        tepp["aim"]["body"]  = aim_gen["body"]
-    else:
-        tepp["aim"]["intro"] = (
-            f"The Request for Tender (RFT) is for the {tender_name} to Council for the service of the procurement, "
-            "installation, and integration of the specified works."
-        )
-        tepp["aim"]["body"] = (
-            "This Tender Evaluation and Probity Plan (TEPP) is the planning and control document in conducting "
-            "the evaluation of Tenders received in response to the RFT. The TEPP sets out:\n"
-            "• the processes and principles to be followed when evaluating Tenders;\n"
-            "• individual’s responsibilities;\n"
-            "• the evaluation schedule; and\n"
-            "• reporting requirements."
-        )
+    tepp["aim"]["intro"] = aim_gen["intro"]
+    tepp["aim"]["body"]  = aim_gen["body"]
 
     # ---------- 2. Description of Requirement ----------
     sec2 = generate_sections_1_2(vs_spec, tender_name=tender_name, term_text=term, site_name=site_name, extra_vss=extra_vss)
-
     tepp["description_of_requirement"] = unique_keep_order(sec2.get("description_of_requirement", []))
     tepp["technical_requirements"]     = unique_keep_order(sec2.get("technical_requirements", []))
     tepp["invoicing"]                  = unique_keep_order(sec2.get("invoicing", []))
@@ -1150,10 +1176,8 @@ def compose_tepp(spec_summary: Any, parsed: Dict[str, Any], vs_spec, extra_vss: 
         "note": (sec2.get("performance_monitoring", {}) or {}).get("note", ""),
         "items": unique_keep_order((sec2.get("performance_monitoring", {}) or {}).get("items", [])),
     }
-
     tepp["desired_outcomes"] = unique_keep_order(sec2.get("desired_outcomes", []))
     tepp["purpose_rft"]      = unique_keep_order(sec2.get("purpose_rft", []))
-
     tepp.setdefault("description", {"summary": []})
     if sec2.get("summary"):
         tepp["description"]["summary"] = unique_keep_order(list(sec2["summary"]))
@@ -1167,13 +1191,10 @@ def compose_tepp(spec_summary: Any, parsed: Dict[str, Any], vs_spec, extra_vss: 
     em["overview"] = _build_section6_methodology_overview()
     em["compliance_criteria_table"] = _build_section6_compliance_table()
     em["non_price_rating_scale"] = _build_section6_nonprice_rating_scale()
-    em["required_criteria_caption"] = (
-        "Evaluation Criteria for Construction contract, for purchases $250,000 and over (inclusive of GST). "
-        "The LLM-generated table and rationales apply."
-    )
 
-    category = (parsed.get("purchase_category") or "construction contract valued at over $249,999").strip().lower()
-    ranges = CATEGORY_WEIGHT_RANGES.get(category)
+    # Always normalise to the base category (no “over $249,999” wording)
+    category = _normalise_category(parsed.get("purchase_category") or "construction contract")
+    ranges = CATEGORY_WEIGHT_RANGES.get(category, {})
     risk_factors = _extract_risk_factors(parsed)
     table_rows: List[Dict[str, str]] = []
     price_weight_float: Optional[float] = None
@@ -1201,72 +1222,64 @@ def compose_tepp(spec_summary: Any, parsed: Dict[str, Any], vs_spec, extra_vss: 
                 r = _compose_sustainability_rationale(w, price_weight_float)
             table_rows.append({"criterion": c, "weight": w, "rationale": r})
     else:
+        # Deterministic midpoint fallback
         def _parse_range(range_str: str) -> Optional[tuple]:
-            if not range_str:
-                return None
+            if not range_str: return None
             m = re.match(r"\s*(\d+(?:\.\d+)?)%?\s*to\s*(\d+(?:\.\d+)?)%?", range_str.lower())
-            if m:
-                return float(m.group(1)), float(m.group(2))
+            if m: return float(m.group(1)), float(m.group(2))
             m2 = re.match(r"\s*(\d+(?:\.\d+)?)%", range_str.lower())
-            if m2:
-                v = float(m2.group(1))
-                return v, v
+            if m2: return float(m2.group(1)), float(m2.group(1))
             return None
 
-        ranges2 = ranges or {}
         mids: Dict[str, float] = {}
-        for crit, rg in ranges2.items():
+        for crit, rg in (ranges or {}).items():
             pr = _parse_range(rg)
             if pr:
                 mids[crit] = (pr[0]+pr[1])/2.0
-        price = mids.get("Price (Full Cost)")
-        if price is not None:
-            sust = price * 0.10 if category in [
-                "standard product or good",
-                "construction contract valued at over $249,999",
-                "consultancy contract valued at over $249,999",
-                "service delivery contract valued at over $249,999",
-            ] else 0.0
-            others = {k:v for k,v in mids.items() if k!="Price (Full Cost)"}
+        price = mids.get("Price (Full Cost)", 50.0)
+        sust_key = "Sustainability and EEO & Fair Employment"
+        sust = price * 0.10 if sust_key in (ranges or {}) else 0.0
+        others = {k:v for k,v in mids.items() if k!="Price (Full Cost)"}
+        if sust>0:
+            others[sust_key]=sust
+        rem = 100.0 - price - (sust if sust>0 else 0.0)
+        other_sum = sum(v for k,v in others.items() if k!=sust_key)
+        scaled: Dict[str,float]={}
+        if other_sum>0:
+            scale = rem/other_sum
+            for k,v in others.items():
+                if k!=sust_key:
+                    scaled[k]=v*scale
             if sust>0:
-                others["Sustainability and EEO & Fair Employment"]=sust
-            rem = 100.0 - price - (sust if sust>0 else 0.0)
-            other_sum = sum(v for k,v in others.items() if k!="Sustainability and EEO & Fair Employment")
-            scaled: Dict[str,float]={}
-            if other_sum>0:
-                scale = rem/other_sum
-                for k,v in others.items():
-                    if k!="Sustainability and EEO & Fair Employment":
-                        scaled[k]=v*scale
-                if sust>0:
-                    scaled["Sustainability and EEO & Fair Employment"]=sust
-                rounded = {k: round((price if k=="Price (Full Cost)" else scaled[k]),1) for k in ["Price (Full Cost)"]+list(scaled.keys())}
-                diff = round(100.0 - sum(rounded.values()),1)
-                keys = [k for k in rounded if k!="Price (Full Cost)"]
-                if keys:
-                    rounded[keys[-1]] = round(rounded[keys[-1]]+diff,1)
-                for c,wv in rounded.items():
-                    w = f"{wv}%"
-                    if c=="Price (Full Cost)":
-                        price_weight_float = _parse_percent(w)
-                    r = _default_rationale_for(c, w, parsed)
-                    if c=="Sustainability and EEO & Fair Employment":
-                        r = _compose_sustainability_rationale(w, price_weight_float)
-                    table_rows.append({"criterion": c, "weight": w, "rationale": r})
+                scaled[sust_key]=sust
+        rounded = {"Price (Full Cost)": round(price,1)}
+        for k,v in scaled.items():
+            rounded[k]=round(v,1)
+        diff = round(100.0 - sum(rounded.values()),1)
+        keys = [k for k in rounded if k!="Price (Full Cost)"]
+        if keys:
+            rounded[keys[-1]] = round(rounded[keys[-1]]+diff,1)
+        for c,wv in rounded.items():
+            w = f"{wv}%"
+            if c=="Price (Full Cost)":
+                price_weight_float = _parse_percent(w)
+            r = _default_rationale_for(c, w, parsed)
+            if c==sust_key:
+                r = _compose_sustainability_rationale(w, price_weight_float)
+            table_rows.append({"criterion": c, "weight": w, "rationale": r})
 
-    parsed["final_weights"] = [{"criterion": row["criterion"], "weighting": row["weight"]} for row in table_rows]
     em["required_criteria_table"] = table_rows
-    em.pop("weighting_rationales_block", None)
+    em["required_criteria_caption"] = "Evaluation Criteria (policy-aligned)."
+
     tepp.pop("weighting_rationales", None)
     tepp["evaluation_criteria"] = []
     tepp.setdefault("meta", {})
     tepp["meta"]["purchase_category_used"] = category
     tepp["meta"]["ranges_used"] = ranges or {}
 
-
     # ---------- 6.2 Returnable Schedules Scoring ----------
     tepp.setdefault("tender_evaluation", {})
-    tepp["tender_evaluation"]["section_6_2_title"] = "6.2 RETURNABALE SCHEDULES SCORING"  # preserve Council typo
+    tepp["tender_evaluation"]["section_6_2_title"] = "6.2 RETURNABALE SCHEDULES SCORING"  # keep Council typo
     tepp["tender_evaluation"]["returnable_scoring"] = _build_section6_returnable_scoring_rubrics()
 
     # ---------- 7. Pricing & related ----------
