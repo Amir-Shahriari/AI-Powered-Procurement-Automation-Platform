@@ -1153,6 +1153,7 @@ def compose_tepp(spec_summary: Any, parsed: Dict[str, Any], vs_spec, extra_vss: 
     project_name = (parsed or {}).get("project_name") \
                    or getattr(spec_summary, "title", "") \
                    or ""
+    print(f"DEBUG: TEPP compose received project_name='{project_name}' (from parsed: '{(parsed or {}).get('project_name')}', from spec_summary.title: '{getattr(spec_summary, 'title', '')}')")
     tepp["document_metadata"]["project_name"] = project_name
 
     term = parsed.get("term") or "For a term of 12 months."

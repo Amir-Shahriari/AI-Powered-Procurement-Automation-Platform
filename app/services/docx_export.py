@@ -9,6 +9,7 @@ This module writes DOCX directly with python-docx (no pandoc). It:
 - Renders lists of dicts as tables
 """
 from __future__ import annotations
+from docx.shared import Inches
 
 import json
 import re
@@ -169,6 +170,32 @@ def export_json_to_docx(data: Dict[str, Any], title: str) -> str:
         Path to the generated DOCX file.
     """
     doc = Document()
+
+    # ---- Cover logos (first page) ----
+    # Resolve logo paths (same convention as the UI)
+    from pathlib import Path as _Path
+    # app/app/services -> app/app
+    app_root = _Path(__file__).resolve().parents[1]
+    default_dir = app_root / "ui" / "assets"
+
+    logo1 = _Path(os.getenv("APP_LOGO1")) if os.getenv("APP_LOGO1") else (default_dir / "lgp-logo-retina.png")
+    logo2 = _Path(os.getenv("APP_LOGO2")) if os.getenv("APP_LOGO2") else (default_dir / "BlacktownCityCouncil_2019.png")
+
+    # Place them in a 1x2 table to keep them on the same row
+    try:
+        tbl = doc.add_table(rows=1, cols=2)
+        row = tbl.rows[0]
+        if logo1.exists():
+            row.cells[0].paragraphs[0].add_run().add_picture(str(logo1), width=Inches(1.2))
+        if logo2.exists():
+            row.cells[1].paragraphs[0].add_run().add_picture(str(logo2), width=Inches(1.2))
+    except Exception:
+        # If images are missing or python-docx can't load them, just skip logos gracefully
+        pass
+
+    # Title follows after the logos
+    doc.add_heading(title, level=0)
+
     # Title
     doc.add_heading(title, level=0)
 

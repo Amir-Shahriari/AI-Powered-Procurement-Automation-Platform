@@ -140,7 +140,29 @@ def _is_generic_label(s: str) -> bool:
         "legal name","trading name","details legal name","details trading name",
         "enter company name","enter legal name"
     }
-    return s_l in generic or s_l.startswith("details ") or s_l.startswith("enter ")
+    # Check for example/placeholder text patterns
+    # Only match these if they appear to be standalone or with minimal context
+    if any(phrase in s_l for phrase in ["e.g.", "e.g.,", "example", "sample", "placeholder", "your company", "eg.", "eg,"]):
+        return True
+    
+    # If it's a generic label or starts with common prefixes
+    if s_l in generic or s_l.startswith("details ") or s_l.startswith("enter "):
+        return True
+    
+    # Check for standalone business entity types (without a proper company name)
+    standalone_patterns = ["pty ltd", "ltd", "limited", "inc", "llc", "corp", "company name", "business name"]
+    if s_l in standalone_patterns:
+        return True
+    
+    # Check for specific example patterns like "e.g., Pty Ltd"
+    if re.match(r"^e\.?g\.?,?\s+(pty|ltd|limited|inc|corp|llc)", s_l, re.IGNORECASE):
+        return True
+    
+    # If it's very short and looks like a placeholder
+    if len(s_l) < 8 and any(standalone in s_l for standalone in ["company name", "business name", "legal name"]):
+        return True
+        
+    return False
 
 def _looks_like_company_name(s: str) -> bool:
     if not isinstance(s, str):
@@ -148,12 +170,34 @@ def _looks_like_company_name(s: str) -> bool:
     s_clean = re.sub(r"\s+", " ", s).strip()
     if not s_clean:
         return False
-    # Prefer common company suffixes
+    
+    # Reject obvious placeholder/example text FIRST, before any other validation
+    if _is_generic_label(s_clean):
+        return False
+    
+    # Must be at least 5 characters long
+    if len(s_clean) < 5:
+        return False
+    
+    # Must contain at least one letter
+    if not re.search(r'[A-Za-z]', s_clean):
+        return False
+    
+    # Check for company suffixes - this is a strong indicator
     if re.search(r"\b(pty|pte|ltd|limited|inc|llc|llp|gmbh|s\.a\.|s\.r\.l\.|plc|corp|corporation)\b", s_clean, re.IGNORECASE):
-        return True
-    # At least two words with letters
-    words = [w for w in re.split(r"[^A-Za-z]+", s_clean) if w]
-    return len(words) >= 2 and len(s_clean) >= 4
+        # Extract the part before the suffix
+        before_suffix = re.split(r'\b(?:pty|pte|ltd|limited|inc|llc|llp|gmbh|s\.a\.|s\.r\.l\.|plc|corp|corporation)\b', s_clean, flags=re.IGNORECASE)[0].strip()
+        # Additional check: make sure the part before suffix isn't generic either
+        if _is_generic_label(before_suffix):
+            return False
+        # Must have at least 1 substantial word before the suffix (relaxed from 2)
+        words_before = [w for w in re.split(r'[^A-Za-z]+', before_suffix) if w and len(w) >= 2]
+        if len(words_before) >= 1 and len(before_suffix) >= 3:
+            return True
+    
+    # For names without suffixes, require at least 2 substantial words (relaxed from 3)
+    words = [w for w in re.split(r"[^A-Za-z]+", s_clean) if w and len(w) >= 2]
+    return len(words) >= 2 and len(s_clean) >= 8
 
 def _supplier_display_name(ret: Dict[str, Any], fallback: str) -> str:
     """
@@ -227,16 +271,19 @@ def _supplier_display_name(ret: Dict[str, Any], fallback: str) -> str:
     print("DEBUG: No structured name found, trying text extraction")
     text_content = _extract_text_from_returnables(ret)
     if text_content:
-        # Look for company names with business suffixes
-        company_pattern = r'\b([A-Z][A-Za-z\s&.,\-]{2,50}?\s+(?:PTE?\.?|LTD\.?|LIMITED|INC\.?|INCORPORATED|CORP\.?|CORPORATION))\b'
+        # Look for company names with business suffixes using improved validation
+        company_pattern = r'\b([A-Z][A-Za-z\s&.,\-]{4,50}?\s+(?:PTE?\.?|LTD\.?|LIMITED|INC\.?|INCORPORATED|CORP\.?|CORPORATION))\b'
         matches = re.findall(company_pattern, text_content, re.IGNORECASE)
         for match in matches:
             cleaned = match.strip()
+            print(f"DEBUG: Found potential company name in text: {cleaned}")
             if (len(cleaned) > 3 and len(cleaned) < 100 and 
-                cleaned.lower() not in ["name", "company name", "organization name", "business name", "legal name"] and
-                re.search(r'[a-z]', cleaned)):
-                print(f"DEBUG: Found company name in text: {cleaned}")
+                not _is_generic_label(cleaned) and
+                _looks_like_company_name(cleaned)):
+                print(f"DEBUG: Validated company name from text: {cleaned}")
                 return cleaned
+            else:
+                print(f"DEBUG: Rejected company name from text: {cleaned} (generic: {_is_generic_label(cleaned)}, looks_like: {_looks_like_company_name(cleaned)})")
     
     print(f"DEBUG: No company name found, using fallback: {fallback}")
     return fallback
@@ -270,12 +317,23 @@ def _extract_company_name_from_raw_text(raw_path: Path) -> Optional[str]:
         
         def _schedule1_block(t: str) -> Optional[str]:
             # Find Schedule 1 section and slice until the next schedule header
-            m1 = re.search(r"(?is)\bSchedule\s*1[^a-zA-Z][\s\S]*?(?=\bSchedule\s*[2-9]|$)", t)
+            # Look for "Schedule 1" specifically (not 10, 11, etc.)
+            m1 = re.search(r"(?is)\bSchedule\s*1(?:\s|$|[^\d])[\s\S]*?(?=\bSchedule\s*[2-9]|$)", t)
             if m1:
                 block = m1.group(0)
                 print(f"DEBUG: Found Schedule 1 block, length: {len(block)}")
                 print(f"DEBUG: Schedule 1 content: {block[:300]}")
                 return block
+            
+            # Fallback: try to find "Schedule 1" anywhere with word boundaries
+            m2 = re.search(r"(?is)\bSchedule\s*1\b[\s\S]*?(?=\bSchedule\s*(?:[2-9]|\d{2})|$)", t)
+            if m2:
+                block = m2.group(0)
+                print(f"DEBUG: Found Schedule 1 block (fallback), length: {len(block)}")
+                print(f"DEBUG: Schedule 1 content: {block[:300]}")
+                return block
+            
+            print("DEBUG: No Schedule 1 block found")
             return None
 
         # Get Schedule 1 block
@@ -286,15 +344,40 @@ def _extract_company_name_from_raw_text(raw_path: Path) -> Optional[str]:
 
         # Look for company names in Schedule 1 - more specific patterns
         patterns = [
-            # Direct company name patterns (like "SDE Consultants Pty Ltd")
-            r'\b([A-Z][A-Za-z\s&.,\-]{2,50}?\s+(?:PTE?\.?|LTD\.?|LIMITED|INC\.?|INCORPORATED|CORP\.?|CORPORATION|LLC|LLP|CO\.?|COMPANY))\b',
-            # After "Trading name" or "Legal name" labels
-            r'(?:Trading\s+name|Legal\s+name|Company\s+name|Organisation\s+name|Organization\s+name)[:\s]*([A-Z][A-Za-z\s&.,\-]{2,50}?)(?:\s|$)',
-            # After "Company:" or "Name:" labels
-            r'(?:Company|Name)[:\s]*([A-Z][A-Za-z\s&.,\-]{2,50}?)(?:\s|$)',
-            # Standalone company names (capitalized words with business suffix)
-            r'\b([A-Z][A-Za-z\s&.,\-]{3,40}?\s+(?:PTE?\.?|LTD\.?|LIMITED))\b',
+            # Direct company name patterns (like "SDE Consultants Pty Ltd") - require at least 2 words before suffix
+            r'\b([A-Z][A-Za-z\s&.,\-]{4,50}?\s+(?:PTE?\.?|LTD\.?|LIMITED|INC\.?|INCORPORATED|CORP\.?|CORPORATION|LLC|LLP|CO\.?|COMPANY))\b',
+            # After "Trading name" or "Legal name" labels - require at least 2 words
+            r'(?:Trading\s+name|Legal\s+name|Company\s+name|Organisation\s+name|Organization\s+name)[:\s]*([A-Z][A-Za-z\s&.,\-]{4,50}?)(?:\s|$)',
+            # After "Company:" or "Name:" labels - require at least 2 words
+            r'(?:Company|Name)[:\s]*([A-Z][A-Za-z\s&.,\-]{4,50}?)(?:\s|$)',
+            # Standalone company names (capitalized words with business suffix) - require at least 2 words before suffix
+            r'\b([A-Z][A-Za-z\s&.,\-]{4,40}?\s+(?:PTE?\.?|LTD\.?|LIMITED))\b',
         ]
+        
+        # Also try to extract from the full document (not just Schedule 1) as a fallback
+        # Look in the document header/early content where company names often appear
+        if not schedule1_text:
+            print("DEBUG: No Schedule 1 found, trying full document patterns")
+            # Look in first 2000 characters for company names
+            header_text = text[:2000]
+            for i, pattern in enumerate(patterns):
+                print(f"DEBUG: Trying header pattern {i+1}: {pattern}")
+                matches = re.findall(pattern, header_text, re.IGNORECASE | re.MULTILINE)
+                print(f"DEBUG: Found {len(matches)} header matches: {matches}")
+                
+                for match in matches:
+                    cleaned = match.strip()
+                    cleaned = re.sub(r'^[:\-\s]+|[:\-\s]+$', '', cleaned)
+                    print(f"DEBUG: Testing header match: {cleaned}")
+                    
+                    if (len(cleaned) > 3 and len(cleaned) < 100 and 
+                        not _is_generic_label(cleaned) and
+                        _looks_like_company_name(cleaned)):
+                        print(f"DEBUG: Returning company name from header: {cleaned}")
+                        return cleaned
+                    else:
+                        print(f"DEBUG: Rejected header match: {cleaned} (generic: {_is_generic_label(cleaned)}, looks_like: {_looks_like_company_name(cleaned)})")
+            return None
 
         # Search within Schedule 1 block only
         for i, pattern in enumerate(patterns):
@@ -308,9 +391,8 @@ def _extract_company_name_from_raw_text(raw_path: Path) -> Optional[str]:
                 cleaned = re.sub(r'^[:\-\s]+|[:\-\s]+$', '', cleaned)
                 
                 if (len(cleaned) > 3 and len(cleaned) < 100 and 
-                    cleaned.lower() not in ["name", "company name", "organization name", "business name", "legal name", "trading name"] and
-                    not re.match(r'^[A-Z\s]+$', cleaned) and  # Not all caps
-                    re.search(r'[a-z]', cleaned)):  # Has lowercase letters
+                    not _is_generic_label(cleaned) and
+                    _looks_like_company_name(cleaned)):
                     print(f"DEBUG: Returning company name: {cleaned}")
                     return cleaned
 
@@ -510,11 +592,11 @@ def process_suppliers(rec_id: str, files: List[UploadFile], base_returnables: Di
                     if from_raw and not _is_generic_label(from_raw):
                         supplier_name = from_raw
 
-            vs_loc = (
-                str(_faiss_path(f"{rec_id}_supplier_{sup_id}"))
-                if settings.VECTOR_BACKEND == "faiss_gpu"
-                else _chroma_name(f"{rec_id}_supplier_{sup_id}")
-            )
+                vs_loc = (
+                    str(_faiss_path(f"{rec_id}_supplier_{sup_id}"))
+                    if settings.VECTOR_BACKEND == "faiss_gpu"
+                    else _chroma_name(f"{rec_id}_supplier_{sup_id}")
+                )
 
         # ---- FINAL GUARANTEE: never persist None/generic name ----
         if not supplier_name or _is_generic_label(supplier_name):

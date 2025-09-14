@@ -1,0 +1,527 @@
+{
+  "document_metadata": {
+    "document_title": "Tender Evaluation and Probity Plan",
+    "tender_number": "",
+    "project_name": "tt",
+    "term": "For a term of 12 months.",
+    "date": "",
+    "version": "",
+    "prepared_by": "",
+    "approved_by": ""
+  },
+  "table_of_contents": [
+    {
+      "n": "1.",
+      "title": "Aim"
+    },
+    {
+      "n": "2.",
+      "title": "Description of Requirement"
+    },
+    {
+      "n": "2.1",
+      "title": "Desired Outcomes"
+    },
+    {
+      "n": "2.2",
+      "title": "Purpose of Request for Tender (RFT)"
+    },
+    {
+      "n": "3.",
+      "title": "Probity and Accountability"
+    },
+    {
+      "n": "3.1",
+      "title": "Probity"
+    },
+    {
+      "n": "3.2",
+      "title": "Confidentiality and Conflict of Interest"
+    },
+    {
+      "n": "3.3",
+      "title": "Security and Confidentiality"
+    },
+    {
+      "n": "3.4",
+      "title": "Authorised Contact Officer"
+    },
+    {
+      "n": "3.5",
+      "title": "Advertising the RFT"
+    },
+    {
+      "n": "3.6",
+      "title": "Receipt of Tenders"
+    },
+    {
+      "n": "3.7",
+      "title": "Late Tenders"
+    },
+    {
+      "n": "3.8",
+      "title": "Requests for Clarification"
+    },
+    {
+      "n": "3.9",
+      "title": "Critical issues or risks"
+    },
+    {
+      "n": "4.",
+      "title": "Evaluation Committee"
+    },
+    {
+      "n": "5.",
+      "title": "Evaluation Schedule"
+    },
+    {
+      "n": "6.",
+      "title": "Tender Evaluation"
+    },
+    {
+      "n": "6.1",
+      "title": "Evaluation Methodology"
+    },
+    {
+      "n": "6.1.1",
+      "title": "Compliance Criteria"
+    },
+    {
+      "n": "6.1.2",
+      "title": "Required Criteria"
+    },
+    {
+      "n": "6.2",
+      "title": "Returnable Schedules Scoring"
+    },
+    {
+      "n": "7.",
+      "title": "Pricing"
+    },
+    {
+      "n": "7.1.1",
+      "title": "Pricing Model"
+    },
+    {
+      "n": "7.1.2",
+      "title": "Local Preference Policy"
+    },
+    {
+      "n": "7.1.3",
+      "title": "Value for Money"
+    },
+    {
+      "n": "7.1.4",
+      "title": "Interviews and Presentation Criteria"
+    },
+    {
+      "n": "7.2",
+      "title": "Short-listing / Setting Aside Tenders"
+    },
+    {
+      "n": "7.3",
+      "title": "Alternative Tenders"
+    },
+    {
+      "n": "7.4",
+      "title": "Tenderer Presentations"
+    },
+    {
+      "n": "7.5",
+      "title": "Evaluation Report"
+    },
+    {
+      "n": "8.",
+      "title": "Contract Negotiations"
+    },
+    {
+      "n": "9.",
+      "title": "Debriefing of Unsuccessful Tenderers"
+    },
+    {
+      "n": "10.",
+      "title": "Contract Management"
+    },
+    {
+      "n": "11.",
+      "title": "Critical dates"
+    },
+    {
+      "n": "12.",
+      "title": "How to Complete the TEPP"
+    }
+  ],
+  "aim": {
+    "intro": "The Request for Tender (RFT) is for the provision of mechanical services for the refurbishment of the air handling unit (AHU) 1 & 3 and installation of a new reverse cycle water-cooled heat pump chiller at the BLCS Main Pool Hall. The scope of works includes, but is not limited to, the supply and installation of electrical equipment, plumbing and hydraulics, builder's work, and testing and commissioning of the system.",
+    "body": "• This Tender Evaluation and Probity Plan (TEPP) sets out the processes and principles to be followed when evaluating Tenders; • The Contractor shall ensure that all personnel involved in the tender evaluation process are suitably qualified and certified/licensed tradespersons, experienced in the relevant trade; • The evaluation schedule shall include a timeline for the submission of tenders, evaluation of tenders, and award of contract; • Reporting requirements shall include regular progress reports to Council, as well as a final report on completion of the works."
+  },
+  "description_of_requirement": [
+    "The scope of this project includes the refurbishment of the AHU 1 & 3 in the Blacktown Leisure Centre's main pool hall, including the installation of a new reverse cycle water-cooled heat pump chiller.",
+    "The works will be carried out in a coordinated and programmed manner to suit the operational requirements of the centre, with minimal disruption to its activities.",
+    "General:\n• Licence: The Contractor shall hold a valid Electrical Contractors licence and employ only licensed electricians on site.\n• Compliance with Australian Standards & NSW WHS: All work shall comply with relevant Australian Standards and WorkSafe NSW regulations.\n• Schedule & Milestones: The Contractor shall submit a detailed schedule showing the proposed sequence of work and durations for which various areas will need to be available for completion.\n• Mandatory Site Visit: The Contractor shall conduct regular site visits to ensure compliance with this specification and the S.A.A. Wiring Rules.\n• Minimal Disruption: The Contractor shall take all reasonable steps to minimize disruption to the centre's activities during the works."
+  ],
+  "technical_requirements": [
+    "Electrical Works:\n• All equipment supplied and all work done shall be in accordance with this specification and the S.A.A. Wiring Rules (AS/NZS 3000) and any other relevant publications covering design, manufacture or installation of electrical equipment.\n• The switchboard manufacturer shall have a type test certificate in addition to Part Type Test Assembly certificate from switchgear supplier to which the design, manufacture and performance of the switchboard shall conform.\n• The installation Contractor shall have an Electrical Contractors license and employ only licensed electricians on Site.\n• All cables unless enclosed shall be neatly arranged and loosely tied and supported neatly, where necessary.\n• All control cables to and from the switchboards shall terminate at an approved terminal block. No more than two cables shall terminate at any one terminal point.\n• Power cables for Compressor and Condenser motors may be directly terminated on respective Contactors/over-loads.\n• All wiring penetrating a fire wall shall be installed using a special fire rated intumescent fitting (AS/NZS 3000).\n• The section for switching of sub-system, circuitry shall be labelled 'Authorised Personnel Only', this section shall not allow any person operating switches and circuit breakers to come into contact with live parts.\n• All other sections of the SCA shall be labelled as indicated on switchboard drawings.\n• LED pilot light \"Run\" and \"Fault\" indication for all main components will be provided including supply and exhaust fans.\n• Lamp test button is also required.\n• Individual pilot light 'fault' indication for all safety controls will be provided.\n• All wiring in the mechanical services plant room and building areas shall conform to the requirements of the Electrical Design Guide (AS3000) and AS/NZS 3000.\n• Tray, ladder and cable supports must be suitable for the load applied and will conform to Australian Standard AS3000.\n• Flexible PVC conduit will not be used externally unless rated for that duty and will have a smooth external coating for protection such as Clipsal sheathed flexible conduit type CMS.\n• No flexible conduit will be longer than 0.5 Metres long.\n• The Contractor shall carry out his own tests to verify operation and performance before requesting Council to attend inspections.\n• Submit fully detailed Test Log sheets for inspection prior to any testing taking place.\n• Visual inspection of pipework and joints for leaks.\n• Water-test drains and overflow piping for leaks and for unobstructed drainage.\n• Check all power cabling terminations and megger test each circuit.\n• Verify integrity of all controls cabling to ensure electrical continuity and freedom from shorts and grounds.\n• Sequence checks of all specified control functions and cycles, such as Start, Stop, Chiller Staging, Cooling and Heating Cycles, etc.\n• Test and commission the system.",
+    "Pipework and Installation:\n• All pipes must be adequately and substantially supported and restrained both horizontally and vertically using a proprietary support system, in accordance with AS/NZS 3500:2007.\n• Pipework adjacent to equipment mounted on vibration isolation mounts must be arranged to provide adequate flexibility to ensure vibration is not transmitted to the building structure.\n• Sprung pipe supports are required to prevent damage to the pipes.\n• Pipe lengths and materials shall be stored at site with end caps, to prevent ingress of dirt and debris into the piping, in accordance with AS/NZS 3500:2007.\n• Before erection, pipes and fittings shall be cleaned of scale, burrs or other obstructions, in accordance with AS/NZS 3500:2007.\n• Welded or brazed joints shall be made by experienced and fully qualified tradesmen and in accordance with best trade practice, using dry nitrogen, in accordance with AS/NZS 3500:2007.\n• Each part of the system of piping shall be complete in all detail and provided with all control valves and fittings necessary for satisfactory operation, in accordance with AS/NZS 3500:2007.\n• The piping shall be accessible for repairs and provided with sufficient flanged and/or flared fitting joints for disconnecting and removing equipment, in accordance with AS/NZS 3500:2007.\n• Where piping is exposed and liable to damage, it shall be suitably protected with well-braced 1.6mm zinc anneal sheet metal covers or heavier section if necessary, in accordance with AS/NZS 3500:2007.\n• New piping shall be copper solid drawn to AS1432 Type B and shall be installed in accordance with AS1135 (Non-Ferrous Piping Code),\n• All joints in copper pipe shall be silver soldered with silver content of not less than 5%, using skilled tradesmen having recognized training and experience in this type of work, in accordance with AS/NZS 3500:2007.\n• Adequate fire precautions shall be taken as per AS1674.\n• Pipework and valves shall be clearly labelled and identified to AS 1345-1995,\n• Lettering on piping 50 mm in diameter, and smaller, shall be 13 mm high, and all lettering on larger diameter piping shall be 20 mm high, in accordance with AS 1345-1995.\n• Direction of flow shall be clearly marked below each pipe label, in accordance with AS 1345-1995.\n• All Chilled Water pipework and fittings shall be insulated, using FM Global approved material, of a thickness to meet the requirements of the Building Code of Australia,\n• Insulation shall be held tight to the pipe using 3 loops of galvanised or stainless-steel wire per insulation section, with the edges and ends tightly butted together, in accordance with AS/NZS 3500:2007.\n• At pipe support locations the insulation shall be tightly butted up to the spacer blocks and sealed using aluminium adhesive tape, in accordance with AS/NZS 3500:2007.\n• All insulation and facing shall be applied strictly in accordance with the manufacturer's recommendations,\n• Chilled and Condenser Water pipework 1.8m from floor and lower shall be sheathed with 0.6mm zinc anneal sheet with powder coat finish to be advised,\n• Joints in sheathing shall be lapped at least 30mm and riveted or screwed at 150mm maximum centres, in accordance with AS/NZS 3500:2007.\n• Neatly cone down the sheathing to flanges and at terminations return the edges of the sheathing to protect the insulation,\n• Provide sheet metal sleeves over the wooden ferrule to protect from soaking from the rainwater,\n• All wiring penetrating a fire wall shall be installed using a special fire rated intumescent fitting, in accordance with AS/NZS 3500:2007.\n• The Contractor shall carry out his own tests to verify operation and performance before requesting Council to attend inspections,\n• Submit fully detailed Test Log sheets for inspection prior to any testing taking place,\n• The following tests and checks shall be carried out by the Contractor: Visual inspection of pipework and joints for leaks, Water-test drains and overflow piping for leaks and for unobstructed drainage, Check all power cabling terminations and megger test each circuit, Verify integrity of all controls cabling to ensure electrical continuity and freedom from shorts and grounds, Sequence checks of all specified control functions and cycles, etc.,\n• Supply and install condensate sumps common to the cool side of the heat recovery coils, evaporator coils including the drift eliminators,\n• Interconnecting pipeworks into each system including valves, fittings and other essential items associated works such as bleeds, drains, etc,\n• Supply and install all associated and interconnecting pipework, make-up water/RPZ valve, chemical dosing, closed-type expansion tank valves, fittings, spring/rubber isolation, gages cocks, installation of thermowells (supplied by others), etc to form a complete and operational chilled/condenser water system,\n• All pipework and electrical cabling/trunking to run 2.1m min from floor in trafficable area,\n• Supply and install 80mm table B copper chilled and condenser water pipework with necessary valves, brackets and fittings from new headers to connect 3x coils in each AHUs,\n• Fill and pressure test pipe works using minimum 3x the system pressure,\n• Insulate chilled water pipework using foil faced foam shield type pipe insulation and metal sheath at low level pipework (under 1.8m),\n• All supports must be constructed from zinc plated galvanised steel with contact between dissimilar metals prevented by non-conducting isolating materials, in accordance with AS/NZS 3500:2007.\n• A specially moulded PVC insulation strip will be used as supplied by the clamp supplier,\n• Tape will not be used in any circumstances,\n• Support type: Proprietary metallic‐coated steel channel section with clamps and hangers sized match external diameter of pipe being supported,\n• Fit moulded plastic end caps to all channels,\n• Vertical pipes: Provide anchors and guides to maintain long pipes in position and supports to balance the mass of the pipe and its contents,\n• Change in Direction: Provide a support at each change of direction,\n• Saddles: Do not provide saddle type supports for pipes ≥ DN 25,\n• Pipe support spacing table Nominal Pipe Size, DN Maximum spacing (m) Horizontal Vertical 25 2 3 32 2.5 3 40 2.5 4 50, 65, 80 &100 3 4,\n• The Contractor shall submit to Council a detailed schedule showing the proposed sequence of work and the durations for which the various areas will need to be available to the Contractor for the work to be completed, in accordance with SafeWork NSW.\n• Immediately following award, the Contractor shall arrange to have a responsible person on site to supervise and arrange the offloading/loading,\n• The Contractor shall supply his own labour and equipment necessary for the offloading and hoisting into position of plant and materials, and shall arrange for the storage and safekeeping of such plant and materials,\n• Plant and materials shall be dispatched to site to suit the installation schedule and minimise double handling on site,\n• The Contractor shall provide all cranage, lifting, hauling, hoisting, protection, hoarding, scaffolding (if applicable) and the like associated with the works of the Contract to the requirements of SafeWork NSW, Service Australia, Blacktown Council and any other relevant authority having jurisdiction,\n• Pay all fees associated therewith and allow accordingly in the Tender.\n• Ensure that all equipment selected shall fit in the hoisting facilities available before ordering,\n• Under no circumstances is any hoisting of equipment to be carried out unless written approvals have been given by Council,\n• The Contractor shall ensure that any and all works are undertaken fully in accordance with proper BCC WHS requirements,\n• The Contractor shall be responsible for all hoisting and cranage associated with the Work and shall allow for the number of cranage lifts to suit the staged nature of carrying out the work,\n• All disturbed work, all damage that may occur and all surfaces and penetrations affected as a result of the works, including damage to the grounds during crane lift, covered by this Specification shall be made good to the entire satisfaction of Council,\n• On completion of the works the Contractor shall remove all debris, clean-up site and leave the site in a tidy condition,\n• The Contractor shall take consideration of the safety of the leisure centre staffs and provide safe passage through the work area, if necessary, assist in relocating some of the shelves to allow safe access to their consumables,\n• Deliveries to Site and Off Loading When dispatching plant or materials to site, or removal of plant or materials from site, the Contractor shall arrange to have a responsible person on site to supervise and arrange the offloading/loading,\n• Hoisting & Cranage Provide all cranage, lifting, hauling, hoisting, protection, hoarding, scaffolding (if applicable) and the like associated with the works of the Contract to the requirements of SafeWork NSW, Service Australia, Blacktown Council and any other relevant authority having jurisdiction, Pay all fees associated therewith and allow accordingly in the Tender.\n• The Contractor shall ensure that all equipment selected shall fit in the hoisting facilities available before ordering, Under no circumstances is any hoisting of equipment to be carried out unless written approvals have been given by Council,\n• The Contractor shall ensure that any and all works are undertaken fully in accordance with proper BCC WHS requirements, The Contractor shall be responsible for all hoisting and cranage associated with the Work and shall allow for the number of cranage lifts to suit the staged nature of carrying out the work,\n• All disturbed work, all damage that may occur and all surfaces and penetrations affected as a result of the works, including damage to the grounds during crane lift, covered by this Specification shall be made good to the entire satisfaction of Council, On completion of the works the Contractor shall remove all debris, clean-up site and leave the site in a tidy condition,\n• The Contractor shall take consideration of the safety of the leisure centre staffs and provide safe passage through the work area, if necessary, assist in relocating some of the shelves to allow safe access to their consumables, Deliveries to Site and Off Loading When dispatching plant or materials to site, or removal of plant or materials from site, the Contractor shall arrange to have a responsible person on site to supervise and arrange the offloading/loading,\n• Hoisting & Cranage Provide all cranage, lifting, hauling, hoisting, protection, hoarding, scaffolding (if applicable) and the like associated with the works of the Contract to the requirements of SafeWork NSW, Service Australia, Blacktown Council and any other relevant authority having jurisdiction, Pay all fees associated therewith and allow accordingly in the Tender.",
+    "Valves and Ductwork:\n• Valves > DN 50 and valves in headers: Flanged to AS 2129 All valves shall be of globe type, key operated c/w sealed caps.\n• Where valves do not have direct capillary joint to the pipe, care shall be taken to prevent distortion of the valve or power element by heat.\n• Valves in pipelines smaller than 25 mm shall be supported independently of the line.\n• All sheet metal ductwork shall be manufactured from lock forming quality Lysaght Galvabond sheet steel or equal.\n• Ductwork material shall be prime quality lock forming galvanised steel, Grade G2 or G3 to AS 2338 with Z275 coating to AS 1397.\n• All ducts shall be sealed in accordance with Table 2.2.1 of AS 4254.\n• Drive slide cross joints shall be sealed airtight at corners using metal tongues and Emerduct sealer, or similar.\n• Ductwork systems at Pressure Class 750 and less shall be leak tested using pressure testing method.\n• All obvious leaks shall be sealed with appropriate and approved sealant.\n• All ducts protruding through walls and floors and exposed to view shall be provided with neat, galvanised steel sealing frames fixed to ducts and walls or floors as appropriate.\n• All external installations and roof penetrations shall conform to Section 3 of AS 4254.\n• Ductwork shall not be installed unless adequate cover and protection is available to protect it from possible construction damage and the elements.\n• Prior to and during installation, ducts shall be thoroughly cleaned out and shall have all ends covered in an approved manner to prevent ingress of dust and general building debris.\n• All materials used in the installation of insulation shall have the following resistance properties when tested to AS 1530 Part 3 \"Test for Early Fire Hazard Properties of Materials\". Ignitability Index 0\n• Ductwork shall be adequately insulated to prevent thermal losses and condensation forming on the outside of the ductwork and/or insulation and comply with all requirements of Section J of the NCC.\n• All ducts shall be carefully designed and provided with all necessary anchoring and flexible connections to prevent damage to either the ducts or the building structure due to thermal expansion and/or contraction of the ducts and to obviate transmission or vibration from any motive or noise generating equipment such as fans, air handling units and mixing boxes.\n• All anchor points and flexible connections shall be shown on the shop drawings and specific approval shall be obtained from appropriate authority before proceeding with the installation of any anchors or fixings to the building structure.",
+    "Equipment and Accessories:\n• Provide method statements and SWMS for all high-risk activities\n• Coordinate works with other trades and Council representatives\n• Verify dimensions and services prior to fabrication/installation\n• Test and commission to manufacturer and AS/NZS requirements\n• Provide as-built documentation and O&M manuals at completion",
+    "Maintenance and Service:\n• Ensure all equipment selected fits in hoisting facilities available before ordering.\n• Propose Cranage Strategy and carry it out to the satisfaction of Council, with written approvals from Council for any hoisting of equipment.\n• Carry out all works fully in accordance with proper BCC WHS requirements.\n• Allow for number of cranage lifts to suit staged nature of carrying out work.\n• Make good all disturbed work, damage, surfaces, and penetrations affected as a result of work, including damage to grounds during crane lift, to entire satisfaction of Council.\n• Remove all debris, clean-up site, and leave site in tidy condition upon completion of work.\n• Recycle redundant equipment transported to recycling depot, with evidence submitted to Council.\n• Carry out 12 regular monthly visits for routine maintenance, including rectification of faults, emergency service, and capacity tests as required.\n• Comply with requirements of AS 3666, Local Authority, and any other statutory body having jurisdiction.\n• Provide safe passage through work area for leisure centre staffs, assist in relocating shelves if necessary.\n• Arrange for responsible person on site to supervise and arrange offloading/loading of plant and materials.\n• Supply own labour and equipment necessary for offloading and hoisting into position of plant and materials.\n• Minimise double handling on site by dispatching plant and materials to suit installation schedule.\n• Provide all cranage, lifting, hauling, hoisting, protection, hoarding, scaffolding (if applicable) in accordance with SafeWork NSW requirements.\n• Pay all fees associated with cranage and hoisting, allowing for these costs in Tender.\n• Ensure work is carried out with minimum nuisance or annoyance to centre's staffs and patrons.\n• Avoid transmission of excessive vibration to building structure at any time.\n• Provide drop sheets and covers over plant and equipment liable to damage from dirt, dust, and debris.\n• Take consideration of safety of leisure centre staffs and provide safe passage through work area.\n• Coordinate with centre management and Council officer in charge of project, including allowing safe access to centre's miscellaneous stocks.\n• Test and commission system upon completion of work, ensuring current Chiller Staging strategy is maintained.\n• Modify and reconfigure existing electrical system to accommodate chillers and other associated equipment.\n• Carry out all other works not specifically mentioned in scope of works to form complete and operating system similar to newly refurbished AHU 2.",
+    "Commissioning and Testing:\n• Provide all equipment, labour, materials, power, consumables, etc. to conduct testing and commissioning.\n• Submit fully detailed Test Log sheets for inspection prior to any testing taking place. The Test Log sheets shall be A4 in size and present a clear and precise record of all tests to be carried out.\n• Carry out the following tests and checks:\n• Visual inspection of pipework and joints for leaks (AS/NZS 4768)\n• Water-test drains and overflow piping for leaks and for unobstructed drainage (AS/NZS 4768)\n• Check all power cabling terminations and megger test each circuit (AS/NZS 3000)\n• Verify integrity of all controls cabling to ensure electrical continuity and freedom from shorts and grounds (AS/NZS 3000)\n• Sequence checks of all specified control functions and cycles, such as Start, Stop, Chiller Staging, Cooling and Heating Cycles, etc. (AS/NZS 60079)\n• Obtain a type test certificate from a qualified testing laboratory for the section switching of sub-system, circuitry.\n• Label the section switching of sub-system, circuitry as 'Authorised Personnel Only' and ensure that no person operating switches and circuit breakers comes into contact with live parts.\n• Provide LED pilot light 'Run' and 'Fault' indication for all main components, including supply and exhaust fans.\n• Provide lamp test button for individual pilot lights 'fault' indication for all safety controls.\n• Arrange cables neatly arranged and loosely tied and supported neatly, where necessary (AS/NZS 3000)\n• Terminate control cables to and from the switchboards at an approved terminal block (AS/NZS 3000)\n• No more than two cables shall terminate at any one terminal point (AS/NZS 3000)\n• Power cables for Compressor and Condenser motors may be directly terminated on respective Contactors/over-loads.\n• Carry out the following upgrade of Building Management Control System & Associated Works:\n• Extend the existing BMCS to control the new works, logic shall be identical to the newly refurbished AHU 2 control (AS/NZS 60079)\n• Supply and install necessary and additional points to control and monitor the new equipment (AS/NZS 60079)\n• Re-engineer and reprogram BMCS and other necessary works to completely control the new ventilation and heating systems (AS/NZS 60079)\n• Integrate the new Chiller BACnet High Level Interface gateway with the BMS to operate as specified and provide the Device Instance and IP details and shall carry out all necessary programming to ensure the current Chiller Staging strategy is maintained (AS/NZS 60079)\n• Test and commission the new installation.\n• Carry out regular maintenance and servicing for the duration of the Defects Liability Period, including a minimum of 12 regular monthly visits for routine maintenance (AS/NZS 3666)\n• Ensure that all equipment supplied and all work done shall be in accordance with this specification and the S.A.A. Wiring Rules and any other S.A.A. publications covering design, manufacture or installation of electrical equipment.\n• Comply in all respects with AS 61439 for switchboards.\n• Provide a type test certificate from a qualified testing laboratory for the switchboard manufacturer's submission of a type test certificate from a qualified testing laboratory (AS/NZS 61439)\n• Ensure that the Contractor has an Electrical Contractors license and employs only licensed electricians on Site (SafeWork NSW)\n• Arrange for all deliveries to site, or removal of plant or materials from site, with a responsible person on site to supervise and arrange the offloading/loading.\n• Supply own labour and equipment necessary for the offloading and hoisting into position of plant and materials, and arrange for storage and safekeeping (SafeWork NSW)\n• Provide all cranage, lifting, hauling, hoisting, protection, hoarding, scaffolding (if applicable) and the like associated with the works of the Contract to the requirements of SafeWork NSW, Service Australia, Blacktown Council and any other relevant authority having jurisdiction.\n• Pay all fees associated therewith and allow accordingly in the Tender (SafeWork NSW)"
+  ],
+  "invoicing": [
+    "The Contractor shall submit to Council a detailed schedule showing the proposed sequence of work and the durations for which the various areas will need to be available to the Contractor for the work to be completed within 30 days of the contract commencement.",
+    "All invoices must include an itemised breakdown of costs, including materials, labour, and any other expenses incurred during the course of the work. The invoice shall also include a detailed description of the work performed and the corresponding costs.",
+    "The Contractor shall provide milestone/progress payments to Council as follows: (i) upon completion of each stage of the work; (ii) prior to commencing work on new stages; (iii) within 14 days of receiving payment from Council for previous stages. The amount of progress payment shall be determined by Council, but must not exceed 75% of the total contract value.",
+    "All variations to the scope of work must be pre-approved by Council in writing prior to commencement of the variation. The Contractor shall provide a detailed description of the variation and the corresponding costs within 14 days of receiving approval from Council."
+  ],
+  "reporting": [
+    "Weekly progress report with status, risks, and updated program",
+    "Monthly summary including KPI performance and incidents",
+    "Final report pack including commissioning results and certificates",
+    "Provide as-built drawings, O&M manuals and warranties"
+  ],
+  "performance_monitoring": {
+    "note": "Performance monitoring note for Blacktown Leisure Centre Stanhope Main Pool Hall Heating & Ventilation AHU 1 & 3 Refurbishments",
+    "items": [
+      "Circulation Water Pump Type: Vertical Inline Duty Flow 7.9 L/S Duty Head 10 M Power Supply, V/Ph/Hz 415/3/50 Sound Level @ 1m 49 Db (A)",
+      "Number of Pumps: 2 Make / Equal Baker Line",
+      "EC Fan Fan no.",
+      "BMCS Upgrade: Extend existing BMCS to control new works, supply and install necessary points, re-engineer and reprogram BMCS and other necessary works",
+      "Chiller BACnet High Level Interface gateway integration with BMS",
+      "Control logic fine-tuning after commissioning up to end of Defects Liability Period",
+      "Electrical work: All equipment supplied and work done in accordance with S.A.A. Wiring Rules and local Electricity Supply Authority requirements",
+      "Switchboard manufacturer's type test certificate and Part Type Test Assembly certificate from switchgear supplier",
+      "Electrical Contractors license and licensed electricians on site",
+      "Noise, dust, and vibration control during progress of works",
+      "Protection of existing building, adjacent areas, and contents",
+      "Daily collection and removal of rubbish and debris",
+      "Shutdown notice: At least 48-hour written notice to leisure centre's management with approval obtained in writing"
+    ]
+  },
+  "desired_outcomes": [
+    "Reliable delivery of all equipment and materials",
+    "Timely completion of works in accordance with the approved schedule",
+    "High-quality installation and commissioning of all systems",
+    "Qualified staff employed on site at all times during construction",
+    "Effective complaint management and resolution process",
+    "Compliance with Council's contract administration requirements",
+    "Maintenance of a safe working environment (WHS) for all personnel",
+    "Value for money in terms of cost and efficiency of the project"
+  ],
+  "purpose_rft": [
+    "To procure a Contractor to undertake the refurbishment of the Mechanical Services plantroom in the BLCS Main Pool Hall, including the installation of new chillers, heat recovery coils, and associated electrical and plumbing works.",
+    "The successful Tenderer shall provide all necessary equipment, labour, materials, power, consumables, etc. to conduct testing and commissioning of the works prior to completion.",
+    "The Contractor shall ensure that all works are undertaken in accordance with proper BCC WHS requirements and comply with NSW/Australian standards and Council best practice."
+  ],
+  "probity_and_accountability": {
+    "probity": "",
+    "confidentiality_and_conflict": "",
+    "security_and_confidentiality": "",
+    "authorised_contact_officer": {
+      "name": null,
+      "title": null,
+      "email": null,
+      "phone": null
+    },
+    "advertising_rft": "",
+    "receipt_of_tenders": "",
+    "late_tenders": "",
+    "requests_for_clarification": "",
+    "critical_issues_or_risks": [],
+    "risks": [
+      {
+        "issue": "BMCS integration failure",
+        "consequence": "Loss of monitoring/control",
+        "action": "FAT; point-to-point I/O test; SAT with witness"
+      },
+      {
+        "issue": "EC fan performance shortfall",
+        "consequence": "Insufficient airflow/pressure",
+        "action": "Verify duty; commissioning with TAB report"
+      },
+      {
+        "issue": "Warranty service response",
+        "consequence": "Extended downtime",
+        "action": "Specify response/rectification times & contacts"
+      }
+    ]
+  },
+  "evaluation_committee": [],
+  "evaluation_schedule": [
+    {
+      "task": "Review Testing & Commissioning plan and witness tests",
+      "responsible": null,
+      "due": null
+    },
+    {
+      "task": "Review maintenance schedules and O&M handover",
+      "responsible": null,
+      "due": null
+    },
+    {
+      "task": "Review BMCS HLI/point list and integration test records",
+      "responsible": null,
+      "due": null
+    }
+  ],
+  "tender_evaluation": {
+    "methodology_text": "The Evaluation Committee, in accordance with the methodology specified in the RFT and reproduced here, will evaluate all tenders.",
+    "evaluation_methodology": {
+      "compliance_criteria": [
+        {
+          "criterion": "Tender Details",
+          "weight": "Nil"
+        },
+        {
+          "criterion": "Compliance of RFT Terms & Conditions",
+          "weight": "Nil"
+        },
+        {
+          "criterion": "Tenderer’s Statutory Declaration",
+          "weight": "Nil"
+        }
+      ],
+      "required_criteria_table": [
+        {
+          "criterion": "Price (Full Cost)",
+          "weight": "40.0%",
+          "rationale": "Given the high risk of integration and commissioning complexity, a moderate price weighting is chosen to balance cost with potential risks"
+        },
+        {
+          "criterion": "Relevant Experience",
+          "weight": "21.8%",
+          "rationale": "A moderate experience weighting is selected to account for the need for expertise in delivering services while minimizing the impact on overall score"
+        },
+        {
+          "criterion": "Capability",
+          "weight": "21.8%",
+          "rationale": "Similar to relevant experience, capability is weighted moderately to ensure that service delivery capacity is adequately assessed without overemphasizing this criterion"
+        },
+        {
+          "criterion": "Management & Financial Capacity",
+          "weight": "5.5%",
+          "rationale": "A low weighting is assigned to management and financial capacity to prioritize other criteria that directly impact service delivery quality"
+        },
+        {
+          "criterion": "Quality Management",
+          "weight": "5.5%",
+          "rationale": "Given the importance of quality in service delivery, a moderate weighting is chosen to ensure that quality management practices are adequately assessed"
+        },
+        {
+          "criterion": "WHS",
+          "weight": "5.4%",
+          "rationale": "A low weighting is assigned to WHS to minimize its impact on overall score while ensuring that workplace safety remains a consideration"
+        }
+      ],
+      "overview": "The Evaluation Committee, in accordance with the evaluation methodology specified in the RFT and reproduced in this document, will evaluate all tenders. Compliance is generally taken to mean submission of the Tender by the closing date, in accordance with all lodgement instructions and provision of all information requested in the RFT (including any late tender provisions). Compliance criteria are not scored or weighted; depending on the nature, extent and implications of partial or non-compliance, a Tender may be disqualified from further evaluation.",
+      "compliance_criteria_table": {
+        "title": "6.1.1 Compliance Criteria",
+        "render_hint": "table",
+        "columns": [
+          {
+            "key": "criterion",
+            "label": "Compliance Criteria"
+          },
+          {
+            "key": "weight",
+            "label": "Weight"
+          }
+        ],
+        "rows": [
+          {
+            "criterion": "Tender Details",
+            "weight": "Nil"
+          },
+          {
+            "criterion": "Compliance of RFT Terms & Conditions",
+            "weight": "Nil"
+          },
+          {
+            "criterion": "Tenderer’s Statutory Declaration",
+            "weight": "Nil"
+          }
+        ],
+        "notes": [
+          "Compliance criteria are not scored or weighted. Non-compliant tenders may be excluded from further evaluation."
+        ]
+      },
+      "non_price_rating_scale": [
+        {
+          "score": 5,
+          "label": "Exceptional",
+          "description": "Fully compliant; no risks or weaknesses."
+        },
+        {
+          "score": 4,
+          "label": "Superior",
+          "description": "Sound achievement; minor risks/weaknesses may be acceptable."
+        },
+        {
+          "score": 3,
+          "label": "Good",
+          "description": "Reasonable achievement; errors/risks can be corrected with minimal effort."
+        },
+        {
+          "score": 2,
+          "label": "Adequate",
+          "description": "Minimal achievement; issues possible to correct/overcome."
+        },
+        {
+          "score": 1,
+          "label": "Poor to Deficient",
+          "description": "No/low achievement; numerous errors/risks/weaknesses."
+        },
+        {
+          "score": 0,
+          "label": "Unacceptable",
+          "description": "Totally deficient and non-compliant."
+        }
+      ],
+      "required_criteria_caption": "Evaluation Criteria (policy-aligned)."
+    },
+    "returnable_schedules_scoring": {},
+    "section_6_2_title": "6.2 RETURNABALE SCHEDULES SCORING",
+    "returnable_scoring": {
+      "note": "See evaluation workbook and schedules for detailed rubrics.",
+      "rubrics": []
+    }
+  },
+  "pricing": {
+    "pricing_model_text": "Pricing for tender evaluation will be normalised; the lowest fee achieves the maximum score (equal to the price weighting). State Government method:\nPs = 200 – (Pc / Pav × 100)\nPn = Ps / 200\nPw = Pn × [Price Weight]\nPc = Total Net Cost, Pav = Average of Total Net Costs.",
+    "local_preference_policy": {
+      "policy_ref": "Procurement Policy P000553.1",
+      "blacktown_lga_discount": "5% discount capped at $50,000 for suppliers located in Blacktown City LGA",
+      "western_sydney_discount": "2.5% discount capped at $25,000 for suppliers located in Western Sydney councils",
+      "definitions": [
+        "Blacktown City Local supplier: principal place of business (not a PO Box) located within Blacktown City LGA.",
+        "Western Sydney Council supplier: principal place of business (not a PO Box) located within a Western Sydney Council LGA."
+      ],
+      "western_sydney_councils": [
+        "Blue Mountains City Council",
+        "City of Parramatta Council",
+        "Cumberland City Council",
+        "Fairfield City Council",
+        "Hawkesbury City Council",
+        "Liverpool City Council",
+        "Parramatta City Council",
+        "Penrith City Council",
+        "The Hills Shire Council"
+      ],
+      "application_note": "For any suppliers eligible for local preference, provide the confirming address in the third tab of the tender evaluation spreadsheet."
+    },
+    "value_for_money": [
+      "Assessed on qualitative outcomes + price: quality and fitness for purpose vs whole-of-life costs vs risk.",
+      "Consider whole-of-life costs incl. maintenance and warranty obligations",
+      "Energy efficiency and control strategy for chillers/AHUs",
+      "‘Value for Money’ is assessed on the combined outcomes of qualitative criteria and price.",
+      "Consider quality of proposed services against whole-of-life costs and risk (capacity to deliver on-time and on-budget)."
+    ],
+    "interviews_and_presentation_criteria": "Scores may be revised following interviews/presentations of shortlisted tenderers.",
+    "model": {
+      "narrative": "Pricing for tender evaluation will be normalised; the lowest fee achieves the maximum score equal to the Price criterion weighting. In accordance with State Government scoring, the Total Net Cost for tender evaluation is normalised and weighted for comparison as follows.",
+      "variables": [
+        "Pc = Total Net Cost calculated for tender evaluation",
+        "Pav = Average of all Total Net Costs",
+        "Ps = Price Score",
+        "Pn = Normalised Price Score",
+        "Pw = Weighted Price Score"
+      ],
+      "formulae": [
+        "Ps = 200 – (Pc / Pav × 100)",
+        "Pn = Ps / 200",
+        "Pw = Pn × (Price weighting)"
+      ],
+      "notes": [
+        "The total score each Tenderer receives provides a numeric basis for comparison.",
+        "Recommendation on the preferred Tender will be based on scoring comparisons.",
+        "The basis of any increase will be calculated for the full term of the contract, including optional extensions."
+      ]
+    }
+  },
+  "contract_negotiations": "A period of negotiation with the successful Tenderer may arise following completion of the Tender phase and will commence subject to approval by the Director. This period will result in the executed copies of the contractual documentation being completed and will necessitate a combination of meetings comprising formal written obligations to be resolved. The role of the negotiators is to ensure that the negotiation approach is appropriate to the nature of the project, is open and fair, meets the needs of the Tenderer and can be accommodated within the Tenderer’s resources. Negotiations must not result in material changes to the requirements of the Tender. The outcome of the negotiations will be reflected in the final contract and all negotiation discussions and outcomes will be documented.",
+  "debriefing": "The Evaluation Panel may arrange for the debriefing of any unsuccessful Tenderers who request such a debriefing. The purpose of the debriefing is to provide Tenderers with general comments regarding evaluation of the Tenderer’s submission against the criteria. If undertaken, the debriefing process will be conducted by at least two members of the Evaluation Committee and may be carried out by telephone or letter. The debriefing process will be limited to the unsuccessful Tenderer’s offer. No comparisons will be made with the successful Tender and the debriefing process will not be used to justify the selection of the successful Tender. No scoring details will be provided.",
+  "contract_management": "The contract will be managed by Manager City Fleet or delegate.",
+  "critical_dates": [
+    "Contract Commencement: 10 Oct 2025",
+    "Commencement date in spec (05 May 2025) is earlier than policy minimum; adjusted to 10 Oct 2025 (≥ title date + 26 days)."
+  ],
+  "how_to_complete_tepp": [
+    "1) Title Page — Replace Tender Number, Name and Term.",
+    "2) 1. Aim — Update Tender Name and Term.",
+    "3) 2. Description of Requirement — Replace with contract description and main requirements.",
+    "4) 2.1 Desired Outcomes — Insert procurement outcomes (value for money, timely delivery, etc.).",
+    "5) 2.2 Purpose of RFT — Replace with reasons for this tender (or EOI/Quotation).",
+    "… (continue your internal guidance list as needed) …",
+    "Update footer to correct Tender Number and Tender Name."
+  ],
+  "description": {
+    "summary": [
+      "The scope of this project includes the refurbishment of the AHU 1 & 3 in the Blacktown Leisure Centre's main pool hall, including the installation of a new reverse cycle water-cooled heat pump chiller.",
+      "The works will be carried out in a coordinated and programmed manner to suit the operational requirements of the centre, with minimal disruption to its activities.",
+      "Scope includes: Replacement/upgrade of water-cooled heat pump chillers; AHU coil refurbishments; 8 EC plug fans; BMCS integration (e.g., BACnet HLI)"
+    ]
+  },
+  "shortlisting": "Clearly non-competitive tenders may be excluded with reasons recorded.",
+  "alternative_tenders": [
+    "Alternative tenders will be evaluated in accordance with the RFT evaluation methodology reproduced in this document."
+  ],
+  "tenderer_presentations": [
+    "Tenderers may be invited to interview to clarify their tender. No new or additional information will be requested or permitted at this stage (see Section 3.8 – Requests for Clarification). Answers must be factual and unbiased; no personal opinions are to be expressed."
+  ],
+  "evaluation_report": [
+    "On completion of the evaluation, results will be documented in a Council Report including:",
+    "• a summary of the evaluation method,",
+    "• the number of tenders received,",
+    "• the relative ranking of tenders,",
+    "• the recommendation of the preferred tender, and",
+    "• the rationale used to select the preferred supplier.",
+    "The report will highlight key issues for negotiation/ongoing scrutiny, be considered by the Tender Review Committee, and, if approved, be endorsed by all Committee Members and presented to the Ordinary Council Meeting for adoption. The ultimate decision maker is Blacktown City Council’s elected officials."
+  ],
+  "debriefing_unsuccessful": "Debriefing may be offered upon request. Only general comments on the tenderer’s own submission; no comparisons; no scoring details.",
+  "evaluation_methodology": {
+    "compliance_criteria": [
+      "Comply with SafeWork NSW / Council WHS",
+      "Provide PPE for all on-site workers",
+      "Electrical work to AS/NZS 3000",
+      "Provide commissioning plan and evidence of tests per Section 10"
+    ],
+    "required_criteria": [
+      {
+        "name": "Methodology",
+        "weight": 12.5,
+        "description": "Commissioning plan covering: 10.1 General; Provide all equipment, labour, materials, power, consumables, etc. to conduct testing and; commissioning. The Contractor shall carry out his own tests to verify operation and performance; before requesting Council to attend inspections. Submit fully detailed Test Log sheets for inspection; prior to any testing taking place. The Test Log sheets shall be A4 in size and present a clear and; precise record of all tests to be carried out.…; BMCS integration/HLI (BACnet) with IO schedules and point lists; Program includes defects liability / warranty of 12 months; Provision for service/maintenance handover & schedules",
+        "mandatory": false
+      },
+      {
+        "name": "Quality",
+        "weight": 5.0,
+        "description": "Quality plan incl. ITPs; as-built docs; performance verification",
+        "mandatory": false
+      },
+      {
+        "name": "Work Health & Safety",
+        "weight": 5.0,
+        "description": "Comply with SafeWork NSW / Council WHS; Provide PPE for all on-site workers; Electrical work to AS/NZS 3000",
+        "mandatory": true
+      }
+    ]
+  },
+  "evaluation_criteria": [],
+  "meta": {
+    "purchase_category_used": "service delivery contract",
+    "ranges_used": {
+      "Price (Full Cost)": "30% to 50%",
+      "Relevant Experience": "10% to 30%",
+      "Capability": "10% to 30%",
+      "Management & Financial Capacity": "5% to 10%",
+      "Quality Management": "5% to 10%",
+      "WHS": "5% to 10%"
+    }
+  },
+  "interviews_presentations": [
+    "Final scores may be revised following interviews/presentations conducted with shortlisted Tenderers, in accordance with Section 6.4 Tenderer Presentations."
+  ],
+  "shortlisting_alternatives": [
+    "Where many tenders are received, clearly non-competitive tenders with no reasonable prospect of best value may be excluded from detailed evaluation. Reasons for exclusion must be defensible and recorded in the evaluation report."
+  ]
+}

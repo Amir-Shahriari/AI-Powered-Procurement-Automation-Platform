@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from collections import Counter
 import threading
+import datetime as _dt
 
 # ---- Global task registry (threads MUST NOT touch st.session_state) ----
 TASKS: Dict[str, Dict[str, Any]] = {}
@@ -196,6 +197,46 @@ def _inject_css():
         st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
     except Exception as e:
         st.warning(f"Could not read CSS at {css_path}: {e}")
+# ---------------------------------------------------------------------
+# Logo helpers (UI)
+# ---------------------------------------------------------------------
+# ---- Timestamp formatting helper (avoids datetime shadowing) ----
+def _fmt_ts(mtime: float) -> str:
+    import datetime as _dt  # local alias prevents any shadowing elsewhere
+    return _dt.datetime.fromtimestamp(float(mtime)).strftime("%Y-%m-%d %H:%M")
+
+def _resolve_logo_paths():
+    """
+    Returns absolute Paths to the two logos.
+    If env vars APP_LOGO1/APP_LOGO2 are set, they win.
+    Otherwise we look in app/ui/assets/logo1.png & logo2.png
+    """
+    from pathlib import Path as _Path
+    here = _Path(__file__).resolve()
+    default_dir = here.parent / "ui" / "assets"
+
+    l1_env = os.getenv("APP_LOGO1")
+    l2_env = os.getenv("APP_LOGO2")
+
+    logo1 = _Path(l1_env) if l1_env else (default_dir / "lgp-logo-retina.png")
+    logo2 = _Path(l2_env) if l2_env else (default_dir / "BlacktownCityCouncil_2019.png")
+    return logo1, logo2
+
+
+def _render_logos(height: int = 42):
+    """
+    Renders the two logos side-by-side on the top-left.
+    Safe to call on any page.
+    """
+    logo1, logo2 = _resolve_logo_paths()
+    cols = st.columns([0.12, 0.12, 0.76])  # two small, one big spacer
+    with cols[0]:
+        if logo1.exists():
+            st.image(str(logo1), width='content', output_format="PNG", caption=None)
+    with cols[1]:
+        if logo2.exists():
+            st.image(str(logo2), width='content', output_format="PNG", caption=None)
+    # cols[2] is just spacer
 
 # ---------------------------------------------------------------------
 # Navigation helper
@@ -241,11 +282,21 @@ def _nav_back():
         st.rerun()
 
 def _topbar():
-    # Minimal top bar with a Back button; include it on every page after auth guard
-    colA, colB = st.columns([1, 9])
-    with colA:
+    """
+    Top bar shown on all post-auth pages:
+      - two logos on the far left
+      - a global Back button on the far right
+    """
+    # row 1: logos + back button
+    left, right = st.columns([0.85, 0.15])
+    with left:
+        _render_logos()
+    with right:
+        st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
         if st.button("← Back", key="global_back"):
             _nav_back()
+    st.markdown("<hr style='margin:0.4rem 0 0.8rem 0; border: none; height:1px; background:#eaeaea'/>", unsafe_allow_html=True)
+
 
 # ---------------------------------------------------------------------
 # UI helpers: sticky expanders that persist open/closed state across reruns
@@ -320,6 +371,109 @@ def _save_json_to_project(data: dict, project_dir: Path, filename: str) -> Path:
     dest = project_dir / "generated" / filename
     dest.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     return dest
+
+def _clean_company_from_filename(filename: str) -> str:
+    """
+    Turn an uploaded filename into a readable label without tender-specific hacks.
+    Examples:
+      "MyCo_Returnable-Schedules_v3.pdf" -> "MyCo Returnable Schedules v3"
+    """
+    stem = Path(filename).stem
+    stem = re.sub(r'[_\-]+', ' ', stem)              # underscores/dashes -> space
+    stem = re.sub(r'\s+', ' ', stem).strip()         # normalize spaces
+    # trim very generic words at ends
+    stem = re.sub(r'(?i)\b(returnable|schedules?|schedule|rs|rft|tender|response)\b', '', stem)
+    stem = re.sub(r'\s+', ' ', stem).strip()
+    return stem or "Unknown Company"
+
+# ---------- Previous results index & listing ----------
+
+def _update_results_index(rec_id: str, tepp_path: Path, tepp: dict, parsed: dict | None = None) -> None:
+    """
+    Persist a tiny index of previous runs so we can show correct project names fast.
+    Schema:
+      {
+        "<rec_id>": {
+          "project_name": "<string>",
+          "mtime": <float UNIX time>
+        },
+        ...
+      }
+    """
+    try:
+        idx_path = settings.DATA_DIR / "_index.json"
+        idx = {}
+        if idx_path.exists():
+            try:
+                idx = json.loads(idx_path.read_text(encoding="utf-8"))
+            except Exception:
+                idx = {}
+
+        project_name = (
+            (tepp or {}).get("document_metadata", {}).get("project_name")
+            or (parsed or {}).get("project_name")
+            or rec_id[:8]
+        )
+        idx[rec_id] = {
+            "project_name": str(project_name).strip() or rec_id[:8],
+            "mtime": float(tepp_path.stat().st_mtime if tepp_path.exists() else datetime.now().timestamp())
+        }
+        idx_path.write_text(json.dumps(idx, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception as e:
+        print(f"WARN: could not update _index.json: {e}")
+
+def _safe_project_name_from_tepp(tepp_path: Path) -> str:
+    """
+    Reads the project name from a specific TEPP file *only* (no session state leakage).
+    Falls back to rec_id if not present / parse error.
+    """
+    try:
+        tepp_data = json.loads(tepp_path.read_text(encoding="utf-8"))
+        name = tepp_data.get("document_metadata", {}).get("project_name", "")
+        if isinstance(name, str) and name.strip():
+            return name.strip()
+    except Exception:
+        pass
+    return tepp_path.stem.replace(".tepp", "")[:8] + "..."
+
+def list_previous_results(data_dir: Path, limit: int = 50) -> list[dict]:
+    """
+    Returns a list of dicts:
+      [{ "rec_id": str, "path": Path, "mtime": float, "project_name": str }, ...]
+    Uses _index.json if present; falls back to reading names from each TEPP.
+    """
+    tepp_files = sorted(data_dir.glob("*.tepp.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+    tepp_files = tepp_files[:limit]
+
+    # Try index first
+    idx = {}
+    idx_path = data_dir / "_index.json"
+    if idx_path.exists():
+        try:
+            idx = json.loads(idx_path.read_text(encoding="utf-8"))
+        except Exception:
+            idx = {}
+
+    results: list[dict] = []
+    for p in tepp_files:
+        rec_id = p.stem.replace(".tepp", "")
+        mtime = float(p.stat().st_mtime)
+        # Use index project name if available and string-like; otherwise read from the file.
+        name = None
+        if rec_id in idx:
+            maybe = idx[rec_id].get("project_name")
+            if isinstance(maybe, str) and maybe.strip():
+                name = maybe.strip()
+        if not name:
+            name = _safe_project_name_from_tepp(p)
+
+        results.append({
+            "rec_id": rec_id,
+            "path": p,
+            "mtime": mtime,
+            "project_name": name,
+        })
+    return results
 
 # ---------------------------------------------------------------------
 # Auth: user database (salted+hashed) + session guard
@@ -402,7 +556,7 @@ def _is_uniform_dict_list(xs: list) -> bool:
 def _edit_table(rows: List[Dict], key: str) -> List[Dict]:
     df = pd.DataFrame(rows)
     edited = st.data_editor(
-        df, key=key, use_container_width=True, hide_index=True, num_rows="dynamic",
+        df, key=key, width='stretch', hide_index=True, num_rows="dynamic",
     )
     return edited.to_dict(orient="records")
 
@@ -553,7 +707,7 @@ def _render_form(obj, key_prefix: str = ""):
 # ---------------------------------------------------------------------
 # Generation pipeline
 # ---------------------------------------------------------------------
-def _generate_documents(file_path: Path, model: str, purchase_category: Optional[str]) -> Dict[str, Any]:
+def _generate_documents(file_path: Path, model: str, purchase_category: Optional[str], project_name: Optional[str] = None) -> Dict[str, Any]:
     """Extract → index → summarise/parse → (optional) policy VS → compose TEPP & Returnables."""
     rec_id = str(uuid.uuid4())
     settings.DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -589,6 +743,9 @@ def _generate_documents(file_path: Path, model: str, purchase_category: Optional
         parsed = parse_spec(text)
         if purchase_category and isinstance(purchase_category, str):
             parsed["purchase_category"] = purchase_category
+        if project_name and isinstance(project_name, str):
+            parsed["project_name"] = project_name
+            print(f"DEBUG: Set parsed project_name to '{project_name}'")
 
         # 6) Extra policy VS (optional) - only if policy files exist
         vs_policy = None
@@ -616,6 +773,11 @@ def _generate_documents(file_path: Path, model: str, purchase_category: Optional
         ret_path = settings.DATA_DIR / f"{rec_id}.returnables.json"
         tepp_path.write_text(json.dumps(tepp, indent=2, ensure_ascii=False), encoding="utf-8")
         ret_path.write_text(json.dumps(returnables, indent=2, ensure_ascii=False), encoding="utf-8")
+# Keep the index in sync so "Previous Results" always shows the right names
+        try:
+            _update_results_index(rec_id, tepp_path, tepp, parsed)
+        except Exception as e:
+            print(f"WARN: could not update results index: {e}")
 
         return {
             "rec_id": rec_id,
@@ -896,6 +1058,7 @@ def _merge_default_tepp_with_llm(tepp: dict, llm_out: dict, parsed: dict, catego
 # Pages
 # ---------------------------------------------------------------------
 def page_login():
+    _render_logos()
     # Title
     st.markdown("<h2 style='text-align:center;margin-top:1rem'>Sign in</h2>", unsafe_allow_html=True)
 
@@ -1007,8 +1170,8 @@ def page_home():
 
     with st.expander("What should I do on this page?", expanded=True):
         st.markdown(
-            "- Pick the **LLM model** you want to use.\n"
-            "- Select the **Tender Category** and **Purchase Category** (if ≥ $249,999), or RFQ options (if under $250k).\n"
+            "- Pick the **model** you want to use.\n"
+            "- Select the **Tender Category** and **Purchase Category** if ≥ $249,999, or RFQ options if under $250k.\n"
             "- Click **Continue to Upload** to go to the next step."
         )
 
@@ -1087,11 +1250,11 @@ def _start_generation_task(file_path: Path, model: str, purchase_category: Optio
 
     def _worker():
         try:
-            outputs = _generate_documents(file_path, model, purchase_category)
+            project_name = (meta or {}).get("project_name")
+            outputs = _generate_documents(file_path, model, purchase_category, project_name)
             
             # Create project folder and save artifacts there as well (nice for Results)
             # Only do this if project_name is provided to avoid unnecessary work
-            project_name = (meta or {}).get("project_name")
             if project_name:
                 rec_id = outputs.get("rec_id")
                 project_dir = _get_project_dir(project_name, rec_id)
@@ -1156,11 +1319,19 @@ def page_upload():
         )
 
     # Project name
-    project_name = st.text_input(
-        "Project name",
-        value=st.session_state.get("project_name", "Untitled Project"),
-        help="Used as the folder name prefix where all files will be saved."
-    )
+    col_proj, col_clear = st.columns([4, 1])
+    with col_proj:
+        project_name = st.text_input(
+            "Project name",
+            value=st.session_state.get("project_name", "Untitled Project"),
+            help="Used as the folder name prefix where all files will be saved."
+        )
+    with col_clear:
+        st.markdown("<div style='height:32px'></div>", unsafe_allow_html=True)  # Align with text input
+        if st.button("Clear", help="Reset project name to default", key="clear_project_name"):
+            st.session_state["project_name"] = "Untitled Project"
+            st.rerun()
+
     st.session_state["project_name"] = project_name
 
     # Model/category from session or query params (needed for navigation)
@@ -1172,49 +1343,46 @@ def page_upload():
     if isinstance(category, list): category = category[0]
     if isinstance(purchase_category, list): purchase_category = purchase_category[0]
 
-    # Check if there are any existing results to return to
+    # ----- Previous Results (robust; uses per-file names or _index.json) -----
     data_dir = settings.DATA_DIR
-    existing_results = sorted(data_dir.glob("*.tepp.json"), key=lambda p: p.stat().st_mtime, reverse=True)
-    
+    existing_results = list_previous_results(data_dir, limit=50)
+
     if existing_results:
         st.divider()
         st.subheader("📋 Previous Results")
         st.caption("Return to previously generated documents without uploading a new specification.")
-        
-        # Show the most recent result
-        latest_result = existing_results[0]
-        rec_id = latest_result.stem.replace(".tepp", "")
-        result_time = datetime.fromtimestamp(latest_result.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
-        
+
+        latest = existing_results[0]
+        latest_time = _fmt_ts(latest["mtime"])
+
+
         col1, col2 = st.columns([3, 1])
         with col1:
-            st.info(f"**Latest result**: {rec_id[:8]}... (generated {result_time})")
+            st.info(f"**Latest result**: {latest['project_name']} (generated {latest_time})")
         with col2:
             if st.button("Return to Results", key="return_to_results", help="Go back to the most recent generated documents"):
                 _nav_push_current()
                 _nav_set("results", {
-                    "rec_id": rec_id,
+                    "rec_id": latest["rec_id"],
                     "rfq": "1" if rfq_mode else "0",
                     "model": model,
                     "category": category,
                     "purchase_category": purchase_category if not rfq_mode else None
                 })
                 return
-        
-        # Show additional results if there are more than one
+
         if len(existing_results) > 1:
             with st.expander(f"View all {len(existing_results)} previous results", expanded=False):
-                for i, result_path in enumerate(existing_results[:5]):  # Show up to 5 most recent
-                    result_rec_id = result_path.stem.replace(".tepp", "")
-                    result_time = datetime.fromtimestamp(result_path.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
-                    col1, col2 = st.columns([3, 1])
-                    with col1:
-                        st.write(f"**{i+1}.** {result_rec_id[:8]}... (generated {result_time})")
-                    with col2:
+                for i, row in enumerate(existing_results[:5]):  # Show up to 5 most recent
+                    ts = datetime.fromtimestamp(row["mtime"]).strftime("%Y-%m-%d %H:%M")
+                    c1, c2 = st.columns([3, 1])
+                    with c1:
+                        st.write(f"**{i+1}.** {row['project_name']} (generated {ts})")
+                    with c2:
                         if st.button("Open", key=f"open_result_{i}"):
                             _nav_push_current()
                             _nav_set("results", {
-                                "rec_id": result_rec_id,
+                                "rec_id": row["rec_id"],
                                 "rfq": "1" if rfq_mode else "0",
                                 "model": model,
                                 "category": category,
@@ -1236,7 +1404,7 @@ def page_upload():
         if st.button("Go to Results (watch progress)"):
             _nav_push_current()
             _nav_set("results", {
-                "task": running_task_id, 
+                "task": running_task_id,
                 "rfq": "1" if rfq_mode else "0",
                 "model": model,
                 "category": category,
@@ -1268,7 +1436,6 @@ def page_upload():
             placeholder="Paste the raw spec text…"
         )
 
-
     # Proceed if task already running OR spec provided
     spec_provided = (uploaded_file is not None) or (pasted_text and pasted_text.strip())
     can_click = bool(running_task_id or spec_provided)
@@ -1280,7 +1447,7 @@ def page_upload():
             if running_task_id:
                 _nav_push_current()
                 _nav_set("results", {
-                    "task": running_task_id, 
+                    "task": running_task_id,
                     "rfq": "1" if rfq_mode else "0",
                     "model": model,
                     "category": category,
@@ -1300,6 +1467,7 @@ def page_upload():
                 settings.DATA_DIR.mkdir(parents=True, exist_ok=True)
                 tmp.write_text((pasted_text or "").strip(), encoding="utf-8")
 
+            # Start background generation
             task_id = _start_generation_task(
                 tmp,
                 model,
@@ -1317,7 +1485,7 @@ def page_upload():
 
             _nav_push_current()
             _nav_set("results", {
-                "task": task_id, 
+                "task": task_id,
                 "rfq": "1" if rfq_mode else "0",
                 "model": model,
                 "category": category,
@@ -1330,7 +1498,7 @@ def page_upload():
         if running_task_id and st.button("Go to Results (watch progress)", key="btn_go_results_secondary"):
             _nav_push_current()
             _nav_set("results", {
-                "task": running_task_id, 
+                "task": running_task_id,
                 "rfq": "1" if rfq_mode else "0",
                 "model": model,
                 "category": category,
@@ -1345,6 +1513,23 @@ def page_results():
     _topbar()
     st.title("Results & Editing")
     st.caption("Step 2 of 2 – Review, edit, and export.")
+# Quick switcher for other results (uses same robust listing)
+    with st.expander("Open another record", expanded=False):
+        data_dir = Path(st.query_params.get("data_dir", str(settings.DATA_DIR)))
+        if isinstance(data_dir, list):
+            data_dir = Path(data_dir[0])
+        lst = list_previous_results(data_dir, limit=20)
+        for i, row in enumerate(lst[:10]):
+            ts = _fmt_ts(row["mtime"])
+
+            c1, c2 = st.columns([3,1])
+            with c1:
+                st.write(f"**{i+1}.** {row['project_name']} (generated {ts})")
+            with c2:
+                if st.button("Open", key=f"results_open_{i}"):
+                    _nav_push_current()
+                    _nav_set("results", {"rec_id": row["rec_id"]})
+                    st.stop()
 
     with st.expander("What should I do on this page?", expanded=True):
         st.markdown(
@@ -1711,6 +1896,70 @@ def page_evaluation():
     st.title("Evaluation")
     st.caption("Upload supplier responses and compute scores & rankings.")
 
+    # ---------------- helpers (new) ----------------
+    import re
+    from pathlib import Path
+
+    def _clean_company_from_filename(filename: str) -> str:
+        """Tender-agnostic, gentle cleanup if we truly have to use a filename."""
+        if not filename:
+            return "Unknown Company"
+        stem = Path(filename).stem
+        stem = re.sub(r'[_\-]+', ' ', stem)              # underscores/dashes -> space
+        stem = re.sub(r'\s+', ' ', stem).strip()         # normalize spaces
+        # remove very generic words (only if they stand alone)
+        stem = re.sub(r'(?i)\b(returnable|schedules?|schedule|rs|rft|tender|response)\b', '', stem)
+        stem = re.sub(r'\s+', ' ', stem).strip()
+        return stem or "Unknown Company"
+
+    def _is_generic_name(name: str) -> bool:
+        if not name:
+            return True
+        n = name.strip().lower()
+        return n in {
+            "name", "company name", "organization name", "organisation name",
+            "business name", "unknown company"
+        }
+
+    def _is_filename_like(name: str) -> bool:
+        """Detect 'names' that are actually tender filenames or stems."""
+        if not name:
+            return True
+        n = name.strip()
+        # contains these words => likely a filename stem
+        if re.search(r'(?i)\b(returnable|schedule|schedules|rft|tender|response)\b', n):
+            return True
+        # starts with an all-caps code + numbers (e.g., C112025, RFT123), then dash/underscore
+        if re.match(r'^[A-Z]\d{4,}[ _-]', n):
+            return True
+        # has a random suffix chunk that looks like a short hash
+        if re.search(r'[-_][a-f0-9]{5,8}$', n, flags=re.IGNORECASE):
+            return True
+        # lots of separators typical of filenames
+        if n.count('_') + n.count('-') >= 2:
+            return True
+        return False
+
+    def _try_name_from_returnables(rec_id: str, supplier: dict) -> str | None:
+        """
+        Try to re-derive the company name from the supplier's saved filled returnables JSON.
+        Falls back to None if unavailable.
+        """
+        try:
+            from app.services.supplier import _path_supplier_returnables, _read_json, _supplier_display_name
+            p = _path_supplier_returnables(rec_id, supplier.get("id", ""))
+            if p and p.exists():
+                data = _read_json(p)
+                fname = supplier.get("filename", "")
+                good = _supplier_display_name(data, _clean_company_from_filename(fname))
+                if good and not _is_generic_name(good) and not _is_filename_like(good):
+                    return good
+        except Exception:
+            pass
+        return None
+
+    # ------------------------------------------------
+
     qp = st.query_params
     data_dir_val = qp.get("data_dir", str(settings.DATA_DIR))
     if isinstance(data_dir_val, list):
@@ -1722,7 +1971,7 @@ def page_evaluation():
         rec_id = rec_id[0]
 
     if not rec_id:
-        # Try latest
+        # Try latest record in data dir
         candidates = sorted(data_dir.glob("*.tepp.json"), key=lambda p: p.stat().st_mtime, reverse=True)
         if candidates:
             rec_id = candidates[0].stem.replace(".tepp", "")
@@ -1783,10 +2032,15 @@ def page_evaluation():
                 if suppliers:
                     st.success(f"Successfully processed {len(suppliers)} supplier file(s).")
                     supplier_df = pd.DataFrame([
-                        {"ID": s.get("id", ""), "Name": s.get("name", ""), "Filename": s.get("filename", ""), "Uploaded": s.get("uploaded_at", "")}
+                        {
+                            "ID": s.get("id", ""),
+                            "Name": s.get("name", ""),
+                            "Filename": s.get("filename", ""),
+                            "Uploaded": s.get("uploaded_at", "")
+                        }
                         for s in suppliers
                     ])
-                    st.dataframe(supplier_df, use_container_width=True)
+                    st.dataframe(supplier_df, width='stretch')
                 else:
                     st.warning("Files uploaded but no suppliers were processed.")
             except Exception as e:
@@ -1806,25 +2060,21 @@ def page_evaluation():
 
     with _sticky_expander("Weights preview", key="eval.weights", default_expanded=False):
         try:
-            # Use the correct function that takes a tepp dict
             from app.services.compose.evaluation import load_tepp_weights
             weights = load_tepp_weights(tepp)
             st.json(weights or {"info": "No weights parsed from TEPP."})
             
-            # Also show the evaluation criteria table
             criteria_table = tepp.get("tender_evaluation", {}).get("evaluation_methodology", {}).get("required_criteria_table", [])
             if criteria_table:
                 st.subheader("Evaluation Criteria")
                 criteria_df = pd.DataFrame(criteria_table)
-                st.dataframe(criteria_df, use_container_width=True)
+                st.dataframe(criteria_df, width='stretch')
             else:
                 st.warning("No evaluation criteria table found in TEPP.")
-                
         except Exception as e:
             st.error(f"Error loading weights: {e}")
             st.json({"info": "No weights parsed from TEPP."})
 
-    # Build evaluation workbook convenience
     st.divider()
     colA, colB = st.columns([1, 1])
     with colA:
@@ -1834,60 +2084,62 @@ def page_evaluation():
     with colB:
         if st.button("Run Evaluation (score & rank)"):
             try:
-                # Get suppliers and perform actual evaluation
                 suppliers = process_suppliers(rec_id, [], returnables)
-                
                 if not suppliers:
                     st.warning("No suppliers found for evaluation. Upload supplier files first.")
                 else:
                     st.success(f"Found {len(suppliers)} suppliers for evaluation.")
-                    
-                    # Show evaluation criteria being used
                     st.subheader("📋 Evaluation Criteria")
                     try:
+                        from app.services.compose.evaluation import load_tepp_weights
                         weights = load_tepp_weights(tepp)
                         if weights:
                             criteria_df = pd.DataFrame([
                                 {"Criterion": criterion, "Weight (%)": f"{weight:.1f}%"}
                                 for criterion, weight in weights.items()
                             ])
-                            st.dataframe(criteria_df, use_container_width=True)
+                            st.dataframe(criteria_df, width='stretch')
                         else:
                             st.warning("No evaluation criteria found in TEPP.")
                     except Exception as e:
                         st.warning(f"Could not load evaluation criteria: {e}")
                     
-                    # Perform actual evaluation scoring
                     with st.spinner("Evaluating suppliers against TEPP criteria..."):
                         evaluation_results = perform_supplier_evaluation(rec_id, suppliers, tepp, returnables)
                     
                     if evaluation_results:
                         st.subheader("📊 Evaluation Results")
-                        
-                        # Display results table with enhanced formatting
                         results_df = pd.DataFrame(evaluation_results)
+
+                        # --- normalize supplier names in results (new) ---
+                        if "Supplier Name" in results_df.columns:
+                            by_id = {s.get("id"): s for s in suppliers}
+                            def _fix_name(row):
+                                name = row.get("Supplier Name", "")
+                                sid  = row.get("Supplier ID", "")
+                                srec = by_id.get(sid, {})
+                                # if name is generic OR filename-like -> try from returnables
+                                if _is_generic_name(name) or _is_filename_like(name):
+                                    better = _try_name_from_returnables(rec_id, srec)
+                                    if better:
+                                        return better
+                                    # last resort
+                                    return _clean_company_from_filename(srec.get("filename", ""))
+                                return name
+                            results_df["Supplier Name"] = results_df.apply(_fix_name, axis=1)
                         
-                        # Reorder columns to put Supplier Name first
-                        cols = ['Supplier Name', 'Supplier ID', 'Total Score'] + [col for col in results_df.columns if col not in ['Supplier Name', 'Supplier ID', 'Total Score']]
+                        cols = ['Supplier Name', 'Supplier ID', 'Total Score'] + [
+                            c for c in results_df.columns if c not in ['Supplier Name', 'Supplier ID', 'Total Score']
+                        ]
                         results_df = results_df[cols]
+                        st.dataframe(results_df, width='stretch')
                         
-                        # Format the dataframe for better display
-                        st.dataframe(results_df, use_container_width=True)
-                        
-                        # Show ranking with enhanced formatting
                         st.subheader("🏆 Supplier Ranking")
                         ranking_df = results_df.sort_values('Total Score', ascending=False).reset_index(drop=True)
                         ranking_df['Rank'] = range(1, len(ranking_df) + 1)
-                        
-                        # Reorder ranking columns to emphasize company names
-                        ranking_cols = ['Rank', 'Supplier Name', 'Total Score']
-                        ranking_display = ranking_df[ranking_cols].copy()
-                        
-                        # Add some styling information
                         st.info(f"📈 **Total Suppliers Evaluated**: {len(ranking_df)}")
-                        st.dataframe(ranking_display, use_container_width=True)
+                        st.dataframe(ranking_df[['Rank', 'Supplier Name', 'Total Score']], width='stretch')
                         
-                        # Show top 3 suppliers prominently
                         if len(ranking_df) >= 3:
                             st.subheader("🥇 Top 3 Suppliers")
                             top_3 = ranking_df.head(3)
@@ -1895,14 +2147,12 @@ def page_evaluation():
                                 medal = ["🥇", "🥈", "🥉"][i]
                                 st.success(f"{medal} **{row['Supplier Name']}** - Score: {row['Total Score']:.2f}")
                         
-                        # Show detailed scores
                         with _sticky_expander("📈 Detailed Scores", key="eval.detailed_scores", default_expanded=False):
-                            score_cols = [col for col in results_df.columns if col not in ['Supplier ID', 'Supplier Name', 'Total Score']]
+                            score_cols = [c for c in results_df.columns if c not in ['Supplier ID', 'Supplier Name', 'Total Score']]
                             detailed_df = results_df[['Supplier Name'] + score_cols]
-                            st.dataframe(detailed_df, use_container_width=True)
+                            st.dataframe(detailed_df, width='stretch')
                     else:
                         st.warning("Evaluation completed but no results generated.")
-                        
             except Exception as e:
                 st.error(f"Evaluation failed: {e}")
                 st.exception(e)
@@ -1915,104 +2165,50 @@ def page_evaluation():
         suppliers = process_suppliers(rec_id, [], returnables)
         if suppliers:
             st.success(f"Found {len(suppliers)} processed suppliers:")
-            
-            # Create enhanced supplier display
             supplier_data = []
             for s in suppliers:
                 supplier_name = s.get("name", "")
-                # If name is generic or just the filename, try to extract better name
-                if (not supplier_name or 
-                    supplier_name.lower() in ["name", "company name", "organization name", "business name"] or
-                    supplier_name == s.get("filename", "").replace(".pdf", "").replace(".docx", "")):
-                    # Try to extract a better name from the filename
-                    filename = s.get("filename", "")
-                    if filename:
-                        # Remove common prefixes and extensions
-                        clean_name = filename.replace("C112025-Part-5-Returnable-Schedules-", "").replace("C112025_SDE_Returnable-Schedules", "")
-                        clean_name = clean_name.replace(".pdf", "").replace(".docx", "").replace(".doc", "")
-                        if clean_name and len(clean_name) > 3:
-                            supplier_name = f"Company {clean_name}"
-                        else:
-                            supplier_name = f"Company {s.get('id', 'Unknown')}"
-                    else:
-                        supplier_name = f"Company {s.get('id', 'Unknown')}"
-                
+                if _is_generic_name(supplier_name) or _is_filename_like(supplier_name):
+                    better = _try_name_from_returnables(rec_id, s)
+                    supplier_name = better or _clean_company_from_filename(s.get("filename", "")) or f"Company {s.get('id','Unknown')}"
                 supplier_data.append({
                     "🏢 Company Name": supplier_name,
                     "📄 Original Filename": s.get("filename", ""),
                     "🆔 ID": s.get("id", ""),
                     "📅 Uploaded": s.get("uploaded_at", ""),
                 })
-            
             supplier_df = pd.DataFrame(supplier_data)
-            st.dataframe(supplier_df, use_container_width=True)
+            st.dataframe(supplier_df, width='stretch')
             
-            # Show company names prominently
             st.subheader("🏢 Identified Companies")
             for i, supplier in enumerate(suppliers, 1):
-                company_name = supplier.get("name", f"Company {supplier.get('id', 'Unknown')}")
-                
-                # Fix generic "Name" values
-                if company_name.lower() in ["name", "company name", "organization name", "business name"]:
-                    filename = supplier.get("filename", "")
-                    if filename:
-                        # Try to extract a better name from the filename
-                        clean_name = filename.replace("C112025-Part-5-Returnable-Schedules-", "").replace("C112025_SDE_Returnable-Schedules", "")
-                        clean_name = clean_name.replace(".pdf", "").replace(".docx", "").replace(".doc", "")
-                        if clean_name and len(clean_name) > 3:
-                            company_name = f"Company {clean_name}"
-                        else:
-                            company_name = f"Company {supplier.get('id', 'Unknown')}"
-                    else:
-                        company_name = f"Company {supplier.get('id', 'Unknown')}"
-                
+                company_name = supplier.get("name", "")
+                if _is_generic_name(company_name) or _is_filename_like(company_name):
+                    better = _try_name_from_returnables(rec_id, supplier)
+                    company_name = better or _clean_company_from_filename(supplier.get("filename", "")) or f"Company {supplier.get('id','Unknown')}"
                 filename = supplier.get("filename", "Unknown file")
                 st.write(f"**{i}.** {company_name} *(from {filename})*")
             
-            # Add button to refresh supplier names
             col1, col2 = st.columns([1, 1])
             with col1:
                 if st.button("🔄 Refresh Company Names", help="Re-extract company names from uploaded documents"):
                     try:
-                        from app.services.supplier import _load_suppliers, _save_suppliers, _supplier_display_name, _read_json
-                        from app.services.supplier import _path_supplier_returnables
-                        
-                        # Reload and update supplier names
-                        updated_suppliers = []
+                        from app.services.supplier import _load_suppliers, _save_suppliers
+                        # Re-resolve names and persist them
+                        updated = []
                         for supplier in suppliers:
-                            supplier_id = supplier.get("id")
-                            if supplier_id:
-                                # Try to read the returnables file to extract better name
-                                try:
-                                    returnables_path = _path_supplier_returnables(rec_id, supplier_id)
-                                    if returnables_path.exists():
-                                        returnables_data = _read_json(returnables_path)
-                                        new_name = _supplier_display_name(returnables_data, supplier.get("filename", ""))
-                                        
-                                        # If still generic, try raw text extraction
-                                        if new_name.lower() in ["name", "company name", "organization name", "business name"]:
-                                            from app.services.supplier import _extract_company_name_from_raw_text
-                                            raw_path = Path(supplier.get("raw_path", ""))
-                                            if raw_path.exists():
-                                                raw_name = _extract_company_name_from_raw_text(raw_path)
-                                                if raw_name:
-                                                    new_name = raw_name
-                                        
-                                        supplier["name"] = new_name
-                                except Exception:
-                                    pass
-                            updated_suppliers.append(supplier)
-                        
-                        # Save updated manifest
-                        from app.services.supplier import _save_suppliers
-                        _save_suppliers(rec_id, updated_suppliers)
-                        st.success("Company names refreshed! Please refresh the page to see updated names.")
+                            new_name = _try_name_from_returnables(rec_id, supplier)
+                            if not new_name:
+                                new_name = _clean_company_from_filename(supplier.get("filename", ""))
+                            supplier["name"] = new_name
+                            updated.append(supplier)
+                        _save_suppliers(rec_id, updated)
+                        st.success("Company names refreshed! Reloading…")
                         st.rerun()
                     except Exception as e:
                         st.error(f"Failed to refresh company names: {e}")
-            
             with col2:
-                st.caption("💡 Company names are automatically extracted from documents")
+                st.caption("💡 Company names are automatically extracted from filled returnables first, filenames last.")
         else:
             st.info("No processed suppliers found.")
     except Exception as e:
