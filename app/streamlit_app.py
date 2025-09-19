@@ -78,6 +78,8 @@ from app.services.templates_catalog import (
 from app.services.supplier import (
     process_suppliers,
     list_suppliers,
+    get_supplier_returnables,
+    save_supplier_returnables,
     _load_weights_from_tepp,
     _data_dir as _supplier_data_dir,
 )
@@ -1346,16 +1348,16 @@ def page_upload():
     # ----- Previous Results (robust; uses per-file names or _index.json) -----
     data_dir = settings.DATA_DIR
     existing_results = list_previous_results(data_dir, limit=50)
-
+    
     if existing_results:
         st.divider()
         st.subheader("📋 Previous Results")
         st.caption("Return to previously generated documents without uploading a new specification.")
-
+        
         latest = existing_results[0]
         latest_time = _fmt_ts(latest["mtime"])
 
-
+        
         col1, col2 = st.columns([3, 1])
         with col1:
             st.info(f"**Latest result**: {latest['project_name']} (generated {latest_time})")
@@ -1370,7 +1372,7 @@ def page_upload():
                     "purchase_category": purchase_category if not rfq_mode else None
                 })
                 return
-
+        
         if len(existing_results) > 1:
             with st.expander(f"View all {len(existing_results)} previous results", expanded=False):
                 for i, row in enumerate(existing_results[:5]):  # Show up to 5 most recent
@@ -1404,7 +1406,7 @@ def page_upload():
         if st.button("Go to Results (watch progress)"):
             _nav_push_current()
             _nav_set("results", {
-                "task": running_task_id,
+                "task": running_task_id, 
                 "rfq": "1" if rfq_mode else "0",
                 "model": model,
                 "category": category,
@@ -1447,7 +1449,7 @@ def page_upload():
             if running_task_id:
                 _nav_push_current()
                 _nav_set("results", {
-                    "task": running_task_id,
+                    "task": running_task_id, 
                     "rfq": "1" if rfq_mode else "0",
                     "model": model,
                     "category": category,
@@ -1485,7 +1487,7 @@ def page_upload():
 
             _nav_push_current()
             _nav_set("results", {
-                "task": task_id,
+                "task": task_id, 
                 "rfq": "1" if rfq_mode else "0",
                 "model": model,
                 "category": category,
@@ -1498,7 +1500,7 @@ def page_upload():
         if running_task_id and st.button("Go to Results (watch progress)", key="btn_go_results_secondary"):
             _nav_push_current()
             _nav_set("results", {
-                "task": running_task_id,
+                "task": running_task_id, 
                 "rfq": "1" if rfq_mode else "0",
                 "model": model,
                 "category": category,
@@ -2006,20 +2008,38 @@ def page_evaluation():
         st.info("📄 **Supported file types**: PDF, DOCX, DOC, CSV, XLSX, XLS, JSON, TXT")
         st.caption("💡 Upload either general supplier responses (we will fill a blank Returnable Schedule) or an already filled Returnable Schedule (JSON preferred; PDF/DOCX supported).")
 
-        # Choose ingestion mode
-        mode = st.radio(
-            "Choose ingestion mode",
-            ["Supplier responses", "Filled Returnable Schedule"],
-            horizontal=True,
-            key="ingestion_mode",
-        )
-        input_type = "responses" if mode == "Supplier responses" else "filled_returnables"
+        # Choose ingestion mode with toggle
+        st.markdown("**📋 How are suppliers providing their information?**")
+        
+        col_toggle, col_info = st.columns([1, 2])
+        with col_toggle:
+            # Toggle for extraction mode
+            auto_extract = st.toggle(
+                "🤖 **Auto-extract from responses**",
+                value=True,
+                help="When ON: Upload general supplier response documents (quotes, capability statements, etc.) and the AI will automatically extract and fill the Returnable Schedule.\n\nWhen OFF: Upload pre-filled Returnable Schedules (JSON preferred, PDF/DOCX also supported).",
+                key="auto_extract_mode"
+            )
+        
+        with col_info:
+            if auto_extract:
+                st.info("🎯 **Auto-extraction mode**: Upload supplier response documents (quotes, proposals, capability statements) and the AI will automatically extract relevant information to fill the Returnable Schedule.")
+            else:
+                st.info("📄 **Pre-filled mode**: Upload supplier-provided Returnable Schedules (JSON format preferred, PDF/DOCX also supported).")
+        
+        input_type = "responses" if auto_extract else "filled_returnables"
+
+        # Dynamic help text based on toggle state
+        if auto_extract:
+            upload_help = "Upload supplier response documents (quotes, proposals, capability statements, etc.). The AI will automatically extract relevant information to fill the Returnable Schedule."
+        else:
+            upload_help = "Upload supplier-provided Returnable Schedules. JSON format is preferred, but PDF/DOCX files are also supported."
 
         up_files = st.file_uploader(
             "Upload one or more supplier file(s)",
             type=["pdf", "docx", "doc", "csv", "xlsx", "xls", "json", "txt"],
             accept_multiple_files=True,
-            help=("For 'Supplier responses', upload quotes/capability docs. For 'Filled Returnable Schedule', upload the supplier's filled RS (JSON ideal; PDF/DOCX also OK).")
+            help=upload_help
         )
         if up_files:
             try:
@@ -2030,7 +2050,8 @@ def page_evaluation():
                 mock_files = [MockUploadFile(f) for f in up_files]
                 suppliers = process_suppliers(rec_id, mock_files, returnables, input_type=input_type)
                 if suppliers:
-                    st.success(f"Successfully processed {len(suppliers)} supplier file(s).")
+                    mode_text = "auto-extracted from response documents" if auto_extract else "loaded from pre-filled schedules"
+                    st.success(f"Successfully processed {len(suppliers)} supplier file(s) ({mode_text}).")
                     supplier_df = pd.DataFrame([
                         {
                             "ID": s.get("id", ""),
@@ -2057,6 +2078,100 @@ def page_evaluation():
                     with open(dest, "wb") as o:
                         o.write(data)
                 st.info(f"Files saved to `{sup_dir.name}` but not processed.")
+
+    # Show populated returnable schedules for download and editing (only for auto-extraction mode)
+    suppliers = process_suppliers(rec_id, [], returnables)
+    if suppliers and auto_extract:
+        with _sticky_expander("📋 Populated Returnable Schedules", key="eval.returnables", default_expanded=True):
+            st.info("🎯 **AI has populated the Returnable Schedules from supplier response documents.** Suppliers can now download these populated schedules, review/edit them, and submit them back.")
+            
+            for supplier in suppliers:
+                with st.expander(f"📄 {supplier.get('name', 'Unknown Supplier')} - {supplier.get('filename', 'No filename')}", expanded=False):
+                    try:
+                        # Load the populated returnable schedule
+                        supplier_returnables = get_supplier_returnables(rec_id, supplier['id'])
+                        
+                        col1, col2, col3 = st.columns([2, 1, 1])
+                        
+                        with col1:
+                            st.markdown(f"**Supplier ID:** `{supplier['id']}`")
+                            st.markdown(f"**Original File:** {supplier.get('filename', 'N/A')}")
+                            st.markdown(f"**Uploaded:** {supplier.get('uploaded_at', 'N/A')}")
+                        
+                        with col2:
+                            # Download as JSON
+                            json_data = json.dumps(supplier_returnables, indent=2, ensure_ascii=False)
+                            st.download_button(
+                                "📥 Download JSON",
+                                data=json_data,
+                                file_name=f"{supplier['id']}_returnable_schedule.json",
+                                mime="application/json",
+                                help="Download the populated Returnable Schedule as JSON for supplier review"
+                            )
+                        
+                        with col3:
+                            # Download as DOCX
+                            try:
+                                from app.services.docx_export import export_json_to_docx
+                                docx_path = export_json_to_docx(
+                                    supplier_returnables, 
+                                    f"Returnable Schedule - {supplier.get('name', 'Supplier')}"
+                                )
+                                with open(docx_path, "rb") as f:
+                                    docx_data = f.read()
+                                st.download_button(
+                                    "📄 Download DOCX",
+                                    data=docx_data,
+                                    file_name=f"{supplier['id']}_returnable_schedule.docx",
+                                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                    help="Download the populated Returnable Schedule as Word document for supplier review"
+                                )
+                                # Clean up temp file
+                                import os
+                                try:
+                                    os.unlink(docx_path)
+                                except:
+                                    pass
+                            except Exception as e:
+                                st.error(f"DOCX export failed: {e}")
+                        
+                        # In-app editing section
+                        st.markdown("---")
+                        st.markdown("**✏️ In-App Editing**")
+                        
+                        # Create a key for this supplier's editing session
+                        edit_key = f"edit_supplier_{supplier['id']}"
+                        
+                        if edit_key not in st.session_state:
+                            st.session_state[edit_key] = supplier_returnables.copy()
+                        
+                        # Show editable form
+                        edited_data = _render_form(st.session_state[edit_key], f"supplier_{supplier['id']}")
+                        
+                        # Save changes button
+                        col_save1, col_save2, col_save3 = st.columns([1, 1, 2])
+                        
+                        with col_save1:
+                            if st.button("💾 Save Changes", key=f"save_{supplier['id']}"):
+                                try:
+                                    save_supplier_returnables(rec_id, supplier['id'], edited_data)
+                                    st.session_state[edit_key] = edited_data.copy()
+                                    st.success("✅ Changes saved successfully!")
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Failed to save changes: {e}")
+                        
+                        with col_save2:
+                            if st.button("🔄 Reset to Original", key=f"reset_{supplier['id']}"):
+                                st.session_state[edit_key] = supplier_returnables.copy()
+                                st.success("🔄 Reset to original populated data")
+                                st.rerun()
+                        
+                        with col_save3:
+                            st.caption("💡 Suppliers can download the populated schedule, make changes, and upload it back as a filled returnable schedule.")
+                        
+                    except Exception as e:
+                        st.error(f"Error loading returnable schedule for {supplier.get('name', 'Unknown')}: {e}")
 
     with _sticky_expander("Weights preview", key="eval.weights", default_expanded=False):
         try:
@@ -2110,7 +2225,7 @@ def page_evaluation():
                     if evaluation_results:
                         st.subheader("📊 Evaluation Results")
                         results_df = pd.DataFrame(evaluation_results)
-
+                        
                         # --- normalize supplier names in results (new) ---
                         if "Supplier Name" in results_df.columns:
                             by_id = {s.get("id"): s for s in suppliers}

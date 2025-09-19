@@ -1,0 +1,10 @@
+{
+  "status": "running",
+  "created": "2025-09-15T02:35:21.846327Z",
+  "meta": {
+    "project_name": "Demo Stanhope Gardens AHU",
+    "category": "hvac",
+    "rfq_mode": false
+  },
+  "tmp_spec_path": "data/upload_2d9bb72e5ca143d2972f8814ec1a587e.pdf"
+}

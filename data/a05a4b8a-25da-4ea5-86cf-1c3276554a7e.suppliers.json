@@ -1,0 +1,12 @@
+[
+  {
+    "id": "2c99e6cf",
+    "name": "C112025_SDE_Returnable-Schedules",
+    "filename": "C112025_SDE_Returnable-Schedules.pdf",
+    "uploaded_at": "2025-09-15T02:58:08.827256",
+    "returnables_path": "data/a05a4b8a-25da-4ea5-86cf-1c3276554a7e_2c99e6cf.returnables.json",
+    "raw_path": "data/a05a4b8a-25da-4ea5-86cf-1c3276554a7e_supplier_2c99e6cf.pdf",
+    "vs_backend": "faiss_gpu",
+    "vs_location": "faiss/a05a4b8a-25da-4ea5-86cf-1c3276554a7e_supplier_2c99e6cf"
+  }
+]
