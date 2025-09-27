@@ -1,0 +1,133 @@
+{
+  "document_id": "table_4_rating_scales",
+  "title": "Table 4 - Rating scales for WHS, Sustainable Environmental Management, Social and Community and EEO & Fair Employment",
+  "content": {
+    "rating_scales": {
+      "whs": {
+        "scale_name": "Work Health & Safety Rating Scale",
+        "scores": {
+          "5": {
+            "level": "Excellent",
+            "requirements": "Extensive WHS System + Risk Assessment + Safe Work Methods Statements + Hazardous Chemicals Statements + WHS Representative + Training Records"
+          },
+          "4": {
+            "level": "Very Good",
+            "requirements": "Detailed WHS System Submitted (Evidence Supplied)"
+          },
+          "3": {
+            "level": "Good",
+            "requirements": "Satisfactory WHS System Submitted (Evidence Supplied)"
+          },
+          "2": {
+            "level": "Fair",
+            "requirements": "Simple WHS Policy System (Evidence Supplied)"
+          },
+          "1": {
+            "level": "Poor",
+            "requirements": "WHS051.6 Contractors WHS Requirements – Completed (No Evidence Supplied)"
+          },
+          "0": {
+            "level": "Unacceptable",
+            "requirements": "No information provided or WHS system in place"
+          }
+        }
+      },
+      "sustainability": {
+        "scale_name": "Sustainable Environmental Management Rating Scale",
+        "scores": {
+          "5": {
+            "level": "Excellent",
+            "requirements": "Certified Environmental Management System to ISO14001 + Confirmed Compliance with the system + detailed sustainable policies and practices of waste minimisation, recycling and energy conservation etc."
+          },
+          "4": {
+            "level": "Very Good",
+            "requirements": "Certified Environmental Management System to ISO14001 + Confirmed Compliance with the system + sustainable policies and practices of waste minimisation, recycling and energy conservation etc."
+          },
+          "3": {
+            "level": "Good",
+            "requirements": "Certified Environmental Management System to ISO14001 + Confirmed Compliance with the system + sustainable policies and practices of some waste minimisation, recycling and energy conservation etc."
+          },
+          "2": {
+            "level": "Fair",
+            "requirements": "An Environmental Management system + sustainable policies and practices of one waste minimisation, recycling and energy conservation etc."
+          },
+          "1": {
+            "level": "Poor",
+            "requirements": "An Environmental Management system + no sustainable policies and practices of waste minimisation, recycling and energy conservation etc."
+          },
+          "0": {
+            "level": "Unacceptable",
+            "requirements": "No information or no Environmental Sustainable System"
+          }
+        }
+      },
+      "social_community": {
+        "scale_name": "Social and Community Rating Scale",
+        "scores": {
+          "5": {
+            "level": "Excellent",
+            "requirements": "Excellent response to criteria, exceeds all requirements and is fully substantiated (provides extra value for money solutions)"
+          },
+          "4": {
+            "level": "Very Good",
+            "requirements": "Very satisfactory response, meets all requirements and is fully substantiated"
+          },
+          "3": {
+            "level": "Good",
+            "requirements": "Satisfactory, meets all requirements and appropriately substantiated"
+          },
+          "2": {
+            "level": "Fair",
+            "requirements": "Adequate response with material defects that prevent a full submission to the requirements"
+          },
+          "1": {
+            "level": "Poor",
+            "requirements": "Unsatisfactory response, does not meet minimum requirements or is inadequately substantiated"
+          },
+          "0": {
+            "level": "Unacceptable",
+            "requirements": "Non response or a response where claims are unsubstantiated"
+          }
+        }
+      },
+      "eeo_fair_employment": {
+        "scale_name": "EEO & Fair Employment Rating Scale",
+        "scores": {
+          "5": {
+            "level": "Excellent",
+            "requirements": "Wages paid under award/EA + super paid + location of records kept + Policies on EEO, recruitment, training & development, anti-discrimination, unionism and dispute resolution and implementation + Aboriginal & Torres Strait Islander Employment Policies & Implementation + Apprenticeships or Traineeships Offered or In Place"
+          },
+          "4": {
+            "level": "Very Good",
+            "requirements": "Wages paid under award/EA + super paid + location of records kept + Policies on EEO, recruitment, training & development, anti-discrimination, unionism and dispute resolution and implementation + Aboriginal & Torres Strait Islander Employment Policies + Apprenticeships or Traineeships Offered or In Place"
+          },
+          "3": {
+            "level": "Good",
+            "requirements": "Wages paid under award/EA + super paid + location of records kept + Policies on EEO, recruitment, training & development, anti-discrimination, unionism and dispute resolution + Aboriginal & Torres Strait Islander Employment Policies + Apprenticeships or Traineeships"
+          },
+          "2": {
+            "level": "Fair",
+            "requirements": "Wages paid under award + super paid + location of records kept + policies on EEO, recruitment, training & development, anti-discrimination, unionism and dispute resolution"
+          },
+          "1": {
+            "level": "Poor",
+            "requirements": "Wages paid under award + super paid + location of records kept + no policies on EEO, recruitment, training & development, anti-discrimination, unionism and dispute resolution"
+          },
+          "0": {
+            "level": "Unacceptable",
+            "requirements": "No information or no fair employment offered"
+          }
+        }
+      }
+    }
+  },
+  "metadata": {
+    "source": "Blacktown City Council Tender & Quotation Evaluation Manual",
+    "table_reference": "Table 4",
+    "section": "Rating scales for WHS, Sustainable Environmental Management, Social and Community and EEO & Fair Employment",
+    "document_type": "rating_scales"
+  },
+  "created_date": "2025-09-27T14:50:17.802624",
+  "updated_date": "2025-09-27T14:50:17.802624",
+  "version": "1.0"
+}

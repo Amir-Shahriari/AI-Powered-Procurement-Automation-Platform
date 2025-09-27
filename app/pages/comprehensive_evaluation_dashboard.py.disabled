@@ -1,0 +1,414 @@
+#!/usr/bin/env python3
+"""
+Comprehensive Evaluation Dashboard
+Integrates TEPP, RFT, Returnable Schedules, and all technical documents
+for fair and efficient supplier evaluation
+"""
+
+import streamlit as st
+from app.core.ui_helpers import _inject_css
+from app.components.sidebar_navigation import render_sidebar
+from app.services.comprehensive_procurement_evaluator import (
+    ComprehensiveProcurementEvaluator,
+    DocumentType,
+    EvaluationStatus,
+    ProcurementDocument,
+    TEPPDocument,
+    RFTDocument,
+    SupplierResponse,
+    ComprehensiveEvaluation
+)
+from datetime import datetime
+import json
+import hashlib
+
+def page_comprehensive_evaluation_dashboard():
+    """Comprehensive evaluation dashboard page"""
+    
+    _inject_css()
+    render_sidebar()
+    
+    st.title("🔍 Comprehensive Procurement Evaluation")
+    st.markdown("Fair and efficient evaluation using TEPP, RFT, Returnable Schedules, and all technical documents")
+    
+    # Initialize comprehensive evaluator
+    try:
+        evaluator = ComprehensiveProcurementEvaluator()
+    except Exception as e:
+        st.error(f"❌ Error initializing comprehensive evaluator: {e}")
+        return
+    
+    # Check if user is logged in
+    if "user_name" not in st.session_state:
+        st.warning("🔒 Please sign in to access comprehensive evaluation system")
+        return
+    
+    # Create tabs for different functions
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "📋 Start Evaluation", 
+        "📊 Evaluation Results", 
+        "📄 Document Management", 
+        "🔍 Supplier Analysis", 
+        "⚙️ Settings"
+    ])
+    
+    with tab1:
+        show_start_evaluation_interface(evaluator)
+    
+    with tab2:
+        show_evaluation_results_interface(evaluator)
+    
+    with tab3:
+        show_document_management_interface(evaluator)
+    
+    with tab4:
+        show_supplier_analysis_interface(evaluator)
+    
+    with tab5:
+        show_settings_interface(evaluator)
+
+def show_start_evaluation_interface(evaluator):
+    """Interface to start comprehensive evaluation process"""
+    
+    st.markdown("### 🚀 Start Comprehensive Evaluation")
+    st.markdown("Upload all procurement documents and supplier responses for fair evaluation")
+    
+    with st.form("comprehensive_evaluation_form"):
+        st.markdown("#### 📋 Project Information")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            project_title = st.text_input("Project Title", placeholder="Enter project title")
+            project_type = st.selectbox("Project Type", 
+                options=["Construction", "Services", "Consulting", "Equipment", "IT", "Maintenance", "Other"])
+            contract_value = st.number_input("Contract Value ($)", min_value=0.0, value=0.0)
+        
+        with col2:
+            council = st.text_input("Council", value="Blacktown City Council")
+            procurement_method = st.selectbox("Procurement Method", 
+                options=["Open Tender", "Selective Tender", "Quote", "Request for Proposal"])
+            evaluation_method = st.selectbox("Evaluation Method", 
+                options=["MEAT", "Lowest Price Conforming", "TCO", "Quality/Cost Ratio"])
+        
+        st.markdown("#### 📄 Procurement Documents")
+        st.markdown("Upload all relevant procurement documents")
+        
+        # Document upload sections
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**TEPP Document**")
+            tepp_file = st.file_uploader("Upload TEPP Document", type=['pdf', 'docx'], key="tepp_upload")
+            if tepp_file:
+                st.success(f"✅ TEPP uploaded: {tepp_file.name}")
+        
+        with col2:
+            st.markdown("**RFT Document**")
+            rft_file = st.file_uploader("Upload RFT Document", type=['pdf', 'docx'], key="rft_upload")
+            if rft_file:
+                st.success(f"✅ RFT uploaded: {rft_file.name}")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**Returnable Schedules**")
+            schedule_files = st.file_uploader("Upload Returnable Schedules", type=['pdf', 'docx', 'xlsx'], 
+                                            accept_multiple_files=True, key="schedule_upload")
+            if schedule_files:
+                st.success(f"✅ {len(schedule_files)} schedule files uploaded")
+        
+        with col2:
+            st.markdown("**Technical Specifications**")
+            tech_files = st.file_uploader("Upload Technical Specs", type=['pdf', 'docx'], 
+                                        accept_multiple_files=True, key="tech_upload")
+            if tech_files:
+                st.success(f"✅ {len(tech_files)} technical files uploaded")
+        
+        st.markdown("#### 👥 Supplier Responses")
+        st.markdown("Upload supplier response packages")
+        
+        # Supplier response upload
+        supplier_responses = st.file_uploader("Upload Supplier Response Packages", 
+                                            type=['pdf', 'docx', 'zip'], 
+                                            accept_multiple_files=True, key="supplier_upload")
+        
+        if supplier_responses:
+            st.success(f"✅ {len(supplier_responses)} supplier response packages uploaded")
+        
+        # Evaluation criteria
+        st.markdown("#### ⚖️ Evaluation Criteria")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            price_weight = st.slider("Price Weight (%)", 0, 100, 40)
+            technical_weight = st.slider("Technical Weight (%)", 0, 100, 30)
+        
+        with col2:
+            experience_weight = st.slider("Experience Weight (%)", 0, 100, 20)
+            compliance_weight = st.slider("Compliance Weight (%)", 0, 100, 10)
+        
+        # Validation
+        total_weight = price_weight + technical_weight + experience_weight + compliance_weight
+        if total_weight != 100:
+            st.warning(f"⚠️ Total weight is {total_weight}%. Please adjust to 100%.")
+        
+        # Start evaluation button
+        if st.form_submit_button("🚀 Start Comprehensive Evaluation", type="primary", use_container_width=True):
+            if project_title and (tepp_file or rft_file) and supplier_responses and total_weight == 100:
+                with st.spinner("🤖 Performing comprehensive AI analysis across all documents..."):
+                    try:
+                        # Create procurement documents
+                        procurement_documents = []
+                        
+                        if tepp_file:
+                            tepp_doc = create_tepp_document(tepp_file, project_title)
+                            procurement_documents.append(tepp_doc)
+                        
+                        if rft_file:
+                            rft_doc = create_rft_document(rft_file, project_title)
+                            procurement_documents.append(rft_doc)
+                        
+                        # Create supplier responses
+                        supplier_responses_list = []
+                        for i, response_file in enumerate(supplier_responses):
+                            supplier_response = create_supplier_response(response_file, f"supplier_{i+1}")
+                            supplier_responses_list.append(supplier_response)
+                        
+                        # Evaluation criteria
+                        evaluation_criteria = {
+                            "price_weight": price_weight,
+                            "technical_weight": technical_weight,
+                            "experience_weight": experience_weight,
+                            "compliance_weight": compliance_weight,
+                            "evaluation_method": evaluation_method
+                        }
+                        
+                        # Start comprehensive evaluation
+                        evaluation_id = evaluator.start_comprehensive_evaluation(
+                            project_title,
+                            procurement_documents,
+                            supplier_responses_list,
+                            evaluation_criteria
+                        )
+                        
+                        st.success(f"✅ Comprehensive evaluation started! Evaluation ID: {evaluation_id}")
+                        st.info("📊 AI is analyzing all documents and supplier responses...")
+                        
+                        # Store evaluation ID for navigation
+                        st.session_state["current_comprehensive_evaluation_id"] = evaluation_id
+                        
+                    except Exception as e:
+                        st.error(f"❌ Error starting comprehensive evaluation: {e}")
+            else:
+                st.warning("⚠️ Please provide project title, upload documents, supplier responses, and ensure weights total 100%")
+
+def show_evaluation_results_interface(evaluator):
+    """Interface to view comprehensive evaluation results"""
+    
+    st.markdown("### 📊 Comprehensive Evaluation Results")
+    st.markdown("View detailed evaluation results across all procurement documents")
+    
+    # Get evaluation ID
+    evaluation_id = st.session_state.get("current_comprehensive_evaluation_id")
+    if not evaluation_id:
+        st.info("📋 No active evaluation. Start a comprehensive evaluation first.")
+        return
+    
+    # Get evaluation summary
+    try:
+        summary = evaluator.get_evaluation_summary(evaluation_id)
+        
+        if "error" in summary:
+            st.error(f"❌ {summary['error']}")
+            return
+        
+        st.markdown(f"**Evaluation ID:** {summary['evaluation_id']}")
+        st.markdown(f"**Project ID:** {summary['project_id']}")
+        st.markdown(f"**Total Suppliers:** {summary['total_suppliers']}")
+        
+        # Display supplier rankings
+        st.markdown("#### 🏆 Supplier Rankings")
+        
+        for supplier in summary["suppliers"]:
+            with st.expander(f"#{supplier['final_ranking']} {supplier['supplier_name']} - Overall Score: {supplier['overall_score']:.1f}", 
+                           expanded=supplier['final_ranking'] == 1):
+                
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    st.metric("Overall Score", f"{supplier['overall_score']:.1f}")
+                with col2:
+                    st.metric("Compliance Score", f"{supplier['compliance_score']:.1f}%")
+                with col3:
+                    st.metric("Risk Score", f"{supplier['risk_score']:.1f}%")
+                with col4:
+                    st.metric("Ranking", f"#{supplier['final_ranking']}")
+                
+                # Detailed analysis
+                st.markdown("**Detailed Analysis:**")
+                st.markdown(f"- **Status:** {supplier['status']}")
+                st.markdown(f"- **Evaluation Date:** {supplier['evaluation_date']}")
+                
+                # Action buttons
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    if st.button(f"📊 View Details", key=f"details_{supplier['supplier_id']}"):
+                        st.info("📊 Detailed analysis - Coming soon")
+                
+                with col2:
+                    if st.button(f"📄 Download Report", key=f"report_{supplier['supplier_id']}"):
+                        st.info("📄 Report download - Coming soon")
+                
+                with col3:
+                    if st.button(f"🔍 Compare", key=f"compare_{supplier['supplier_id']}"):
+                        st.info("🔍 Comparison view - Coming soon")
+        
+    except Exception as e:
+        st.error(f"❌ Error loading evaluation results: {e}")
+
+def show_document_management_interface(evaluator):
+    """Interface for managing procurement documents"""
+    
+    st.markdown("### 📄 Document Management")
+    st.markdown("Manage and analyze all procurement documents")
+    
+    # Document type selection
+    document_type = st.selectbox("Select Document Type", 
+        options=[dt.value for dt in DocumentType], 
+        format_func=lambda x: x.replace('_', ' ').title())
+    
+    if document_type:
+        st.markdown(f"#### {document_type.replace('_', ' ').title()} Documents")
+        
+        # Document upload
+        uploaded_files = st.file_uploader(f"Upload {document_type.replace('_', ' ').title()} Documents", 
+                                        type=['pdf', 'docx', 'xlsx'], 
+                                        accept_multiple_files=True, 
+                                        key=f"upload_{document_type}")
+        
+        if uploaded_files:
+            st.success(f"✅ {len(uploaded_files)} {document_type} documents uploaded")
+            
+            # Process documents
+            if st.button("🔍 Analyze Documents", type="primary"):
+                with st.spinner("🤖 Analyzing documents with AI..."):
+                    st.info("📊 Document analysis - Coming soon")
+        
+        # Document library
+        st.markdown("#### 📚 Document Library")
+        st.info("📚 Document library - Coming soon")
+
+def show_supplier_analysis_interface(evaluator):
+    """Interface for detailed supplier analysis"""
+    
+    st.markdown("### 🔍 Supplier Analysis")
+    st.markdown("Detailed analysis of supplier responses and compliance")
+    
+    # Analysis options
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 Compliance Analysis", use_container_width=True):
+            st.info("📊 Compliance analysis - Coming soon")
+    
+    with col2:
+        if st.button("🔍 Risk Assessment", use_container_width=True):
+            st.info("🔍 Risk assessment - Coming soon")
+    
+    with col3:
+        if st.button("📈 Performance Metrics", use_container_width=True):
+            st.info("📈 Performance metrics - Coming soon")
+    
+    # Supplier comparison
+    st.markdown("#### 🔄 Supplier Comparison")
+    st.info("🔄 Supplier comparison tool - Coming soon")
+
+def show_settings_interface(evaluator):
+    """Interface for evaluation settings"""
+    
+    st.markdown("### ⚙️ Evaluation Settings")
+    st.markdown("Configure comprehensive evaluation parameters")
+    
+    # AI Settings
+    st.markdown("#### 🤖 AI Analysis Settings")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        ai_model = st.selectbox("AI Model", options=["Gemini 1.5 Flash", "Gemini 1.5 Pro"])
+        confidence_threshold = st.slider("Confidence Threshold", 0.0, 1.0, 0.7)
+    
+    with col2:
+        analysis_depth = st.selectbox("Analysis Depth", options=["Basic", "Standard", "Comprehensive"])
+        risk_tolerance = st.selectbox("Risk Tolerance", options=["Low", "Medium", "High"])
+    
+    # Evaluation Settings
+    st.markdown("#### ⚖️ Evaluation Settings")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        default_weights = st.checkbox("Use Default Weightings", value=True)
+        auto_ranking = st.checkbox("Automatic Ranking", value=True)
+    
+    with col2:
+        compliance_check = st.checkbox("Enable Compliance Checking", value=True)
+        risk_assessment = st.checkbox("Enable Risk Assessment", value=True)
+    
+    # Save settings
+    if st.button("💾 Save Settings", type="primary"):
+        st.success("✅ Settings saved successfully!")
+
+def create_tepp_document(file, project_title):
+    """Create TEPP document from uploaded file"""
+    return TEPPDocument(
+        document_id=hashlib.md5(f"{file.name}_{datetime.now().isoformat()}".encode()).hexdigest()[:12],
+        document_type=DocumentType.TEPP,
+        title=f"TEPP - {project_title}",
+        content=f"TEPP content from {file.name}",
+        metadata={"file_name": file.name, "file_size": file.size},
+        created_date=datetime.now().isoformat(),
+        updated_date=datetime.now().isoformat(),
+        version="1.0",
+        council="Blacktown City Council",
+        project_id=project_title,
+        evaluation_criteria=[],
+        returnable_schedules=[],
+        compliance_requirements=[],
+        evaluation_methodology="MEAT",
+        scoring_weights={}
+    )
+
+def create_rft_document(file, project_title):
+    """Create RFT document from uploaded file"""
+    return RFTDocument(
+        document_id=hashlib.md5(f"{file.name}_{datetime.now().isoformat()}".encode()).hexdigest()[:12],
+        document_type=DocumentType.RFT,
+        title=f"RFT - {project_title}",
+        content=f"RFT content from {file.name}",
+        metadata={"file_name": file.name, "file_size": file.size},
+        created_date=datetime.now().isoformat(),
+        updated_date=datetime.now().isoformat(),
+        version="1.0",
+        council="Blacktown City Council",
+        project_id=project_title,
+        technical_requirements=[],
+        commercial_requirements=[],
+        compliance_requirements=[],
+        submission_requirements=[]
+    )
+
+def create_supplier_response(file, supplier_id):
+    """Create supplier response from uploaded file"""
+    return SupplierResponse(
+        response_id=hashlib.md5(f"{file.name}_{datetime.now().isoformat()}".encode()).hexdigest()[:12],
+        supplier_id=supplier_id,
+        supplier_name=f"Supplier {supplier_id}",
+        document_responses={},
+        returnable_schedule_responses={},
+        supporting_documents=[file.name],
+        submission_date=datetime.now().isoformat(),
+        compliance_status={}
+    )

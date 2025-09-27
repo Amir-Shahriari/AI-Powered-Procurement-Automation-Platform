@@ -1,0 +1,43 @@
+{
+  "equipment": {
+    "chillers": [],
+    "ec_fans": {
+      "count": null,
+      "per_ahu": null
+    },
+    "coils": {
+      "evaporator_count": null,
+      "condenser_count": null,
+      "heat_recovery_sets": null
+    }
+  },
+  "bmcs": {
+    "integration": false,
+    "protocols": []
+  },
+  "tests": [],
+  "warranty_months": null,
+  "maintenance": [],
+  "whs": [
+    "Provide PPE for all on-site workers"
+  ],
+  "works_breakdown": {
+    "decommission": [],
+    "mechanical": [],
+    "electrical": [],
+    "ductwork": [],
+    "pipework": [],
+    "cranage": [],
+    "general": []
+  },
+  "schedule_of_performances": {
+    "pump": {
+      "duty_flow_ls": null,
+      "duty_head_m": null,
+      "voltage": null,
+      "count": null
+    },
+    "ec_fan": []
+  },
+  "project_name": "7.5T GVM, Double cab, AMT, Tipper, Toolbox"
+}

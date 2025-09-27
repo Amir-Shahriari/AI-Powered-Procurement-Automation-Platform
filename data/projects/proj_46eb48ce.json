@@ -1,0 +1,26 @@
+{
+  "project_id": "proj_46eb48ce",
+  "title": "7.5T GVM, Double cab, AMT, Tipper, Toolbox",
+  "description": "7.5T GVM, Double cab, AMT, Tipper, Toolbox",
+  "category": "fleet",
+  "status": "new_tender",
+  "contract_value": 100000.0,
+  "council": "Blacktown City Council",
+  "created_date": "2025-09-21T21:23:55.527448",
+  "last_modified": "2025-09-21T21:23:55.527448",
+  "completion_date": null,
+  "project_manager": "Mohsen",
+  "tags": [],
+  "keywords": [
+    "gvm,",
+    "cab,",
+    "toolbox",
+    "7.5t",
+    "tipper,",
+    "double",
+    "amt,"
+  ],
+  "tender_type": "tender",
+  "evaluation_method": "MEAT",
+  "compliance_level": "standard"
+}

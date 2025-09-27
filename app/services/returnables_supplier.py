@@ -42,7 +42,7 @@ import re
 from copy import deepcopy
 from typing import Any, Dict, Iterable, List, Tuple
 
-from .llm import rag_json_plus
+from app.services.llm import rag_json_plus
 
 
 def _is_empty(value: Any) -> bool:

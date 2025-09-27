@@ -8,10 +8,10 @@ from typing import Any, Dict, List, Optional
 from collections import OrderedDict
 
 from langchain.schema import SystemMessage, HumanMessage
-from ..llm import _llm
-from .base import rag_json_plus, unique_keep_order, _try_parse_json
-from ..templates import load_tepp_template
-from .returnables import compose_returnable_schedules
+from app.services.llm import _llm
+from app.services.base import rag_json_plus, unique_keep_order, _try_parse_json
+from app.services.templates import load_tepp_template
+from app.services.returnables import compose_returnable_schedules
 
 # =============================================================================
 # Small safety helpers (type normalisers)

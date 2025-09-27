@@ -1,0 +1,43 @@
+{
+  "project_id": "6469bb7fb994",
+  "title": "Blacktown Leisure Centre HVAC Upgrade",
+  "description": "Complete HVAC system upgrade for Blacktown Leisure Centre including AHU refurbishment, chiller installation, and control system integration",
+  "category": "building_construction",
+  "start_date": "2023-03-01",
+  "end_date": "2023-08-15",
+  "total_cost": 450000.0,
+  "council": "Blacktown City Council",
+  "project_type": "Infrastructure",
+  "key_specifications": [
+    "HVAC systems",
+    "Energy efficiency",
+    "Building automation",
+    "Compliance standards"
+  ],
+  "success_factors": [
+    "Early contractor engagement",
+    "Detailed specifications",
+    "Regular progress monitoring"
+  ],
+  "challenges": [
+    "Coordination with existing systems",
+    "Weather delays",
+    "Supply chain issues"
+  ],
+  "lessons_learned": [
+    "Allow extra time for coordination",
+    "Have backup suppliers",
+    "Regular stakeholder communication"
+  ],
+  "contractor_performance": {
+    "quality": 4.5,
+    "timeliness": 4.0,
+    "communication": 4.2
+  },
+  "compliance_issues": [
+    "Minor documentation delays"
+  ],
+  "metadata": {},
+  "created_date": "2025-09-24T13:03:05.392462",
+  "updated_date": "2025-09-24T13:03:05.392462"
+}

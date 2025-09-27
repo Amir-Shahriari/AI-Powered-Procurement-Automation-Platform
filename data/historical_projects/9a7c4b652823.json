@@ -1,0 +1,41 @@
+{
+  "project_id": "9a7c4b652823",
+  "title": "Local Road Resurfacing Program",
+  "description": "Comprehensive road resurfacing program covering 15 local streets including drainage improvements and line marking",
+  "category": "road_works",
+  "start_date": "2023-01-15",
+  "end_date": "2023-06-30",
+  "total_cost": 850000.0,
+  "council": "Blacktown City Council",
+  "project_type": "Road Infrastructure",
+  "key_specifications": [
+    "Asphalt resurfacing",
+    "Drainage systems",
+    "Traffic management",
+    "Line marking"
+  ],
+  "success_factors": [
+    "Phased approach",
+    "Minimal disruption",
+    "Quality materials"
+  ],
+  "challenges": [
+    "Traffic management",
+    "Weather dependency",
+    "Utility coordination"
+  ],
+  "lessons_learned": [
+    "Plan traffic management carefully",
+    "Monitor weather forecasts",
+    "Coordinate with utilities"
+  ],
+  "contractor_performance": {
+    "quality": 4.3,
+    "timeliness": 4.5,
+    "communication": 4.0
+  },
+  "compliance_issues": [],
+  "metadata": {},
+  "created_date": "2025-09-24T13:03:05.396092",
+  "updated_date": "2025-09-24T13:03:05.396092"
+}

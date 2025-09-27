@@ -1,0 +1,22 @@
+{
+  "project_id": "proj_f2568291",
+  "title": "Test New Project",
+  "description": "A test project for validation",
+  "category": "construction",
+  "status": "new_tender",
+  "contract_value": 500000.0,
+  "council": "Test Council",
+  "created_date": "2025-09-21T20:17:02.120454",
+  "last_modified": "2025-09-21T20:17:02.120454",
+  "completion_date": null,
+  "project_manager": "",
+  "tags": [],
+  "keywords": [
+    "validation",
+    "project",
+    "test"
+  ],
+  "tender_type": "tender",
+  "evaluation_method": "MEAT",
+  "compliance_level": "standard"
+}

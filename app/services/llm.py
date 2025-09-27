@@ -281,7 +281,7 @@ def rag_json(
     """
     Retrieve labeled context blocks and ask the LLM to return STRICT JSON.
     """
-    from .vectorstores import similar
+    from app.services.vectorstores import similar
 
     def _similar(q: str, k: int = max_ctx) -> List[str]:
         try:
@@ -341,7 +341,7 @@ def rag_json_plus(
     """
     Like rag_json, but gathers from extra vector stores (e.g., policy manuals).
     """
-    from .vectorstores import similar
+    from app.services.vectorstores import similar
 
     def _collect(vs, q, k) -> List[str]:
         try:

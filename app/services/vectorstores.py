@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from langchain_community.vectorstores import Chroma
 from langchain_community.vectorstores import FAISS as LCFAISS
 from ..config import settings
-from ..deps import EMBED, CHROMA_SETTINGS
+from app.deps import EMBED, CHROMA_SETTINGS
 
 def _faiss_path(doc_id: str) -> Path:
     return settings.FAISS_DIR / f"{doc_id}"

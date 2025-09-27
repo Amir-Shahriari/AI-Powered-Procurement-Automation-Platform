@@ -1,0 +1,29 @@
+{
+  "project_id": "proj_001",
+  "title": "Blacktown City Hall Renovation",
+  "description": "Complete renovation of Blacktown City Hall including HVAC, electrical, and structural upgrades",
+  "category": "construction",
+  "status": "completed",
+  "contract_value": 2500000.0,
+  "council": "Blacktown City Council",
+  "created_date": "2023-01-15T00:00:00",
+  "completion_date": "2023-12-15T00:00:00",
+  "project_manager": "John Smith",
+  "tags": [
+    "renovation",
+    "city-hall",
+    "hvac",
+    "electrical"
+  ],
+  "keywords": [
+    "renovation",
+    "city hall",
+    "hvac",
+    "electrical",
+    "structural",
+    "upgrade"
+  ],
+  "tender_type": "formal_tender",
+  "evaluation_method": "MEAT",
+  "compliance_level": "high"
+}

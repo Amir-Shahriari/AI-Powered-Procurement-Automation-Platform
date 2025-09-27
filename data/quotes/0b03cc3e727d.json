@@ -1,0 +1,130 @@
+{
+  "quote_id": "0b03cc3e727d",
+  "title": "Test HVAC Installation",
+  "description": "HVAC system installation for community centre",
+  "quote_type": "quotation",
+  "category": "construction",
+  "status": "draft",
+  "client_name": "Test Client",
+  "client_email": "test@example.com",
+  "client_phone": "",
+  "project_reference": "",
+  "quote_date": "2025-09-24",
+  "valid_until": "2025-10-24",
+  "items": [
+    {
+      "item_id": "item_1",
+      "description": "HVAC System Design & Engineering (Community Centre)",
+      "quantity": 1.0,
+      "unit": "set",
+      "unit_price": 5000.0,
+      "total_price": 5000.0,
+      "category": "Engineering",
+      "specifications": [
+        "Energy modelling and efficiency analysis",
+        "Compliance with all relevant building codes and regulations"
+      ],
+      "notes": "Includes site survey and detailed system design drawings."
+    },
+    {
+      "item_id": "item_2",
+      "description": "Supply and Installation of High-Efficiency HVAC Units (2 x 25-ton units)",
+      "quantity": 2.0,
+      "unit": "unit",
+      "unit_price": 8000.0,
+      "total_price": 16000.0,
+      "category": "Equipment",
+      "specifications": [
+        "High-efficiency variable refrigerant flow (VRF) units with SEER rating of 20 or higher",
+        "Specific model details available upon request"
+      ],
+      "notes": "Units to be selected based on load calculations and client preferences.  Includes all necessary refrigerant and piping materials."
+    },
+    {
+      "item_id": "item_3",
+      "description": "Ductwork Installation (including insulation and sealing)",
+      "quantity": 1.0,
+      "unit": "set",
+      "unit_price": 7000.0,
+      "total_price": 7000.0,
+      "category": "Labor",
+      "specifications": [
+        "Use of high-quality galvanized steel ductwork",
+        "Proper sealing and insulation to minimize air leakage and improve energy efficiency"
+      ],
+      "notes": "Detailed ductwork layout provided in engineering design. Quantity subject to final site survey."
+    },
+    {
+      "item_id": "item_4",
+      "description": "Electrical Wiring and Controls Installation",
+      "quantity": 1.0,
+      "unit": "set",
+      "unit_price": 4000.0,
+      "total_price": 4000.0,
+      "category": "Labor",
+      "specifications": [
+        "Installation of all necessary electrical wiring, controls, and safety devices",
+        "Compliance with all relevant electrical codes"
+      ],
+      "notes": "Includes installation of smart thermostats and energy management systems if requested."
+    },
+    {
+      "item_id": "item_5",
+      "description": "Commissioning and Testing",
+      "quantity": 1.0,
+      "unit": "set",
+      "unit_price": 3000.0,
+      "total_price": 3000.0,
+      "category": "Labor",
+      "specifications": [
+        "Thorough testing and commissioning of the complete HVAC system",
+        "Verification of energy efficiency and compliance"
+      ],
+      "notes": "Ensuring the system operates at peak efficiency and meets all project specifications."
+    },
+    {
+      "item_id": "item_6",
+      "description": "Project Management and Oversight",
+      "quantity": 1.0,
+      "unit": "set",
+      "unit_price": 2000.0,
+      "total_price": 2000.0,
+      "category": "Project Management",
+      "specifications": [
+        "Regular on-site inspections and coordination of subcontractors",
+        "Project documentation and reporting"
+      ],
+      "notes": "Ensuring smooth project execution and timely completion."
+    }
+  ],
+  "subtotal": 37000.0,
+  "tax_rate": 0.1,
+  "tax_amount": 3700.0,
+  "total_amount": 40700.0,
+  "terms_conditions": [
+    "All work will be performed in accordance with industry best practices and applicable building codes.",
+    "Payment schedules are outlined in the payment terms section.",
+    "Changes to the scope of work will be subject to a change order process.",
+    "Any permits required for the project will be the responsibility of the client.",
+    "We are not liable for delays caused by factors outside our reasonable control."
+  ],
+  "payment_terms": "A 25% deposit is required upon contract signing.  50% will be due upon completion of installation, and 25% final payment upon successful commissioning and testing of the HVAC system.",
+  "delivery_terms": "All materials and equipment will be delivered to the project site within 7 days of contract signing. Installation will commence after the project site is prepared.",
+  "warranty_terms": "A one-year parts and labor warranty will be provided upon completion of the project.",
+  "special_requirements": [
+    "Client to provide access to the site and utilities.",
+    "Client to ensure the site is properly prepared for installation (e.g., adequate power supply, access to work area)."
+  ],
+  "attachments": [],
+  "metadata": {
+    "ai_generated": true,
+    "generation_confidence": 0.95,
+    "budget_range": [
+      10000,
+      50000
+    ],
+    "timeline_days": 30
+  },
+  "created_date": "2025-09-24T13:03:53.011443",
+  "updated_date": "2025-09-24T13:03:53.011443"
+}

@@ -1,0 +1,14 @@
+{
+  "title": "Professional Tender/RFQ",
+  "tender_no": null,
+  "contract_no": null,
+  "closing_datetime": null,
+  "contact": {
+    "name": null,
+    "email": null,
+    "phone": null
+  },
+  "scope": [],
+  "location": null,
+  "safety_standards": []
+}

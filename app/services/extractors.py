@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, Iterable, List
 from copy import deepcopy
 
-from .llm import rag_json
+from app.services.llm import rag_json
 
 def _merge(a: Any, b: Any) -> Any:
     # Deep-ish merge for dicts/lists; b wins on conflicts; primitive overwrite.

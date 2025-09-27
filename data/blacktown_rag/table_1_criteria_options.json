@@ -1,0 +1,307 @@
+{
+  "document_id": "table_1_criteria_options",
+  "title": "Table 1 - Criteria Evaluation Options",
+  "content": {
+    "criteria_categories": {
+      "compliance": {
+        "name": "Compliance",
+        "description": "Conformity with conditions of Tender",
+        "sub_criteria": [
+          {
+            "name": "Completion of corporate information",
+            "description": "All corporate information fields completed",
+            "scoring": "pass_fail"
+          },
+          {
+            "name": "Completion of schedules",
+            "description": "All required schedules completed",
+            "scoring": "pass_fail"
+          },
+          {
+            "name": "Supply of accreditations",
+            "description": "All required accreditations provided",
+            "scoring": "pass_fail"
+          }
+        ]
+      },
+      "price": {
+        "name": "Price (Full Cost)",
+        "description": "Total cost of Quotation/Tender (whole of life cost)",
+        "sub_criteria": [
+          {
+            "name": "Total cost of Quotation/Tender",
+            "description": "Whole of life cost comparison",
+            "scoring": "currency_normalized"
+          },
+          {
+            "name": "Comparison of tenders received",
+            "description": "Competitive pricing analysis",
+            "scoring": "comparative"
+          },
+          {
+            "name": "Comparison of benchmarks",
+            "description": "Market benchmark comparison",
+            "scoring": "benchmark"
+          },
+          {
+            "name": "Analysis of individual tendered items",
+            "description": "Item-by-item cost analysis",
+            "scoring": "detailed_analysis"
+          }
+        ]
+      },
+      "relevant_experience": {
+        "name": "Relevant Experience",
+        "description": "General performance history and similar project experience",
+        "sub_criteria": [
+          {
+            "name": "General performance history",
+            "description": "Overall track record and performance",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Experience with contracts of similar nature",
+            "description": "Similar projects and contracts",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Profile and experience of staff",
+            "description": "Key personnel experience and expertise",
+            "scoring": "weighted_1_5"
+          }
+        ]
+      },
+      "capability": {
+        "name": "Capability",
+        "description": "Demonstrated capability to perform the works as specified",
+        "sub_criteria": [
+          {
+            "name": "Demonstrated capability to perform works",
+            "description": "Ability to deliver specified requirements",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Ability to perform within workload",
+            "description": "Capacity to handle contract within existing workload",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Current workload assessment",
+            "description": "Evaluation of current commitments",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Technical skills",
+            "description": "Technical competency and expertise",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Appropriate resources",
+            "description": "Resources including condition of plant and equipment",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Capacity to complete on time",
+            "description": "Ability to deliver project satisfactorily and on time",
+            "scoring": "weighted_1_5"
+          }
+        ]
+      },
+      "management_financial": {
+        "name": "Management & Financial",
+        "description": "Financial capacity and management capabilities",
+        "sub_criteria": [
+          {
+            "name": "Financial capacity against contract requirements",
+            "description": "Financial strength relative to contract value",
+            "scoring": "financial_assessment"
+          },
+          {
+            "name": "Level of Council supervision required",
+            "description": "Independence and self-management capability",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Management and Senior Personnel skills",
+            "description": "Quality of management and senior staff",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Financial stability and operating history",
+            "description": "Business stability and track record",
+            "scoring": "stability_assessment"
+          },
+          {
+            "name": "Ability to manage within budget",
+            "description": "Budget management and accurate accounting",
+            "scoring": "weighted_1_5"
+          }
+        ]
+      },
+      "quality_management": {
+        "name": "Quality Management",
+        "description": "Quality management systems and procedures",
+        "sub_criteria": [
+          {
+            "name": "Level and detail of quality plan",
+            "description": "Comprehensiveness of quality management plan",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Minimum standards of safety plan",
+            "description": "Safety plan standards and implementation",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Reporting procedures",
+            "description": "Quality reporting and monitoring procedures",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Response and resolution",
+            "description": "Issue response and resolution procedures",
+            "scoring": "weighted_1_5"
+          }
+        ]
+      },
+      "work_health_safety": {
+        "name": "Work Health & Safety",
+        "description": "WHS compliance and safety management systems",
+        "sub_criteria": [
+          {
+            "name": "Completion and signing of WHS051.5",
+            "description": "WHS declaration form completion",
+            "scoring": "pass_fail"
+          },
+          {
+            "name": "Completion and signing of WHS051.6",
+            "description": "Contractor WHS requirements completion",
+            "scoring": "pass_fail"
+          },
+          {
+            "name": "WHS System Manual and evidence",
+            "description": "Comprehensive WHS management system",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Compliance with industry standards",
+            "description": "NSW Workcover and Australian Standards compliance",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Independent certification AS/NZS 48001:2001",
+            "description": "Certified Safety Management System",
+            "scoring": "certification"
+          }
+        ]
+      },
+      "sustainability": {
+        "name": "Sustainable Environmental Management",
+        "description": "Environmental management and sustainability practices",
+        "sub_criteria": [
+          {
+            "name": "Environmental Policy/Management Plan",
+            "description": "Comprehensive environmental management system",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Independent certification",
+            "description": "ISO 14001 or equivalent certification",
+            "scoring": "certification"
+          },
+          {
+            "name": "Environmental training procedures",
+            "description": "Staff environmental training programs",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Sustainability record",
+            "description": "Historical environmental performance including waste minimisation, energy efficiency, recycling, pollution levels, habitat protection, recycled content, product recycling, sourcing location, and environmental prosecutions",
+            "scoring": "sustainability_assessment"
+          }
+        ]
+      },
+      "social_community": {
+        "name": "Social & Community",
+        "description": "Social procurement and community benefit criteria",
+        "sub_criteria": [
+          {
+            "name": "Knowledge of local conditions",
+            "description": "Understanding of local area and conditions",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Social impact on local economy",
+            "description": "Positive economic impact on local community",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Cooperation with community groups",
+            "description": "Ability to work with committees and community groups",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Community benefit projects",
+            "description": "Projects delivering community benefits including disability access, cultural accommodation, local charity support",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Employment for disadvantaged groups",
+            "description": "Employment opportunities for disadvantaged groups within local community",
+            "scoring": "weighted_1_5"
+          },
+          {
+            "name": "Social inclusion and diversity",
+            "description": "Social inclusion, employment & training, diversity & equality, enhancing local amenities, addressing local negative issues",
+            "scoring": "weighted_1_5"
+          }
+        ]
+      },
+      "eeo_fair_employment": {
+        "name": "EEO & Fair Employment",
+        "description": "Equal employment opportunity and fair employment practices",
+        "sub_criteria": [
+          {
+            "name": "Wages paid under award or EA",
+            "description": "Compliance with award or enterprise agreement",
+            "scoring": "compliance_check"
+          },
+          {
+            "name": "Superannuation paid",
+            "description": "Superannuation guarantee compliance",
+            "scoring": "compliance_check"
+          },
+          {
+            "name": "Location of records kept",
+            "description": "Record keeping and accessibility",
+            "scoring": "compliance_check"
+          },
+          {
+            "name": "EEO and anti-discrimination policies",
+            "description": "Equal opportunity and anti-discrimination policies including training and development, dispute resolution",
+            "scoring": "policy_assessment"
+          },
+          {
+            "name": "Aboriginal and Torres Strait Islander employment",
+            "description": "Indigenous employment policies and implementation",
+            "scoring": "policy_assessment"
+          },
+          {
+            "name": "Apprenticeships and traineeships",
+            "description": "Training and development opportunities",
+            "scoring": "training_assessment"
+          }
+        ]
+      }
+    }
+  },
+  "metadata": {
+    "source": "Blacktown City Council Tender & Quotation Evaluation Manual",
+    "table_reference": "Table 1",
+    "section": "A.7 EVALUATION CRITERIA MATRIX",
+    "document_type": "evaluation_criteria"
+  },
+  "created_date": "2025-09-27T14:50:17.802624",
+  "updated_date": "2025-09-27T14:50:17.802624",
+  "version": "1.0"
+}

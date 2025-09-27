@@ -1,0 +1,22 @@
+{
+  "status": "running",
+  "created": "2025-09-21T10:39:01.726332Z",
+  "meta": {
+    "project_name": "Fleet Vehicle Replacement Program",
+    "category": "generic",
+    "rfq_mode": false,
+    "project_config": {
+      "project_type": "fleet",
+      "procurement_process": "Tender",
+      "council_name": "Blacktown City Council",
+      "contract_value": 100000.0,
+      "tender_type": "tender"
+    },
+    "project_type": "fleet",
+    "procurement_process": "Tender",
+    "council_name": "Blacktown City Council",
+    "contract_value": 100000.0,
+    "tender_type": "tender"
+  },
+  "tmp_spec_path": "data\\upload_2dd3ccb5cb6f4bfd98c380a3bbaec3f8.docx"
+}

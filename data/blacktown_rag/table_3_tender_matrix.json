@@ -1,0 +1,300 @@
+{
+  "document_id": "table_3_tender_matrix",
+  "title": "Table 3 - Evaluation Criteria Matrix: Tender Value ($250,000+)",
+  "content": {
+    "local_preference_note": "When evaluating submissions any supplier identified as local to the Blacktown LGA or the wider Western Sydney area will attract a percentage price discount as dictated by their physical location. The evaluation spread sheet located on the procurement – tenders section of the intranet must be used.",
+    "purchase_categories": {
+      "standard_product_good": {
+        "name": "Standard product or good",
+        "description": "Refers to a product or good that is well tested in the market place and is utilised by many other organisations.",
+        "risk_profile": "Medium Risk - Risk level can increase as price increases",
+        "criteria": {
+          "price": {
+            "weighting_range": [
+              40,
+              60
+            ],
+            "description": "Full Cost"
+          },
+          "relevant_experience": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "capability": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "management_financial": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          },
+          "work_health_safety": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          }
+        },
+        "combined_10_percent": [
+          "sustainability",
+          "eeo_fair_employment"
+        ],
+        "local_preference": true
+      },
+      "construction_contract": {
+        "name": "Construction contract valued at over $249,999",
+        "description": "Typically a contract requiring a limited level of professional input combined with construction works",
+        "risk_profile": "Medium – High Risk - Essential to ensure time lines and budget met. Works comply with specifications",
+        "criteria": {
+          "price": {
+            "weighting_range": [
+              35,
+              60
+            ],
+            "description": "Full Cost"
+          },
+          "relevant_experience": {
+            "weighting_range": [
+              10,
+              20
+            ]
+          },
+          "capability": {
+            "weighting_range": [
+              5,
+              20
+            ]
+          },
+          "management_financial": {
+            "weighting_range": [
+              5,
+              15
+            ]
+          },
+          "quality_management": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          },
+          "work_health_safety": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          }
+        },
+        "combined_10_percent": [
+          "sustainability",
+          "eeo_fair_employment"
+        ],
+        "local_preference": true
+      },
+      "consultancy_contract": {
+        "name": "Consultancy contract valued at over $249,999",
+        "description": "Consultancy requiring a high level of technical expertise often from a range of professionals. May also include a high level of innovation",
+        "risk_profile": "Medium to High Risk - Essential to ensure project team satisfy the specification",
+        "criteria": {
+          "price": {
+            "weighting_range": [
+              25,
+              50
+            ],
+            "description": "Full Cost"
+          },
+          "relevant_experience": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "capability": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "management_financial": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          },
+          "work_health_safety": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          }
+        },
+        "combined_10_percent": [
+          "social_community",
+          "eeo_fair_employment"
+        ],
+        "local_preference": true
+      },
+      "service_delivery_contract": {
+        "name": "Service delivery contract valued at over $249,999",
+        "description": "Service delivery contract involving the provision of a service that often covers more than one year and/or multiple service components",
+        "risk_profile": "Medium to High Risk - Essential to ensure service delivered on time and on a long term basis",
+        "criteria": {
+          "price": {
+            "weighting_range": [
+              30,
+              50
+            ],
+            "description": "Full Cost"
+          },
+          "relevant_experience": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "capability": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "management_financial": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          },
+          "quality_management": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          },
+          "work_health_safety": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          }
+        },
+        "combined_10_percent": [
+          "sustainability",
+          "social_community",
+          "eeo_fair_employment"
+        ],
+        "local_preference": true
+      },
+      "management_contract": {
+        "name": "Management Contract valued at over $249,999",
+        "description": "Refers to a contract where the contractor manages a facility for council (i.e. Café, showground)",
+        "risk_profile": "Medium to High Risk - Dependent on staff appointed to deliver the contract and period of contract",
+        "criteria": {
+          "price": {
+            "weighting_range": [
+              30,
+              50
+            ],
+            "description": "Full Cost"
+          },
+          "relevant_experience": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "capability": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "management_financial": {
+            "weighting_range": [
+              5,
+              15
+            ]
+          },
+          "quality_management": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          },
+          "work_health_safety": {
+            "weighting_range": [
+              0,
+              10
+            ]
+          }
+        },
+        "combined_10_percent": [
+          "sustainability",
+          "social_community",
+          "eeo_fair_employment"
+        ],
+        "local_preference": true
+      },
+      "lease_license": {
+        "name": "Lease / License valued at over $249,999",
+        "description": "Where a supplier is submitting a price to access a Council service or resource (i.e. commercial activity)",
+        "risk_profile": "Medium to High Risk - Highly dependent on experience and track record of proposed service provider",
+        "criteria": {
+          "price": {
+            "weighting_range": [
+              30,
+              50
+            ],
+            "description": "Full Cost"
+          },
+          "relevant_experience": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "capability": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "management_financial": {
+            "weighting_range": [
+              5,
+              15
+            ]
+          },
+          "quality_management": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          },
+          "work_health_safety": {
+            "weighting_range": [
+              0,
+              10
+            ]
+          }
+        },
+        "combined_10_percent": [],
+        "local_preference": true
+      }
+    }
+  },
+  "metadata": {
+    "source": "Blacktown City Council Tender & Quotation Evaluation Manual",
+    "table_reference": "Table 3",
+    "section": "For purchases $250,000 and over (inclusive of GST)",
+    "contract_value_range": "$250,000+",
+    "document_type": "evaluation_matrix"
+  },
+  "created_date": "2025-09-27T14:50:17.802624",
+  "updated_date": "2025-09-27T14:50:17.802624",
+  "version": "1.0"
+}

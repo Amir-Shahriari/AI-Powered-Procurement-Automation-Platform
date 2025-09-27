@@ -1,0 +1,409 @@
+{
+  "metadata": {
+    "title": "NSW Local Government Procurement Compliance Requirements",
+    "version": "2024.1",
+    "last_updated": "2024-01-15",
+    "source": "NSW Government Official Guidelines",
+    "description": "Comprehensive compliance requirements for NSW Local Government procurement processes"
+  },
+  "legislative_framework": {
+    "primary_legislation": [
+      {
+        "act": "Local Government Act 1993",
+        "section": "55",
+        "requirement": "Tendering Requirements",
+        "description": "All contracts over $150,000 must be publicly tendered unless exempt",
+        "threshold": 150000,
+        "mandatory": true,
+        "categories": ["all"]
+      },
+      {
+        "act": "Local Government Act 1993",
+        "section": "55A",
+        "requirement": "Tender Evaluation Criteria",
+        "description": "Evaluation criteria must be published and applied consistently",
+        "mandatory": true,
+        "categories": ["all"]
+      },
+      {
+        "act": "Work Health and Safety Act 2011",
+        "section": "19",
+        "requirement": "Primary Duty of Care",
+        "description": "All parties must ensure health and safety of workers and others",
+        "mandatory": true,
+        "categories": ["construction", "services", "maintenance"]
+      }
+    ],
+    "secondary_legislation": [
+      {
+        "regulation": "Local Government (General) Regulation 2021",
+        "part": "4",
+        "requirement": "Procurement Procedures",
+        "description": "Detailed procedures for procurement processes",
+        "mandatory": true,
+        "categories": ["all"]
+      }
+    ]
+  },
+  "procurement_guidelines": {
+    "tendering_guidelines": {
+      "title": "Tendering Guidelines for NSW Local Government",
+      "version": "2024",
+      "key_principles": [
+        {
+          "principle": "Probity",
+          "description": "All procurement processes must be conducted with integrity and fairness",
+          "requirements": [
+            "Clear evaluation criteria",
+            "Consistent application of criteria",
+            "Documented decision-making process",
+            "Conflict of interest management"
+          ]
+        },
+        {
+          "principle": "Transparency",
+          "description": "Processes must be open and accountable",
+          "requirements": [
+            "Public notification of tenders",
+            "Clear evaluation methodology",
+            "Documented reasons for decisions",
+            "Accessible complaint procedures"
+          ]
+        },
+        {
+          "principle": "Value for Money",
+          "description": "Best value outcome considering whole-of-life costs",
+          "requirements": [
+            "Total cost of ownership analysis",
+            "Quality and performance considerations",
+            "Risk assessment",
+            "Sustainability factors"
+          ]
+        }
+      ]
+    },
+    "evaluation_criteria": {
+      "standard_criteria": [
+        {
+          "criterion": "Price (Full Cost)",
+          "description": "Total cost including all fees, charges, and ongoing costs",
+          "weight_range": {
+            "construction": "40-60%",
+            "services": "30-50%",
+            "goods": "50-70%",
+            "consultancy": "20-40%"
+          },
+          "mandatory": true
+        },
+        {
+          "criterion": "Relevant Experience",
+          "description": "Demonstrated experience in similar projects or services",
+          "weight_range": {
+            "construction": "15-25%",
+            "services": "20-30%",
+            "goods": "10-20%",
+            "consultancy": "25-35%"
+          },
+          "mandatory": true
+        },
+        {
+          "criterion": "Capability",
+          "description": "Technical capability and capacity to deliver",
+          "weight_range": {
+            "construction": "15-25%",
+            "services": "20-30%",
+            "goods": "10-20%",
+            "consultancy": "25-35%"
+          },
+          "mandatory": true
+        },
+        {
+          "criterion": "Management & Financial Capacity",
+          "description": "Project management and financial stability",
+          "weight_range": {
+            "construction": "10-20%",
+            "services": "10-20%",
+            "goods": "5-15%",
+            "consultancy": "15-25%"
+          },
+          "mandatory": true
+        },
+        {
+          "criterion": "Quality Management",
+          "description": "Quality assurance systems and processes",
+          "weight_range": {
+            "construction": "5-15%",
+            "services": "5-15%",
+            "goods": "5-15%",
+            "consultancy": "5-15%"
+          },
+          "mandatory": false
+        },
+        {
+          "criterion": "WHS",
+          "description": "Work Health and Safety management systems",
+          "weight_range": {
+            "construction": "5-15%",
+            "services": "5-15%",
+            "goods": "2-10%",
+            "consultancy": "5-15%"
+          },
+          "mandatory": true
+        },
+        {
+          "criterion": "Sustainability and EEO & Fair Employment",
+          "description": "Environmental sustainability and employment practices",
+          "weight_range": {
+            "construction": "5-15%",
+            "services": "5-15%",
+            "goods": "2-10%",
+            "consultancy": "5-15%"
+          },
+          "mandatory": false
+        }
+      ]
+    }
+  },
+  "compliance_standards": {
+    "whs_requirements": {
+      "title": "Work Health and Safety Requirements",
+      "standards": [
+        {
+          "standard": "AS/NZS 4801:2001",
+          "title": "Occupational Health and Safety Management Systems",
+          "requirement": "Certified OHS management system",
+          "mandatory_for": ["construction", "services", "maintenance"]
+        },
+        {
+          "standard": "AS/NZS 45001:2018",
+          "title": "Occupational Health and Safety Management Systems",
+          "requirement": "ISO 45001 certification preferred",
+          "mandatory_for": ["construction", "services"]
+        }
+      ],
+      "documentation_required": [
+        "WHS Policy Statement",
+        "Risk Assessment Procedures",
+        "Incident Reporting Systems",
+        "Training Records",
+        "Safety Management Plan"
+      ]
+    },
+    "environmental_requirements": {
+      "title": "Environmental Management Requirements",
+      "standards": [
+        {
+          "standard": "AS/NZS ISO 14001:2016",
+          "title": "Environmental Management Systems",
+          "requirement": "Environmental management system",
+          "mandatory_for": ["construction", "infrastructure"]
+        }
+      ],
+      "considerations": [
+        "Environmental Impact Assessment",
+        "Waste Management Plans",
+        "Energy Efficiency",
+        "Water Conservation",
+        "Biodiversity Protection"
+      ]
+    },
+    "quality_standards": {
+      "title": "Quality Management Requirements",
+      "standards": [
+        {
+          "standard": "AS/NZS ISO 9001:2016",
+          "title": "Quality Management Systems",
+          "requirement": "Quality management system",
+          "mandatory_for": ["construction", "services", "consultancy"]
+        }
+      ]
+    },
+    "adr_compliance": {
+      "title": "Australian Design Rules Compliance",
+      "description": "For vehicle and transport-related procurement",
+      "requirements": [
+        "ADR 1/00 - Vehicle Standards",
+        "ADR 2/00 - Side Door Strength",
+        "ADR 3/00 - Seat Anchorages",
+        "ADR 4/00 - Seat Belt Anchorages",
+        "ADR 5/00 - Anchorages for Child Restraints"
+      ],
+      "applicable_categories": ["vehicles", "transport", "fleet"]
+    }
+  },
+  "procurement_categories": {
+    "construction": {
+      "threshold": 150000,
+      "tender_required": true,
+      "evaluation_criteria": [
+        "Price (Full Cost)",
+        "Relevant Experience",
+        "Capability",
+        "Management & Financial Capacity",
+        "Quality Management",
+        "WHS",
+        "Sustainability and EEO & Fair Employment"
+      ],
+      "compliance_requirements": [
+        "WHS Management System",
+        "Environmental Management",
+        "Quality Management System",
+        "Industrial Relations Compliance"
+      ]
+    },
+    "services": {
+      "threshold": 150000,
+      "tender_required": true,
+      "evaluation_criteria": [
+        "Price (Full Cost)",
+        "Relevant Experience",
+        "Capability",
+        "Management & Financial Capacity",
+        "Quality Management",
+        "WHS",
+        "Sustainability and EEO & Fair Employment"
+      ],
+      "compliance_requirements": [
+        "WHS Management System",
+        "Quality Management System",
+        "Privacy Compliance",
+        "Industrial Relations Compliance"
+      ]
+    },
+    "goods": {
+      "threshold": 150000,
+      "tender_required": true,
+      "evaluation_criteria": [
+        "Price (Full Cost)",
+        "Relevant Experience",
+        "Capability",
+        "Management & Financial Capacity",
+        "Quality Management",
+        "WHS",
+        "Sustainability and EEO & Fair Employment"
+      ],
+      "compliance_requirements": [
+        "Australian Standards Compliance",
+        "Quality Management System",
+        "Environmental Standards"
+      ]
+    },
+    "consultancy": {
+      "threshold": 150000,
+      "tender_required": true,
+      "evaluation_criteria": [
+        "Price (Full Cost)",
+        "Relevant Experience",
+        "Capability",
+        "Management & Financial Capacity",
+        "Quality Management",
+        "WHS",
+        "Sustainability and EEO & Fair Employment"
+      ],
+      "compliance_requirements": [
+        "Professional Indemnity Insurance",
+        "Quality Management System",
+        "Privacy Compliance",
+        "Conflict of Interest Management"
+      ]
+    }
+  },
+  "risk_assessment": {
+    "risk_categories": [
+      {
+        "category": "Financial Risk",
+        "factors": [
+          "Supplier financial stability",
+          "Payment terms and conditions",
+          "Insurance coverage",
+          "Performance bonds"
+        ]
+      },
+      {
+        "category": "Operational Risk",
+        "factors": [
+          "Delivery timelines",
+          "Quality standards",
+          "Resource availability",
+          "Technical capability"
+        ]
+      },
+      {
+        "category": "Compliance Risk",
+        "factors": [
+          "Regulatory compliance",
+          "WHS requirements",
+          "Environmental standards",
+          "Privacy obligations"
+        ]
+      },
+      {
+        "category": "Reputational Risk",
+        "factors": [
+          "Public perception",
+          "Media attention",
+          "Community impact",
+          "Stakeholder relations"
+        ]
+      }
+    ]
+  },
+  "documentation_requirements": {
+    "tender_documents": [
+      "Request for Tender (RFT)",
+      "Tender Conditions",
+      "Specifications",
+      "Evaluation Criteria",
+      "Contract Terms",
+      "Returnable Schedules"
+    ],
+    "evaluation_documents": [
+      "Evaluation Plan",
+      "Evaluation Matrix",
+      "Scoring Methodology",
+      "Evaluation Report",
+      "Recommendation Report"
+    ],
+    "contract_documents": [
+      "Contract Agreement",
+      "Performance Specifications",
+      "Payment Terms",
+      "Variation Procedures",
+      "Dispute Resolution"
+    ]
+  },
+  "compliance_checklist": {
+    "pre_tender": [
+      "Needs analysis completed",
+      "Budget approved",
+      "Risk assessment conducted",
+      "Evaluation criteria defined",
+      "Probity advisor appointed (if required)",
+      "Tender documentation prepared"
+    ],
+    "tender_process": [
+      "Public notification published",
+      "Tender period adequate",
+      "Information sessions conducted (if required)",
+      "Questions and answers documented",
+      "Addenda issued (if required)",
+      "Tender submissions received and secured"
+    ],
+    "evaluation": [
+      "Evaluation panel appointed",
+      "Evaluation criteria applied consistently",
+      "Scoring methodology followed",
+      "Documentation maintained",
+      "Probity requirements met",
+      "Evaluation report prepared"
+    ],
+    "award": [
+      "Successful tenderer selected",
+      "Contract negotiations completed",
+      "Contract executed",
+      "Unsuccessful tenderers notified",
+      "Debriefing offered",
+      "Records archived"
+    ]
+  }
+}

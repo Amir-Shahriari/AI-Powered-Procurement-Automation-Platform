@@ -1,0 +1,29 @@
+{
+  "project_id": "proj_002",
+  "title": "Fleet Vehicle Replacement Program",
+  "description": "Replacement of 15 council vehicles including cars, trucks, and specialized equipment",
+  "category": "fleet",
+  "status": "ongoing",
+  "contract_value": 850000.0,
+  "council": "Blacktown City Council",
+  "created_date": "2024-03-01T00:00:00",
+  "project_manager": "Sarah Johnson",
+  "tags": [
+    "fleet",
+    "vehicles",
+    "replacement",
+    "equipment"
+  ],
+  "keywords": [
+    "fleet",
+    "vehicles",
+    "replacement",
+    "cars",
+    "trucks",
+    "equipment",
+    "council"
+  ],
+  "tender_type": "tender",
+  "evaluation_method": "MEAT",
+  "compliance_level": "standard"
+}

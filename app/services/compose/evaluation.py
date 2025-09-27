@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from collections import Counter
 
-from app.config import settings
+from ..config import settings
 from app.services.textio import extract_text
 from app.services.supplier import list_suppliers, _data_dir as _supplier_data_dir
 

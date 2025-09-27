@@ -1,0 +1,270 @@
+"""
+AI-powered generation pages for tenders and quotes
+"""
+import streamlit as st
+from datetime import datetime
+from app.core.navigation import _nav_set
+from app.core.ui_helpers import _inject_css
+from app.components.sidebar_navigation import render_sidebar
+from app.services.ai_generation import generate_ai_tender_package, generate_ai_quote_package
+from app.components.generated_display import show_generated_tender, show_generated_quote
+from app.components.enhanced_tepp_ui import show_enhanced_tepp_generator
+
+
+def page_tender_creation():
+    """AI-powered tender creation page with integrated TEPP Generator - no authentication required"""
+    _inject_css()
+    render_sidebar()
+    
+    # Header
+    st.markdown('''
+    <div style="text-align: center; padding: 2rem 0;">
+        <h1 style="color: #1e3a8a; font-size: 2rem; margin-bottom: 0.5rem; font-weight: 700;">
+            📋 AI-Powered Tender Creation
+        </h1>
+        <p style="color: #64748b; font-size: 1.1rem; margin-bottom: 2rem;">
+            AI will generate everything automatically following NSW compliance rules
+        </p>
+    </div>
+    ''', unsafe_allow_html=True)
+    
+    # Back to selection button
+    if st.button("← Back to Selection", type="secondary"):
+        _nav_set("login")
+        st.rerun()
+    
+    # Create tabs for different tender creation tools
+    tab1, tab2 = st.tabs(["🤖 AI Tender Generator", "🤖 AI-Enhanced TEPP Generator"])
+    
+    with tab1:
+        show_ai_tender_generator()
+    
+    with tab2:
+        # Create a project object for the TEPP generator if we have tender data
+        selected_project = None
+        if "generated_tender" in st.session_state:
+            tender_data = st.session_state["generated_tender"]
+            selected_project = {
+                'title': tender_data.get('project_title', ''),
+                'contract_value': tender_data.get('contract_value', 0),
+                'category': tender_data.get('project_type', 'General')
+            }
+        
+        show_enhanced_tepp_generator(selected_project)
+
+
+def show_ai_tender_generator():
+    """Show the AI tender generator interface"""
+    # Simple spec input
+    st.markdown("### 📝 Project Specification")
+    st.markdown("Provide your project details. AI will generate all tender documents automatically.")
+    
+    # Basic project info
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        project_title = st.text_input(
+            "Project Title",
+            placeholder="e.g., Construction of Community Center",
+            help="Brief description of your project"
+        )
+        
+        contract_value = st.number_input(
+            "Contract Value ($)",
+            min_value=250000,
+            value=500000,
+            step=50000,
+            help="Minimum $250k for tender process"
+        )
+    
+    with col2:
+        project_type = st.selectbox(
+            "Project Type",
+            ["Construction", "Fleet", "HVAC", "Services", "IT", "Consulting"],
+            help="Select the type of project"
+        )
+        
+        contract_duration = st.number_input(
+            "Contract Duration (years)",
+            min_value=1,
+            max_value=10,
+            value=2,
+            help="Initial contract period"
+        )
+    
+    # Specification input
+    st.markdown("#### 📄 Technical Specification")
+    
+    spec_method = st.radio(
+        "How would you like to provide specifications?",
+        ["Upload file", "Paste text", "Write manually"],
+        horizontal=True
+    )
+    
+    spec_content = None
+    
+    if spec_method == "Upload file":
+        uploaded_file = st.file_uploader(
+            "Upload Specification",
+            type=["pdf", "docx", "txt", "doc"],
+            help="Upload your technical specification file"
+        )
+        if uploaded_file:
+            spec_content = f"Uploaded file: {uploaded_file.name}"
+    
+    elif spec_method == "Paste text":
+        spec_content = st.text_area(
+            "Paste Specification",
+            height=200,
+            placeholder="Paste your technical specification here..."
+        )
+    
+    else:  # Write manually
+        spec_content = st.text_area(
+            "Write Specification",
+            height=200,
+            placeholder="Write your technical specification here..."
+        )
+    
+    # Generate button
+    if st.button("🤖 Generate Complete Tender Package", type="primary", use_container_width=True, disabled=not (project_title and spec_content)):
+        with st.spinner("AI is generating your complete tender package..."):
+            try:
+                # Generate AI-powered tender package
+                tender_package = generate_ai_tender_package(
+                    project_title, contract_value, project_type, 
+                    contract_duration, spec_content, st.session_state.get("council", "Blacktown City Council")
+                )
+                
+                # Store in session state
+                st.session_state["generated_tender"] = tender_package
+                st.session_state["tender_type"] = "tender"
+                
+                st.success("✅ Complete tender package generated successfully!")
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"❌ Error generating tender: {str(e)}")
+    
+    # Show generated tender if available
+    if "generated_tender" in st.session_state:
+        show_generated_tender(st.session_state["generated_tender"])
+
+
+def page_quote_creation():
+    """Simple AI-powered quote creation page - no authentication required"""
+    _inject_css()
+    render_sidebar()
+    
+    # Header
+    st.markdown('''
+    <div style="text-align: center; padding: 2rem 0;">
+        <h1 style="color: #1e3a8a; font-size: 2rem; margin-bottom: 0.5rem; font-weight: 700;">
+            💰 AI-Powered Quote Creation
+        </h1>
+        <p style="color: #64748b; font-size: 1.1rem; margin-bottom: 2rem;">
+            AI will generate everything automatically following quotation rules
+        </p>
+    </div>
+    ''', unsafe_allow_html=True)
+    
+    # Back to selection button
+    if st.button("← Back to Selection", type="secondary"):
+        _nav_set("login")
+        st.rerun()
+    
+    # Simple spec input
+    st.markdown("### 📝 Project Specification")
+    st.markdown("Provide your project details. AI will generate all quotation documents automatically.")
+    
+    # Basic project info
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        project_title = st.text_input(
+            "Project Title",
+            placeholder="e.g., Fleet Vehicle Purchase",
+            help="Brief description of your project"
+        )
+        
+        contract_value = st.number_input(
+            "Contract Value ($)",
+            min_value=10000,
+            max_value=249999,
+            value=150000,
+            step=10000,
+            help="Under $250k for quotation process"
+        )
+    
+    with col2:
+        project_type = st.selectbox(
+            "Project Type",
+            ["Construction", "Fleet", "HVAC", "Services", "IT", "Consulting"],
+            help="Select the type of project"
+        )
+        
+        contract_duration = st.number_input(
+            "Contract Duration (years)",
+            min_value=1,
+            max_value=5,
+            value=1,
+            help="Initial contract period"
+        )
+    
+    # Specification input
+    st.markdown("#### 📄 Technical Specification")
+    
+    spec_method = st.radio(
+        "How would you like to provide specifications?",
+        ["Upload file", "Paste text", "Write manually"],
+        horizontal=True
+    )
+    
+    spec_content = None
+    
+    if spec_method == "Upload file":
+        uploaded_file = st.file_uploader(
+            "Upload Specification",
+            type=["pdf", "docx", "txt", "doc"],
+            help="Upload your technical specification file"
+        )
+        if uploaded_file:
+            spec_content = f"Uploaded file: {uploaded_file.name}"
+    
+    elif spec_method == "Paste text":
+        spec_content = st.text_area(
+            "Paste Specification",
+            height=200,
+            placeholder="Paste your technical specification here..."
+        )
+    
+    else:  # Write manually
+        spec_content = st.text_area(
+            "Write Specification",
+            height=200,
+            placeholder="Write your technical specification here..."
+        )
+    
+    # Generate button
+    if st.button("🤖 Generate Complete Quote Package", type="primary", use_container_width=True, disabled=not (project_title and spec_content)):
+        with st.spinner("AI is generating your complete quote package..."):
+            try:
+                # Generate AI-powered quote package
+                quote_package = generate_ai_quote_package(
+                    project_title, contract_value, project_type, 
+                    contract_duration, spec_content, st.session_state.get("council", "Blacktown City Council")
+                )
+                
+                # Store in session state
+                st.session_state["generated_quote"] = quote_package
+                st.session_state["tender_type"] = "quote"
+                
+                st.success("✅ Complete quote package generated successfully!")
+                st.rerun()
+                
+            except Exception as e:
+                st.error(f"❌ Error generating quote: {str(e)}")
+    
+    # Show generated quote if available
+    if "generated_quote" in st.session_state:
+        show_generated_quote(st.session_state["generated_quote"])

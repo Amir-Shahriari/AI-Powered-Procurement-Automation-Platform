@@ -21,7 +21,7 @@ output by editing the returned JSON before conversion to a document.
 from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
-from .base import unique_keep_order
+from app.services.base import unique_keep_order
 
 
 def _ensure_dict(obj: Dict[str, Any], key: str) -> Dict[str, Any]:

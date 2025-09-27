@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List
-from .base import unique_keep_order
+from app.services.base import unique_keep_order
 
 def compose_rft(spec_summary: Any, parsed: Dict[str, Any]) -> Any:
     """Return an RFTDoc-compatible dict with header + sections (no Section model)."""

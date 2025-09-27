@@ -1,0 +1,26 @@
+"""
+AI-Powered Contract Review Page
+Comprehensive contract analysis with risk, compliance, and governance review
+"""
+
+import streamlit as st
+from app.core.ui_helpers import _inject_css
+from app.components.sidebar_navigation import render_sidebar
+from app.components.contract_review_ui import show_contract_reviewer, show_contract_review_dashboard
+
+
+def page_contract_review():
+    """Contract review page with tabs for review and dashboard"""
+    
+    # Inject CSS and render sidebar
+    _inject_css()
+    render_sidebar()
+    
+    # Main tabs
+    tab1, tab2 = st.tabs(["🔍 Contract Review", "📊 Review Dashboard"])
+    
+    with tab1:
+        show_contract_reviewer()
+    
+    with tab2:
+        show_contract_review_dashboard()

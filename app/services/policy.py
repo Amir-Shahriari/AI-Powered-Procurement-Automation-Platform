@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import List
 from ..config import settings
-from .textio import extract_text
-from .vectorstores import LCFAISS  # type: ignore
-from ..deps import EMBED
+from app.services.textio import extract_text
+from app.services.vectorstores import LCFAISS  # type: ignore
+from app.deps import EMBED
 
 def _build_ephemeral_vs(texts: List[str]):
     if not texts: return None

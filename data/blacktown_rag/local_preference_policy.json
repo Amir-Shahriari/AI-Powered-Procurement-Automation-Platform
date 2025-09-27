@@ -1,0 +1,45 @@
+{
+  "document_id": "local_preference_policy",
+  "title": "Local Preference Policy - Blacktown City Council",
+  "content": {
+    "policy_details": {
+      "blacktown_lga": {
+        "discount_percentage": 5.0,
+        "max_benefit": 50000,
+        "description": "Supplier with a principal place of business or part of their business address (not being a PO Box) that is located within the Blacktown City local government area.",
+        "application": "5% discount on the tendered pricing capped at a maximum benefit of $50,000"
+      },
+      "western_sydney": {
+        "discount_percentage": 2.5,
+        "max_benefit": 25000,
+        "description": "Supplier with a principal place of business or part of their business address (not being a PO Box) that is located within a Western Sydney Council LGA",
+        "councils": [
+          "Blue Mountains City Council",
+          "City of Parramatta Council",
+          "Cumberland City Council",
+          "Fairfield City Council",
+          "Hawkesbury City Council",
+          "Liverpool City Council",
+          "Parramatta City Council",
+          "Penrith City Council",
+          "The Hills Shire Council"
+        ],
+        "application": "2.5% discount capped at a maximum of $25,000 for those suppliers located in Western Sydney Councils"
+      }
+    },
+    "application_requirements": [
+      "For any suppliers identified as being eligible for application of local preference benefit please provide the address confirming them as local in the third tab of the tender evaluation spreadsheet",
+      "The evaluation spread sheet located on the procurement – tenders section of the intranet must be used",
+      "Applicants will be evaluated in accordance with the Local Preference Policy as specified in the Procurement Policy P000553.1"
+    ]
+  },
+  "metadata": {
+    "source": "Blacktown City Council Tender & Quotation Evaluation Manual",
+    "section": "A.9 LOCAL PREFERENCE CRITERIA",
+    "policy_reference": "Procurement Policy P000553.1",
+    "document_type": "local_preference_policy"
+  },
+  "created_date": "2025-09-27T14:50:17.802624",
+  "updated_date": "2025-09-27T14:50:17.802624",
+  "version": "1.0"
+}

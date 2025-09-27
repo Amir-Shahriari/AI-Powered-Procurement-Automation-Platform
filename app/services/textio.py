@@ -2,7 +2,7 @@ from pathlib import Path
 from fastapi import HTTPException
 import fitz, docx2txt
 from typing import List
-from ..deps import SPLITTER
+from app.deps import SPLITTER
 
 def extract_text(tmp: Path) -> str:
     ext = tmp.suffix.lower()

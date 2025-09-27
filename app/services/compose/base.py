@@ -6,7 +6,7 @@ import re
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from langchain.schema import SystemMessage, HumanMessage
-from ..llm import _llm  # Gemini 1.5 primary, fallback to local Ollama via your wrapper
+from app.services.llm import _llm  # Gemini 1.5 primary, fallback to local Ollama via your wrapper
 
 # -----------------------------
 # JSON utils (hardened)

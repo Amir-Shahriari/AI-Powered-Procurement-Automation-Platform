@@ -1,0 +1,353 @@
+"""
+Smart Procurement Flow Page - NSW Procurement Platform
+AI-powered procurement guidance with integrated compliance
+"""
+
+import streamlit as st
+import json
+from pathlib import Path
+from typing import Dict, List, Any
+import pandas as pd
+
+# Import the unified compliance engine
+from app.services.unified_compliance_engine import UnifiedComplianceEngine, ProcurementValue, ComplianceStatus
+
+def _check_authentication():
+    """Check if user is authenticated"""
+    user = st.session_state.get("auth_user")
+    if not user:
+        st.error("🔒 Please log in to access this page")
+        st.stop()
+    return user
+
+def _topbar():
+    """Top navigation bar"""
+    col1, col2, col3 = st.columns([1, 4, 1])
+    
+    with col1:
+        if st.button("← Back", key="back_button", help="Return to main page"):
+            st.session_state["current_page"] = "home"
+            st.rerun()
+    
+    with col2:
+        st.markdown("""
+        <div style="text-align: center; padding: 1rem; background: linear-gradient(90deg, #1e3a8a, #3b82f6); border-radius: 10px; margin-bottom: 1rem;">
+            <h2 style="color: white; margin: 0; font-weight: 600;">🤖 AI-Powered Smart Procurement Flow</h2>
+            <p style="color: #e0e7ff; margin: 0.5rem 0 0 0;">Intelligent guidance for your procurement process</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        if st.button("🔄 Refresh", key="refresh_button", help="Refresh the procurement flow"):
+            st.rerun()
+
+def page_smart_procurement_flow():
+    """Smart Procurement Flow page with AI guidance"""
+    
+    # Check authentication
+    user = _check_authentication()
+    _topbar()
+    
+    # Get project configuration from session state
+    project_type = st.session_state.get("project_type", "Construction")
+    contract_value = st.session_state.get("contract_value", "Under $100k (Quotation)")
+    council_type = st.session_state.get("council_type", "Blacktown City Council")
+    
+    # Display current configuration with better styling
+    st.markdown("### 📋 Current Project Configuration")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.info(f"**Project Type:**\n{project_type}")
+    
+    with col2:
+        st.info(f"**Contract Value:**\n{contract_value}")
+    
+    with col3:
+        st.info(f"**Council:**\n{council_type}")
+    
+    # Add configuration edit option
+    with st.expander("⚙️ Edit Configuration", expanded=False):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            new_project_type = st.selectbox(
+                "Project Type",
+                options=["Construction", "Fleet", "HVAC", "IT Services", "Services"],
+                index=["Construction", "Fleet", "HVAC", "IT Services", "Services"].index(project_type) if project_type in ["Construction", "Fleet", "HVAC", "IT Services", "Services"] else 0,
+                help="Select the type of project you're procuring"
+            )
+        
+        with col2:
+            new_contract_value = st.selectbox(
+                "Contract Value",
+                options=[
+                    "Under $100k (Quotation)",
+                    "$100k-$250k (Tender)", 
+                    "$250k-$500k (Formal Tender)",
+                    "$500k-$1M (Formal Tender)",
+                    "Over $1M (Formal Tender)"
+                ],
+                index=0,
+                help="Select the estimated contract value range"
+            )
+        
+        with col3:
+            new_council_type = st.selectbox(
+                "Council Type",
+                options=["Blacktown City Council", "Other NSW Council"],
+                index=0 if council_type == "Blacktown City Council" else 1,
+                help="Select your council type for compliance requirements"
+            )
+        
+        if st.button("💾 Update Configuration", type="primary"):
+            st.session_state["project_type"] = new_project_type
+            st.session_state["contract_value"] = new_contract_value
+            st.session_state["council_type"] = new_council_type
+            st.success("✅ Configuration updated!")
+            st.rerun()
+    
+    st.divider()
+    
+    # Initialize Unified Compliance Engine
+    try:
+        from app.config import settings
+        compliance_engine = UnifiedComplianceEngine(settings.DATA_DIR)
+        
+        # Parse contract value for AI analysis
+        contract_value_num = _parse_contract_value(contract_value)
+        
+        # Generate smart procurement flow
+        project_details = {
+            "project_type": project_type,
+            "contract_value": contract_value_num,
+            "council_type": council_type,
+            "user": user
+        }
+        
+        smart_flow = compliance_engine.get_smart_procurement_flow(
+            project_type, contract_value_num, project_details
+        )
+        
+        # Display AI-Generated Procurement Flow
+        st.markdown("### 🤖 AI-Generated Procurement Flow")
+        
+        # Flow Overview with better metrics
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric(
+                "📊 Process Type", 
+                smart_flow.procurement_value.value.replace("_", " ").title(),
+                help="Type of procurement process required"
+            )
+        
+        with col2:
+            st.metric(
+                "⏱️ Duration", 
+                smart_flow.estimated_duration,
+                help="Estimated time to complete the process"
+            )
+        
+        with col3:
+            risk_color = "🟢" if smart_flow.risk_level == "Low Risk" else "🟡" if smart_flow.risk_level == "Medium Risk" else "🔴"
+            st.metric(
+                "⚠️ Risk Level", 
+                f"{risk_color} {smart_flow.risk_level}",
+                help="Risk assessment for this procurement"
+            )
+        
+        with col4:
+            st.metric(
+                "🤖 AI Features", 
+                len(smart_flow.ai_interventions),
+                help="Number of AI-powered features available"
+            )
+        
+        st.divider()
+        
+        # Detailed Steps with better formatting
+        st.markdown("### 📋 Required Steps")
+        
+        for i, step in enumerate(smart_flow.required_steps, 1):
+            with st.container():
+                col1, col2 = st.columns([1, 10])
+                
+                with col1:
+                    st.markdown(f"**{i}**")
+                
+                with col2:
+                    st.markdown(f"**{step['title']}**")
+                    st.markdown(f"*{step['description']}*")
+                    
+                    if step.get('ai_assistance'):
+                        st.markdown(f"🤖 **AI Assistance:** {step['ai_assistance']}")
+                    
+                    if step.get('compliance_requirements'):
+                        with st.expander("📋 Compliance Requirements", expanded=False):
+                            for req in step['compliance_requirements']:
+                                st.markdown(f"• {req}")
+                    
+                    if step.get('estimated_time'):
+                        st.markdown(f"⏱️ **Estimated Time:** {step['estimated_time']}")
+                    
+                    if step.get('next_action'):
+                        if st.button(f"Start Step {i}", key=f"start_step_{i}", help=step.get('next_action')):
+                            # Navigate to appropriate page based on step
+                            if "upload" in step['title'].lower() or "document" in step['title'].lower():
+                                st.session_state["current_page"] = "upload"
+                            elif "evaluation" in step['title'].lower() or "evaluate" in step['title'].lower():
+                                st.session_state["current_page"] = "evaluation"
+                            elif "compliance" in step['title'].lower():
+                                st.session_state["current_page"] = "compliance"
+                            else:
+                                st.session_state["current_page"] = "upload"
+                            st.rerun()
+                
+                if i < len(smart_flow.required_steps):
+                    st.markdown("---")
+        
+        # AI Interventions section
+        if smart_flow.ai_interventions:
+            st.divider()
+            st.markdown("### 🤖 AI-Powered Features")
+            
+            for intervention in smart_flow.ai_interventions:
+                with st.expander(f"🤖 {intervention['feature']}", expanded=False):
+                    st.markdown(f"**Description:** {intervention['description']}")
+                    st.markdown(f"**When Used:** {intervention['trigger']}")
+                    st.markdown(f"**AI Models:** {', '.join(intervention['ai_models'])}")
+                    st.markdown(f"**Output:** {intervention['output']}")
+        
+        # Compliance Status
+        st.divider()
+        st.markdown("### ✅ Compliance Status")
+        
+        compliance_status = compliance_engine.check_compliance_status(project_details)
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            status_color = "🟢" if compliance_status.overall_status == "Compliant" else "🟡" if compliance_status.overall_status == "Partial" else "🔴"
+            st.metric(
+                "Overall Status",
+                f"{status_color} {compliance_status.overall_status}",
+                help="Overall compliance status for this project"
+            )
+        
+        with col2:
+            st.metric(
+                "Requirements Met",
+                f"{compliance_status.requirements_met}/{compliance_status.total_requirements}",
+                help="Number of compliance requirements met"
+            )
+        
+        with col3:
+            st.metric(
+                "Compliance Score",
+                f"{compliance_status.compliance_score:.1f}%",
+                help="Overall compliance score"
+            )
+        
+        # Action buttons
+        st.divider()
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            if st.button("📄 Start Document Creation", type="primary", help="Begin creating tender documents"):
+                st.session_state["current_page"] = "upload"
+                st.rerun()
+        
+        with col2:
+            if st.button("⚖️ View Evaluation Criteria", help="Review evaluation criteria and weights"):
+                st.session_state["current_page"] = "evaluation"
+                st.rerun()
+        
+        with col3:
+            if st.button("✅ Check Compliance", help="Verify compliance requirements"):
+                st.session_state["current_page"] = "compliance"
+                st.rerun()
+        
+        with col4:
+            if st.button("📊 View RAG Data", help="Access Blacktown RAG dashboard"):
+                st.session_state["current_page"] = "blacktown_rag_dashboard"
+                st.rerun()
+        
+    except Exception as e:
+        st.error(f"❌ Error loading procurement flow: {str(e)}")
+        st.info("💡 Please ensure all compliance systems are properly configured")
+        
+        # Fallback to basic flow
+        st.markdown("### 📋 Basic Procurement Flow")
+        st.info("Using basic procurement flow. Please configure compliance systems for full AI guidance.")
+        
+        if contract_value.startswith("Under $100k"):
+            st.markdown("**Quotation Process:**")
+            steps = [
+                "📄 Prepare specification",
+                "📞 Request quotes from suppliers", 
+                "🏆 Evaluate and select supplier",
+                "📝 Award contract"
+            ]
+        elif "$100k-$250k" in contract_value:
+            st.markdown("**Tender Process:**")
+            steps = [
+                "📄 Prepare tender documents",
+                "📢 Advertise tender",
+                "📥 Receive tender responses",
+                "🏆 Evaluate tenders",
+                "📝 Award contract"
+            ]
+        else:
+            st.markdown("**Formal Tender Process:**")
+            steps = [
+                "📄 Prepare formal tender documents",
+                "📢 Public advertisement",
+                "🏛️ Pre-tender briefing",
+                "📥 Receive tender responses",
+                "🏆 Formal evaluation",
+                "📝 Council approval and contract award"
+            ]
+        
+        for i, step in enumerate(steps, 1):
+            st.markdown(f"{i}. {step}")
+        
+        # Action buttons for basic flow
+        st.divider()
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button("📄 Start Document Creation", type="primary"):
+                st.session_state["current_page"] = "upload"
+                st.rerun()
+        
+        with col2:
+            if st.button("⚖️ View Evaluation", help="Review evaluation process"):
+                st.session_state["current_page"] = "evaluation"
+                st.rerun()
+        
+        with col3:
+            if st.button("✅ Check Compliance", help="Verify compliance requirements"):
+                st.session_state["current_page"] = "compliance"
+                st.rerun()
+
+def _parse_contract_value(contract_value_str: str) -> float:
+    """Parse contract value string to numeric value"""
+    try:
+        # Remove common prefixes and suffixes
+        value_str = contract_value_str.lower().replace("$", "").replace(",", "").replace("k", "000")
+        
+        if "under" in value_str:
+            return 50000  # Default for "under $100k"
+        elif "over" in value_str or "+" in value_str:
+            return 1000000  # Default for "over $1M"
+        else:
+            # Extract numeric value
+            import re
+            numbers = re.findall(r'\d+', value_str)
+            if numbers:
+                return float(numbers[0])
+            return 100000  # Default
+    except:
+        return 100000  # Default fallback

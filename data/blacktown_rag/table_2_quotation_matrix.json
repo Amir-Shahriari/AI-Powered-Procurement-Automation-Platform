@@ -1,0 +1,279 @@
+{
+  "document_id": "table_2_quotation_matrix",
+  "title": "Table 2 - Evaluation Criteria Matrix: Quotation Value ($100,000-$249,999)",
+  "content": {
+    "purchase_categories": {
+      "standard_product_good": {
+        "name": "Standard product or good",
+        "description": "A product or good that is well tested in the market place and is utilised by many other firms.",
+        "risk_profile": "Low Risk - Risk level can increase as price increases",
+        "criteria": {
+          "price": {
+            "weighting_range": [
+              40,
+              60
+            ],
+            "description": "Full Cost"
+          },
+          "relevant_experience": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "capability": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "work_health_safety": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          }
+        },
+        "combined_10_percent": []
+      },
+      "construction_contract": {
+        "name": "Construction contract valued up to $249,999",
+        "description": "Contract focuses on the delivery of the construction works",
+        "risk_profile": "Low Risk - Essential to ensure works comply with specification",
+        "criteria": {
+          "price": {
+            "weighting_range": [
+              40,
+              60
+            ],
+            "description": "Full Cost"
+          },
+          "relevant_experience": {
+            "weighting_range": [
+              10,
+              20
+            ]
+          },
+          "capability": {
+            "weighting_range": [
+              5,
+              20
+            ]
+          },
+          "quality_management": {
+            "weighting_range": [
+              2,
+              10
+            ]
+          },
+          "management_financial": {
+            "weighting_range": [
+              0,
+              10
+            ]
+          },
+          "work_health_safety": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          }
+        },
+        "combined_10_percent": [
+          "sustainability",
+          "eeo_fair_employment"
+        ]
+      },
+      "consultancy_contract": {
+        "name": "Consultancy contract valued up to $249,999",
+        "description": "Consultancy requiring a limited range of professional input",
+        "risk_profile": "Low Risk - Essential to ensure timeline, budgets and specification is met",
+        "criteria": {
+          "price": {
+            "weighting_range": [
+              20,
+              50
+            ],
+            "description": "Full Cost"
+          },
+          "relevant_experience": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "capability": {
+            "weighting_range": [
+              5,
+              30
+            ]
+          },
+          "management_financial": {
+            "weighting_range": [
+              0,
+              10
+            ]
+          },
+          "quality_management": {
+            "weighting_range": [
+              2,
+              5
+            ]
+          },
+          "work_health_safety": {
+            "weighting_range": [
+              2,
+              5
+            ]
+          }
+        },
+        "combined_10_percent": []
+      },
+      "service_delivery_contract": {
+        "name": "Service delivery contract valued up to $249,999",
+        "description": "Service contract that is for a limited period of time (regular or intermittent service provision)",
+        "risk_profile": "Low Risk - Essential to ensure service delivery",
+        "criteria": {
+          "price": {
+            "weighting_range": [
+              20,
+              50
+            ],
+            "description": "Full Cost"
+          },
+          "relevant_experience": {
+            "weighting_range": [
+              10,
+              40
+            ]
+          },
+          "capability": {
+            "weighting_range": [
+              5,
+              30
+            ]
+          },
+          "management_financial": {
+            "weighting_range": [
+              0,
+              10
+            ]
+          },
+          "quality_management": {
+            "weighting_range": [
+              2,
+              5
+            ]
+          },
+          "work_health_safety": {
+            "weighting_range": [
+              2,
+              10
+            ]
+          }
+        },
+        "combined_10_percent": []
+      },
+      "management_contract": {
+        "name": "Management Contract up to $249,999",
+        "description": "A contract where the contractor manages a facility for council (i.e. Café, Showground)",
+        "risk_profile": "Medium Risk - Dependant on staff appointed to deliver the contract",
+        "criteria": {
+          "price": {
+            "weighting_range": [
+              30,
+              50
+            ],
+            "description": "Full Cost"
+          },
+          "relevant_experience": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "capability": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "management_financial": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          },
+          "quality_management": {
+            "weighting_range": [
+              2,
+              10
+            ]
+          },
+          "work_health_safety": {
+            "weighting_range": [
+              0,
+              10
+            ]
+          }
+        },
+        "combined_10_percent": []
+      },
+      "lease_license": {
+        "name": "Lease / Licence up to $249,999",
+        "description": "Where a supplier is submitting price to access a Council service or resource (i.e. commercial activity)",
+        "risk_profile": "Medium Risk - Dependant on experience and track record of proposed service provider",
+        "criteria": {
+          "price": {
+            "weighting_range": [
+              30,
+              50
+            ],
+            "description": "Full Cost"
+          },
+          "relevant_experience": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "capability": {
+            "weighting_range": [
+              10,
+              30
+            ]
+          },
+          "management_financial": {
+            "weighting_range": [
+              5,
+              10
+            ]
+          },
+          "quality_management": {
+            "weighting_range": [
+              0,
+              10
+            ]
+          },
+          "work_health_safety": {
+            "weighting_range": [
+              0,
+              10
+            ]
+          }
+        },
+        "combined_10_percent": []
+      }
+    }
+  },
+  "metadata": {
+    "source": "Blacktown City Council Tender & Quotation Evaluation Manual",
+    "table_reference": "Table 2",
+    "section": "A.7.1 Staff should apply the relevant criteria weighting range based on the type of purchase category",
+    "contract_value_range": "$100,000 - $249,999",
+    "document_type": "evaluation_matrix"
+  },
+  "created_date": "2025-09-27T14:50:17.802624",
+  "updated_date": "2025-09-27T14:50:17.802624",
+  "version": "1.0"
+}

@@ -1,0 +1,119 @@
+{
+  "quote_id": "592a61f4ae06",
+  "title": "Test HVAC Installation",
+  "description": "Test HVAC system installation",
+  "quote_type": "quotation",
+  "category": "construction",
+  "status": "draft",
+  "client_name": "Test Client",
+  "client_email": "test@example.com",
+  "client_phone": "",
+  "project_reference": "",
+  "quote_date": "2025-09-24",
+  "valid_until": "2025-10-24",
+  "items": [
+    {
+      "item_id": "item_1",
+      "description": "HVAC System Supply and Installation (including all necessary components)",
+      "quantity": 1.0,
+      "unit": "set",
+      "unit_price": 15000.0,
+      "total_price": 15000.0,
+      "category": "Materials & Installation",
+      "specifications": [
+        "High-efficiency 15 SEER air conditioning unit",
+        "Variable-speed air handler",
+        "Gas furnace (if applicable)",
+        "Appropriate ductwork sizing and installation",
+        "Refrigerant lines and electrical connections",
+        "All necessary permits and inspections"
+      ],
+      "notes": "Specific model and size to be confirmed based on site survey."
+    },
+    {
+      "item_id": "item_2",
+      "description": "Site Survey and System Design",
+      "quantity": 1.0,
+      "unit": "each",
+      "unit_price": 500.0,
+      "total_price": 500.0,
+      "category": "Engineering & Design",
+      "specifications": [
+        "On-site assessment of existing conditions",
+        "System design optimized for energy efficiency and client needs",
+        "Detailed schematics and plans"
+      ],
+      "notes": "Includes travel time and preliminary design consultation."
+    },
+    {
+      "item_id": "item_3",
+      "description": "Testing and Commissioning",
+      "quantity": 1.0,
+      "unit": "each",
+      "unit_price": 1000.0,
+      "total_price": 1000.0,
+      "category": "Testing & Commissioning",
+      "specifications": [
+        "Leak detection and pressure testing of refrigerant lines",
+        "Performance verification of all system components",
+        "Operational training for client personnel"
+      ],
+      "notes": "Ensures proper functionality and optimal performance of the installed system."
+    },
+    {
+      "item_id": "item_4",
+      "description": "Permitting and Inspection Fees",
+      "quantity": 1.0,
+      "unit": "each",
+      "unit_price": 500.0,
+      "total_price": 500.0,
+      "category": "Expenses",
+      "specifications": [
+        "All required local permits and inspection fees"
+      ],
+      "notes": "Actual fees may vary depending on local regulations."
+    },
+    {
+      "item_id": "item_5",
+      "description": "Project Management & Overhead",
+      "quantity": 1.0,
+      "unit": "each",
+      "unit_price": 1500.0,
+      "total_price": 1500.0,
+      "category": "Overhead",
+      "specifications": [
+        "Project coordination, scheduling, and communication"
+      ],
+      "notes": "Covers project management, communication and administrative costs."
+    }
+  ],
+  "subtotal": 18500.0,
+  "tax_rate": 0.1,
+  "tax_amount": 1850.0,
+  "total_amount": 20350.0,
+  "terms_conditions": [
+    "All work shall be performed in accordance with all applicable codes and regulations.",
+    "Client is responsible for providing safe and accessible access to the work area.",
+    "Changes to the scope of work will require a written change order.",
+    "Any unforeseen conditions will be communicated promptly."
+  ],
+  "payment_terms": "30% deposit upon contract signing, 50% upon completion of installation, 20% final payment upon successful testing and commissioning.",
+  "delivery_terms": "Project completion within 30 days of contract signing, subject to the availability of materials and favorable weather conditions. Specific scheduling details will be communicated in project plan.",
+  "warranty_terms": "One-year parts and labor warranty on all installed components. See detailed warranty document for complete terms and conditions.",
+  "special_requirements": [
+    "Client to provide access to electrical and gas services.",
+    "Client to ensure appropriate space for equipment installation."
+  ],
+  "attachments": [],
+  "metadata": {
+    "ai_generated": true,
+    "generation_confidence": 0.95,
+    "budget_range": [
+      10000,
+      50000
+    ],
+    "timeline_days": 30
+  },
+  "created_date": "2025-09-24T13:23:38.726169",
+  "updated_date": "2025-09-24T13:23:38.726169"
+}

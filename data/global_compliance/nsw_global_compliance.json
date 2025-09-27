@@ -1,0 +1,167 @@
+{
+  "evaluation_criteria": [
+    {
+      "name": "Price/Cost",
+      "weight": 40.0,
+      "description": "Total cost including all fees, taxes, and ongoing costs",
+      "sub_criteria": [
+        "Base price",
+        "Additional costs",
+        "Ongoing maintenance",
+        "Total cost of ownership"
+      ],
+      "scoring_method": "weighted",
+      "mandatory": true,
+      "source_document": "Tender Quotation Evaluation Manual V4- 2024"
+    },
+    {
+      "name": "Technical Capability",
+      "weight": 30.0,
+      "description": "Technical competence and ability to deliver requirements",
+      "sub_criteria": [
+        "Technical approach",
+        "Methodology",
+        "Innovation",
+        "Technical team"
+      ],
+      "scoring_method": "weighted",
+      "mandatory": true,
+      "source_document": "Tender Quotation Evaluation Manual V4- 2024"
+    },
+    {
+      "name": "Experience & Track Record",
+      "weight": 15.0,
+      "description": "Relevant experience and proven track record",
+      "sub_criteria": [
+        "Similar projects",
+        "Client references",
+        "Industry experience",
+        "Performance history"
+      ],
+      "scoring_method": "weighted",
+      "mandatory": true,
+      "source_document": "Tender Quotation Evaluation Manual V4- 2024"
+    },
+    {
+      "name": "Risk Management",
+      "weight": 10.0,
+      "description": "Risk identification, assessment, and mitigation strategies",
+      "sub_criteria": [
+        "Risk identification",
+        "Mitigation strategies",
+        "Contingency plans",
+        "Insurance coverage"
+      ],
+      "scoring_method": "weighted",
+      "mandatory": true,
+      "source_document": "Tender Quotation Evaluation Manual V4- 2024"
+    },
+    {
+      "name": "Probity & Compliance",
+      "weight": 5.0,
+      "description": "Adherence to probity requirements and regulatory compliance",
+      "sub_criteria": [
+        "Probity declaration",
+        "Regulatory compliance",
+        "Conflict of interest",
+        "Code of conduct"
+      ],
+      "scoring_method": "pass_fail",
+      "mandatory": true,
+      "source_document": "CAPH S9 procurement advisory & probity check (2024-11-20)"
+    }
+  ],
+  "compliance_requirements": [
+    {
+      "requirement": "Probity declaration must be completed by all suppliers",
+      "category": "probity",
+      "mandatory": true,
+      "applicable_processes": null,
+      "source_document": "Procurement Manual V4.8 2025"
+    },
+    {
+      "requirement": "Conflict of interest disclosure required",
+      "category": "probity",
+      "mandatory": true,
+      "applicable_processes": null,
+      "source_document": "Procurement Manual V4.8 2025"
+    },
+    {
+      "requirement": "Supplier must demonstrate financial capacity",
+      "category": "process",
+      "mandatory": true,
+      "applicable_processes": null,
+      "source_document": "Procurement Manual V4.8 2025"
+    },
+    {
+      "requirement": "Tender documents must include clear evaluation criteria",
+      "category": "documentation",
+      "mandatory": true,
+      "applicable_processes": null,
+      "source_document": "Tendering Guidelines November 21 V4 4"
+    },
+    {
+      "requirement": "Evaluation panel must include at least 3 members",
+      "category": "evaluation",
+      "mandatory": true,
+      "applicable_processes": null,
+      "source_document": "Tendering Guidelines November 21 V4 4"
+    },
+    {
+      "requirement": "Evaluation must be documented with clear justification",
+      "category": "evaluation",
+      "mandatory": true,
+      "applicable_processes": null,
+      "source_document": "Tendering Guidelines November 21 V4 4"
+    },
+    {
+      "requirement": "Probity audit trail must be maintained",
+      "category": "probity",
+      "mandatory": true,
+      "applicable_processes": null,
+      "source_document": "CAPH S9 procurement advisory & probity check (2024-11-20)"
+    },
+    {
+      "requirement": "Independent probity advisor required for high-value tenders",
+      "category": "probity",
+      "mandatory": true,
+      "applicable_processes": [
+        "formal_tender",
+        "selective_tender"
+      ],
+      "source_document": "CAPH S9 procurement advisory & probity check (2024-11-20)"
+    },
+    {
+      "requirement": "Compliance with Test-NSW-Procurement-Policy-2025.pdf standards",
+      "category": "documentation",
+      "mandatory": true,
+      "applicable_processes": null,
+      "source_document": "Test-NSW-Procurement-Policy-2025.pdf"
+    }
+  ],
+  "scoring_matrices": {
+    "weighted_1_5": {
+      "scale": "1-5",
+      "description": "1 = Poor, 2 = Below Average, 3 = Average, 4 = Good, 5 = Excellent",
+      "source": "Tender Quotation Evaluation Manual V4- 2024"
+    },
+    "weighted_1_10": {
+      "scale": "1-10",
+      "description": "1 = Poor, 10 = Excellent",
+      "source": "Tender Quotation Evaluation Manual V4- 2024"
+    },
+    "pass_fail": {
+      "scale": "Pass/Fail",
+      "description": "Pass = Meets requirement, Fail = Does not meet requirement",
+      "source": "CAPH S9 procurement advisory & probity check (2024-11-20)"
+    }
+  },
+  "last_updated": "2025-09-21T13:22:04.403876",
+  "source_documents": [
+    "CAPH S9 procurement advisory & probity check (2024-11-20)",
+    "Procurement Manual V4.8 2025",
+    "Tender Quotation Evaluation Manual V4- 2024",
+    "Tendering Guidelines November 21 V4 4",
+    "Test-NSW-Procurement-Policy-2025.pdf"
+  ]
+}

@@ -1,0 +1,217 @@
+"""
+Authentication and selection pages
+"""
+import streamlit as st
+from app.core.navigation import _nav_set
+from app.core.ui_helpers import _inject_css
+
+
+def page_login():
+    """Simple selection page - no authentication required."""
+    _inject_css()
+    
+    # Hide the default Streamlit elements
+    st.markdown('''
+    <style>
+    .stApp > header {visibility: hidden;}
+    .stApp > div:first-child {padding-top: 0;}
+    .stApp > div:first-child > div:first-child {padding-top: 0;}
+    .main .block-container {padding-top: 2rem; padding-bottom: 2rem;}
+    </style>
+    ''', unsafe_allow_html=True)
+    
+    # Simple centered layout
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        # Header
+        st.markdown('''
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <h1 style="color: #1e3a8a; font-size: 2.5rem; margin-bottom: 0.5rem; font-weight: 700;">
+                🏛️ NSW Procurement Platform
+            </h1>
+            <p style="color: #64748b; font-size: 1.2rem; margin-bottom: 2rem;">
+                AI-Powered Compliant Procurement for NSW Local Government
+            </p>
+        </div>
+        ''', unsafe_allow_html=True)
+        
+        # Simple selection form
+        with st.container():
+            st.markdown("### 🚀 Start New Procurement")
+            
+            # Basic info (optional)
+            officer_name = st.text_input(
+                "Your Name (Optional)",
+                placeholder="Enter your name for document attribution",
+                help="Optional - for document attribution and audit trail"
+            )
+            
+            council = st.selectbox(
+                "Council",
+                ["Blacktown City Council", "Parramatta City Council", "Liverpool City Council", "Other NSW Council"],
+                help="Select your local government area"
+            )
+            
+            st.markdown("---")
+            
+            # Procurement type selection
+            st.markdown("#### Choose Procurement Type:")
+            
+            col_tender, col_quote = st.columns(2)
+            
+            with col_tender:
+                if st.button("📋 **TENDER**\n\nFormal tender process\n$250k+ contracts\nFull evaluation", 
+                           type="primary", use_container_width=True, key="btn_tender"):
+                    st.session_state["council"] = council
+                    st.session_state["officer_name"] = officer_name or "Anonymous User"
+                    st.session_state["procurement_type"] = "tender"
+                    _nav_set("tender_creation")
+                    st.rerun()
+            
+            with col_quote:
+                if st.button("💰 **QUOTE**\n\nSimplified quotation\nUnder $250k\nQuick evaluation", 
+                           type="secondary", use_container_width=True, key="btn_quote"):
+                    st.session_state["council"] = council
+                    st.session_state["officer_name"] = officer_name or "Anonymous User"
+                    st.session_state["procurement_type"] = "quote"
+                    _nav_set("quote_creation")
+                    st.rerun()
+        
+        # Debug section
+        if st.button("🐛 Enable Debug Mode"):
+            st.session_state.debug = True
+            st.rerun()
+        
+        # Advanced features section
+        st.divider()
+        
+        with st.expander("🔧 Advanced Features", expanded=False):
+            st.markdown("Access advanced AI-powered tools and features:")
+            
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                if st.button("🤖 **AI TEPP Generator**", use_container_width=True):
+                    _nav_set("enhanced_tepp")
+                    st.rerun()
+            
+            with col2:
+                if st.button("📊 Results & Analytics", use_container_width=True):
+                    _nav_set("results")
+                    st.rerun()
+            
+            with col3:
+                if st.button("🔍 Compliance Dashboard", use_container_width=True):
+                    _nav_set("compliance")
+                    st.rerun()
+            
+            with col4:
+                if st.button("📚 Historical Projects", use_container_width=True):
+                    _nav_set("historical_projects")
+                    st.rerun()
+            
+            # Second row of advanced features
+            st.markdown("---")
+            col5, col6, col7, col8 = st.columns(4)
+            
+            with col5:
+                if st.button("🔍 **Contract Review**", use_container_width=True, type="primary"):
+                    _nav_set("contract_review")
+                    st.rerun()
+            
+            with col6:
+                if st.button("📈 Analytics", use_container_width=True):
+                    _nav_set("ai_usage_monitor")
+                    st.rerun()
+            
+            with col7:
+                if st.button("🔧 RAG Monitor", use_container_width=True):
+                    _nav_set("rag_monitor")
+                    st.rerun()
+            
+            with col8:
+                if st.button("⚖️ Legal Review", use_container_width=True):
+                    _nav_set("compliance_dashboard")
+                    st.rerun()
+        
+        # Footer
+        st.markdown('''
+        <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #eee;">
+            <p style="color: #666; font-size: 0.9rem; margin: 0;">
+                <strong>AI-Powered</strong> • NSW Compliant • Free Access
+            </p>
+        </div>
+        ''', unsafe_allow_html=True)
+
+
+def page_home():
+    """Simplified home page with access to advanced features - no authentication required"""
+    _inject_css()
+    
+    # Header
+    st.markdown('''
+    <div style="text-align: center; padding: 2rem 0;">
+        <h1 style="color: #1e3a8a; font-size: 2rem; margin-bottom: 0.5rem; font-weight: 700;">
+            🏛️ NSW Procurement Platform
+        </h1>
+        <p style="color: #64748b; font-size: 1.1rem; margin-bottom: 2rem;">
+            AI-Powered Compliant Procurement for NSW Local Government
+        </p>
+    </div>
+    ''', unsafe_allow_html=True)
+    
+    # Main action buttons
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("📋 **Start New Tender**", use_container_width=True, type="primary"):
+            _nav_set("tender_creation")
+    
+    with col2:
+        if st.button("💰 **Start New Quote**", use_container_width=True, type="secondary"):
+            _nav_set("quote_creation")
+    
+    # Back to selection button
+    if st.button("🔄 **Back to Selection**", use_container_width=True):
+        _nav_set("login")
+        st.rerun()
+    
+    st.divider()
+    
+    # Advanced features (hidden by default)
+    with st.expander("🔧 Advanced Features", expanded=False):
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            if st.button("🤖 **AI TEPP Generator**", use_container_width=True):
+                _nav_set("enhanced_tepp")
+        
+        with col2:
+            if st.button("📊 Results & Analytics", use_container_width=True):
+                _nav_set("results")
+        
+        with col3:
+            if st.button("🔍 Compliance Dashboard", use_container_width=True):
+                _nav_set("compliance")
+        
+        with col4:
+            if st.button("📚 Historical Projects", use_container_width=True):
+                _nav_set("historical_projects")
+    
+    # Quick stats
+    st.markdown("### 📈 Platform Overview")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Active Tenders", "12", "3")
+    
+    with col2:
+        st.metric("Completed This Month", "8", "2")
+    
+    with col3:
+        st.metric("Compliance Score", "98%", "2%")
+    
+    with col4:
+        st.metric("AI Accuracy", "96%", "1%")

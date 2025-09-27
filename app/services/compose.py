@@ -145,7 +145,7 @@ def _calculate_dynamic_evaluation_weights(category: str) -> Optional[List[Dict[s
     return result
 
 # We reuse your LLM wrapper's rag_json; this file provides rag_json_plus for multi-VS
-from ..services.llm import rag_json, _llm  # _llm is your ChatOllama/ChatOpenAI selector
+from app.services.services.llm import rag_json, _llm  # _llm is your ChatOllama/ChatOpenAI selector
 
 # -------------------- LLM prompts (kept for potential future use) --------------------
 SPEC_SUMMARY_PROMPT = """You summarise government engineering tender specifications.
@@ -654,7 +654,7 @@ def compose_tepp(spec_summary: Any, parsed: Dict[str, Any], vs_spec, extra_vss: 
     spec- and policy-derived content. It also computes the evaluation weighting
     (LLM within Council ranges, with fallbacks) and injects it into the TEPP.
     """
-    from .templates import load_tepp_template
+    from app.services.templates import load_tepp_template
 
     tepp = load_tepp_template()
 

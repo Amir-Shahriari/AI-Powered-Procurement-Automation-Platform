@@ -11,10 +11,10 @@ from typing import Any, Dict, List, Optional, Tuple, Iterable
 from fastapi import UploadFile
 
 from ..config import settings
-from .textio import extract_text, chunks
-from .vectorstores import build_index, get_vs, _faiss_path, _chroma_name
-from .returnables_supplier import fill_returnables_from_supplier
-from .llm import rag_json
+from app.services.textio import extract_text, chunks
+from app.services.vectorstores import build_index, get_vs, _faiss_path, _chroma_name
+from app.services.returnables_supplier import fill_returnables_from_supplier
+from app.services.llm import rag_json
 
 # Excel generation
 from openpyxl import Workbook

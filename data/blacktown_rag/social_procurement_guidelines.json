@@ -1,0 +1,70 @@
+{
+  "document_id": "social_procurement_guidelines",
+  "title": "Social & Community Requirements - Social Procurement Guidelines",
+  "content": {
+    "social_procurement_definition": "Social procurement involves using procurement processes and purchasing power to generate positive social outcomes in addition to the delivery of efficient goods, services and works. These are achieved by setting social value objectives.",
+    "social_value_objectives": {
+      "employment_training": {
+        "name": "Employment and Training",
+        "how_achieved": [
+          "Building in to contracts opportunities for employment for people who have been excluded from the workforce",
+          "Strengthening Place-based employment",
+          "Generating training opportunities for people who have experienced long term unemployment as a pathway into labour market participation"
+        ]
+      },
+      "social_inclusion": {
+        "name": "Social Inclusion",
+        "how_achieved": [
+          "Building into contracts consideration about how suppliers could respond to reducing social exclusion in place or amongst particular populations by addressing: poverty and low income; lack of access to the job market; limited social supports and networks; lack of opportunities in local neighbourhoods; exclusion from services",
+          "Including, where appropriate, consideration of how suppliers could address disadvantage and exclusion associated with housing and tenancy",
+          "Including, where appropriate, consideration of how suppliers could contribute to empowerment and capacity-building opportunities that generate pathways out of exclusion and disadvantage"
+        ]
+      },
+      "diversity_equality": {
+        "name": "Diversity and Equality",
+        "how_achieved": [
+          "Ensuring that 'minority' businesses have fair and equal access to procurement opportunities eg. Indigenous businesses",
+          "Building a diverse supplier base that reflects the diversity of the community",
+          "Ensuring that small businesses and social benefit suppliers have fair and equal access to procurement opportunities"
+        ]
+      },
+      "local_sustainability": {
+        "name": "Local Sustainability",
+        "how_achieved": [
+          "Ensuring that the viability and sustainability of a local community and their economy is considered in purchasing and procurement decisions",
+          "Using local suppliers can help to stimulate the local economy, particularly in those communities that have experienced economic or social hardship"
+        ]
+      },
+      "social_service_innovation": {
+        "name": "Social and Service Innovation",
+        "how_achieved": [
+          "Ensuring that purchasing and procurement can play a role in supporting social innovation by enabling entities to test and develop and scale innovations in a market environment",
+          "Procurement can support social innovation and market creation through consideration of how procurement can open new markets"
+        ]
+      },
+      "fair_trade": {
+        "name": "Fair Trade",
+        "how_achieved": [
+          "Ensuring that supply chains are adhering to fair trade practices can generate social benefits for disadvantaged communities locally and internationally"
+        ]
+      }
+    },
+    "application_guidelines": [
+      "Social procurement includes all organisations that can meet the social procurement criteria defined in the specification",
+      "This meets the requirements of obtaining submissions through a public advertisement through an open tender or expression of interest for a selective tender required under the Local Government (General) Regulation 2005, Part 7 Tendering, Section 166",
+      "Social and Community criteria should be included in the specification as specific requirements under the heading of Social and Community",
+      "These should also include the performance measurements and how the criteria will be assessed",
+      "Under Local Government and Competition and Consumer Acts the criteria must not restrict tender submissions",
+      "The specification should detail the outcomes required and not a specific supplier's solution"
+    ],
+    "reference_document": "A Guide to Achieving Social Value through Public Sector Procurement - http://socialprocurementaustralasia.com/ninox/wp-content/uploads/2013/09/Social-Procurement-in-NSW-Full-Guide.pdf"
+  },
+  "metadata": {
+    "source": "Blacktown City Council Tender & Quotation Evaluation Manual",
+    "section": "A.10 SOCIAL & COMMUNITY CRITERIA",
+    "document_type": "social_procurement_guidelines"
+  },
+  "created_date": "2025-09-27T14:50:17.802624",
+  "updated_date": "2025-09-27T14:50:17.802624",
+  "version": "1.0"
+}

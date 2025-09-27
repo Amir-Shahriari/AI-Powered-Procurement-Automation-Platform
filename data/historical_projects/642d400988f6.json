@@ -1,0 +1,43 @@
+{
+  "project_id": "642d400988f6",
+  "title": "Stanhope Gardens Community Centre Construction",
+  "description": "New community centre construction including main hall, meeting rooms, kitchen facilities, and outdoor areas",
+  "category": "building_construction",
+  "start_date": "2022-09-01",
+  "end_date": "2023-12-15",
+  "total_cost": 2800000.0,
+  "council": "Blacktown City Council",
+  "project_type": "Community Infrastructure",
+  "key_specifications": [
+    "Community facilities",
+    "Accessibility compliance",
+    "Sustainable design",
+    "Landscaping"
+  ],
+  "success_factors": [
+    "Community consultation",
+    "Clear project scope",
+    "Experienced contractor"
+  ],
+  "challenges": [
+    "Site access issues",
+    "Material cost increases",
+    "Weather delays"
+  ],
+  "lessons_learned": [
+    "Include contingency for cost increases",
+    "Plan for weather delays",
+    "Maintain community engagement"
+  ],
+  "contractor_performance": {
+    "quality": 4.8,
+    "timeliness": 3.5,
+    "communication": 4.5
+  },
+  "compliance_issues": [
+    "Building permit delays"
+  ],
+  "metadata": {},
+  "created_date": "2025-09-24T13:03:05.395087",
+  "updated_date": "2025-09-24T13:03:05.395087"
+}

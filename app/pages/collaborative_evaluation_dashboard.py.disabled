@@ -1,0 +1,540 @@
+#!/usr/bin/env python3
+"""
+Collaborative Evaluation Dashboard
+User-friendly interface for committee members to review and score suppliers
+"""
+
+import streamlit as st
+from app.core.ui_helpers import _inject_css
+from app.components.sidebar_navigation import render_sidebar
+from app.services.collaborative_evaluation_system import (
+    CollaborativeEvaluationSystem, 
+    CommitteeMember, 
+    CommitteeRole,
+    EvaluationStatus
+)
+from datetime import datetime
+import json
+import hashlib
+
+def page_collaborative_evaluation_dashboard():
+    """Collaborative evaluation dashboard page"""
+    
+    _inject_css()
+    render_sidebar()
+    
+    st.title("🤝 Collaborative Evaluation System")
+    st.markdown("AI-powered initial analysis with human committee consensus")
+    
+    # Initialize evaluation system
+    try:
+        eval_system = CollaborativeEvaluationSystem()
+    except Exception as e:
+        st.error(f"❌ Error initializing evaluation system: {e}")
+        return
+    
+    # Check if user is logged in as committee member
+    if "user_name" not in st.session_state:
+        st.warning("🔒 Please sign in to access evaluation system")
+        return
+    
+    # Get current user info
+    user_name = st.session_state.get("user_name", "Unknown")
+    user_email = st.session_state.get("user_email", "unknown@example.com")
+    
+    # Create tabs for different functions
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "🏁 Start Evaluation", 
+        "📝 My Evaluations", 
+        "🤝 Consensus Meeting", 
+        "📊 Results"
+    ])
+    
+    with tab1:
+        show_start_evaluation_interface(eval_system, user_name, user_email)
+    
+    with tab2:
+        show_my_evaluations_interface(eval_system, user_name)
+    
+    with tab3:
+        show_consensus_meeting_interface(eval_system)
+    
+    with tab4:
+        show_evaluation_results_interface(eval_system)
+
+def show_start_evaluation_interface(eval_system, user_name, user_email):
+    """Interface to start new evaluation process"""
+    
+    st.markdown("### 🏁 Start New Evaluation Process")
+    st.markdown("Begin AI-powered evaluation with committee consensus")
+    
+    with st.form("start_evaluation_form"):
+        st.markdown("#### 📋 Project Information")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            project_title = st.text_input("Project Title", placeholder="Enter project title")
+            project_type = st.selectbox("Project Type", 
+                options=["Construction", "Services", "Consulting", "Equipment", "IT", "Other"])
+            contract_value = st.number_input("Contract Value ($)", min_value=0.0, value=0.0)
+        
+        with col2:
+            council = st.text_input("Council", value="Blacktown City Council")
+            procurement_type = st.selectbox("Procurement Type", 
+                options=["Tender", "Quote", "Request for Proposal"])
+            timeline_days = st.number_input("Timeline (days)", min_value=1, value=30)
+        
+        st.markdown("#### 👥 Committee Members")
+        st.markdown("Add committee members who will participate in evaluation")
+        
+        # Committee member management
+        if "committee_members" not in st.session_state:
+            st.session_state.committee_members = []
+        
+        col1, col2, col3 = st.columns([2, 1, 1])
+        
+        with col1:
+            member_name = st.text_input("Member Name", placeholder="Enter member name")
+        with col2:
+            member_email = st.text_input("Email", placeholder="member@council.gov.au")
+        with col3:
+            member_role = st.selectbox("Role", options=[role.value for role in CommitteeRole])
+        
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.form_submit_button("➕ Add Member", use_container_width=True):
+                if member_name and member_email:
+                    new_member = {
+                        "name": member_name,
+                        "email": member_email,
+                        "role": member_role,
+                        "department": "Procurement"
+                    }
+                    st.session_state.committee_members.append(new_member)
+                    st.success(f"✅ Added {member_name}")
+                    st.rerun()
+        
+        with col2:
+            if st.form_submit_button("🗑️ Clear All", use_container_width=True):
+                st.session_state.committee_members = []
+                st.success("✅ Cleared all members")
+                st.rerun()
+        
+        # Display current members
+        if st.session_state.committee_members:
+            st.markdown("**Current Committee Members:**")
+            for i, member in enumerate(st.session_state.committee_members):
+                col1, col2, col3 = st.columns([2, 1, 1])
+                with col1:
+                    st.write(f"👤 {member['name']} ({member['role']})")
+                with col2:
+                    st.write(f"📧 {member['email']}")
+                with col3:
+                    if st.button(f"❌ Remove", key=f"remove_{i}"):
+                        st.session_state.committee_members.pop(i)
+                        st.rerun()
+        
+        st.markdown("#### 📄 Evaluation Criteria")
+        st.markdown("Configure evaluation criteria and weightings")
+        
+        # Default criteria
+        default_criteria = [
+            {"name": "Price/Cost", "weight": 40.0, "description": "Total cost including all fees and ongoing costs"},
+            {"name": "Technical Capability", "weight": 30.0, "description": "Technical competence and ability to deliver"},
+            {"name": "Relevant Experience", "weight": 20.0, "description": "Past performance and relevant experience"},
+            {"name": "Management & Financial Capacity", "weight": 10.0, "description": "Financial stability and management capability"}
+        ]
+        
+        criteria_data = []
+        for i, criterion in enumerate(default_criteria):
+            col1, col2, col3 = st.columns([3, 1, 1])
+            with col1:
+                st.write(f"**{criterion['name']}**")
+                st.caption(criterion['description'])
+            with col2:
+                weight = st.number_input("Weight %", min_value=0.0, max_value=100.0, 
+                                      value=criterion['weight'], key=f"weight_{i}")
+            with col3:
+                st.write(f"{weight}%")
+            
+            criteria_data.append({
+                "name": criterion['name'],
+                "weight": weight,
+                "description": criterion['description']
+            })
+        
+        # Start evaluation button
+        if st.form_submit_button("🚀 Start AI-Powered Evaluation", type="primary", use_container_width=True):
+            if project_title and st.session_state.committee_members:
+                # Create committee member objects
+                committee_members = []
+                for member_data in st.session_state.committee_members:
+                    member = CommitteeMember(
+                        member_id=hashlib.md5(member_data['email'].encode()).hexdigest()[:8],
+                        name=member_data['name'],
+                        email=member_data['email'],
+                        role=CommitteeRole(member_data['role']),
+                        department=member_data.get('department', 'Procurement')
+                    )
+                    committee_members.append(member)
+                
+                # Create project context
+                project_context = {
+                    "project_title": project_title,
+                    "project_type": project_type,
+                    "contract_value": contract_value,
+                    "council": council,
+                    "procurement_type": procurement_type,
+                    "timeline_days": timeline_days
+                }
+                
+                # Mock suppliers for demo
+                suppliers = [
+                    {"id": "supplier_1", "name": "ABC Construction Ltd", "submission_text": "Sample submission 1"},
+                    {"id": "supplier_2", "name": "XYZ Services Pty Ltd", "submission_text": "Sample submission 2"},
+                    {"id": "supplier_3", "name": "DEF Consulting Group", "submission_text": "Sample submission 3"}
+                ]
+                
+                with st.spinner("🤖 AI is analyzing submissions and generating initial scores..."):
+                    try:
+                        evaluation_id = eval_system.start_evaluation_process(
+                            suppliers, criteria_data, committee_members, project_context
+                        )
+                        
+                        st.success(f"✅ Evaluation process started! Evaluation ID: {evaluation_id}")
+                        st.info("📧 Committee members will receive email notifications to begin their evaluations")
+                        
+                        # Store evaluation ID for navigation
+                        st.session_state["current_evaluation_id"] = evaluation_id
+                        
+                    except Exception as e:
+                        st.error(f"❌ Error starting evaluation: {e}")
+            else:
+                st.warning("⚠️ Please provide project title and add at least one committee member")
+
+def show_my_evaluations_interface(eval_system, user_name):
+    """Interface for committee members to review and score"""
+    
+    st.markdown("### 📝 My Evaluations")
+    st.markdown("Review AI analysis and provide your scores")
+    
+    # Get evaluation ID
+    evaluation_id = st.session_state.get("current_evaluation_id")
+    if not evaluation_id:
+        st.info("📋 No active evaluation. Start a new evaluation process first.")
+        return
+    
+    # Get member ID (simplified for demo)
+    member_id = hashlib.md5(st.session_state.get("user_email", "demo@example.com").encode()).hexdigest()[:8]
+    
+    # Get evaluation interface
+    try:
+        eval_interface = eval_system.get_committee_evaluation_interface(evaluation_id, member_id)
+        
+        if "error" in eval_interface:
+            st.error(f"❌ {eval_interface['error']}")
+            return
+        
+        # Display suppliers
+        for supplier in eval_interface["suppliers"]:
+            with st.expander(f"🏢 {supplier['supplier_name']} - Evaluation", expanded=True):
+                
+                # AI Analysis Summary
+                st.markdown("#### 🤖 AI Analysis Summary")
+                
+                for ai_analysis in supplier["ai_analysis"]:
+                    col1, col2, col3 = st.columns([2, 1, 1])
+                    
+                    with col1:
+                        st.write(f"**{ai_analysis['criterion_name']}**")
+                        st.caption(ai_analysis['ai_justification'])
+                    
+                    with col2:
+                        st.metric("AI Score", f"{ai_analysis['ai_score']:.1f}/5.0")
+                    
+                    with col3:
+                        confidence = ai_analysis['confidence_level']
+                        st.metric("Confidence", f"{confidence:.1%}")
+                    
+                    # Supporting evidence
+                    if ai_analysis['supporting_evidence']:
+                        with st.expander("📄 Supporting Evidence", expanded=False):
+                            for evidence in ai_analysis['supporting_evidence']:
+                                st.write(f"• {evidence}")
+                    
+                    # Compliance notes
+                    if ai_analysis['compliance_notes']:
+                        with st.expander("✅ Compliance Notes", expanded=False):
+                            for note in ai_analysis['compliance_notes']:
+                                st.write(f"• {note}")
+                    
+                    # Risk factors
+                    if ai_analysis['risk_factors']:
+                        with st.expander("⚠️ Risk Factors", expanded=False):
+                            for risk in ai_analysis['risk_factors']:
+                                st.write(f"• {risk}")
+                    
+                    st.markdown("---")
+                
+                # Member scoring interface
+                st.markdown("#### 📝 Your Evaluation")
+                
+                with st.form(f"member_evaluation_{supplier['supplier_id']}"):
+                    criterion_scores = []
+                    
+                    for ai_analysis in supplier["ai_analysis"]:
+                        st.markdown(f"**{ai_analysis['criterion_name']}**")
+                        
+                        col1, col2 = st.columns([1, 2])
+                        
+                        with col1:
+                            member_score = st.slider(
+                                "Your Score (0-5)", 
+                                min_value=0.0, 
+                                max_value=5.0, 
+                                value=ai_analysis['ai_score'], 
+                                step=0.1,
+                                key=f"score_{supplier['supplier_id']}_{ai_analysis['criterion_name']}"
+                            )
+                        
+                        with col2:
+                            member_justification = st.text_area(
+                                "Your Justification",
+                                value=f"Based on AI analysis: {ai_analysis['ai_justification'][:100]}...",
+                                height=80,
+                                key=f"just_{supplier['supplier_id']}_{ai_analysis['criterion_name']}"
+                            )
+                        
+                        member_comments = st.text_input(
+                            "Additional Comments (Optional)",
+                            placeholder="Any additional notes or concerns...",
+                            key=f"comments_{supplier['supplier_id']}_{ai_analysis['criterion_name']}"
+                        )
+                        
+                        criterion_scores.append({
+                            "criterion_name": ai_analysis['criterion_name'],
+                            "member_score": member_score,
+                            "member_justification": member_justification,
+                            "comments": member_comments,
+                            "member_name": user_name
+                        })
+                        
+                        st.markdown("---")
+                    
+                    # Submit button
+                    col1, col2, col3 = st.columns([1, 1, 1])
+                    
+                    with col1:
+                        if st.form_submit_button("💾 Save Draft", use_container_width=True):
+                            # Save as draft (not final)
+                            for score in criterion_scores:
+                                score["is_final"] = False
+                            
+                            success = eval_system.submit_member_evaluation(
+                                evaluation_id, member_id, supplier['supplier_id'], criterion_scores
+                            )
+                            
+                            if success:
+                                st.success("✅ Draft saved successfully!")
+                            else:
+                                st.error("❌ Error saving draft")
+                    
+                    with col2:
+                        if st.form_submit_button("✅ Submit Final", type="primary", use_container_width=True):
+                            # Mark as final
+                            for score in criterion_scores:
+                                score["is_final"] = True
+                            
+                            success = eval_system.submit_member_evaluation(
+                                evaluation_id, member_id, supplier['supplier_id'], criterion_scores
+                            )
+                            
+                            if success:
+                                st.success("✅ Final evaluation submitted!")
+                                st.info("📧 Other committee members will be notified of your submission")
+                            else:
+                                st.error("❌ Error submitting evaluation")
+                    
+                    with col3:
+                        if st.form_submit_button("🔄 Reset", use_container_width=True):
+                            st.rerun()
+    
+    except Exception as e:
+        st.error(f"❌ Error loading evaluation interface: {e}")
+
+def show_consensus_meeting_interface(eval_system):
+    """Interface for consensus meeting and finalization"""
+    
+    st.markdown("### 🤝 Consensus Meeting")
+    st.markdown("Review all member evaluations and finalize consensus scores")
+    
+    evaluation_id = st.session_state.get("current_evaluation_id")
+    if not evaluation_id:
+        st.info("📋 No active evaluation. Start a new evaluation process first.")
+        return
+    
+    # Generate consensus meeting data
+    try:
+        consensus_data = eval_system.generate_consensus_meeting_data(evaluation_id)
+        
+        if "error" in consensus_data:
+            st.error(f"❌ {consensus_data['error']}")
+            return
+        
+        st.markdown(f"**Meeting Date:** {consensus_data['meeting_date']}")
+        st.markdown(f"**Total Suppliers:** {len(consensus_data['suppliers'])}")
+        
+        # Display consensus analysis for each supplier
+        for supplier in consensus_data["suppliers"]:
+            with st.expander(f"🏢 {supplier['supplier_name']} - Consensus Analysis", expanded=True):
+                
+                for criterion in supplier["criteria_analysis"]:
+                    st.markdown(f"#### {criterion['criterion_name']}")
+                    
+                    # AI vs Member scores comparison
+                    col1, col2, col3, col4 = st.columns(4)
+                    
+                    with col1:
+                        st.metric("AI Score", f"{criterion['ai_score']:.1f}")
+                    with col2:
+                        st.metric("Average Member Score", f"{criterion['average_score']:.1f}")
+                    with col3:
+                        st.metric("Agreement Level", f"{criterion['agreement_level']:.1%}")
+                    with col4:
+                        st.metric("Variance", f"{criterion['score_variance']:.2f}")
+                    
+                    # Member scores breakdown
+                    st.markdown("**Member Evaluations:**")
+                    for member_eval in criterion["member_scores"]:
+                        col1, col2 = st.columns([1, 3])
+                        with col1:
+                            st.write(f"👤 {member_eval['member_name']}: {member_eval['score']:.1f}")
+                        with col2:
+                            st.caption(member_eval['justification'])
+                    
+                    # Consensus score input
+                    with st.form(f"consensus_{supplier['supplier_id']}_{criterion['criterion_name']}"):
+                        st.markdown("**Final Consensus Score:**")
+                        
+                        col1, col2 = st.columns([1, 2])
+                        
+                        with col1:
+                            final_score = st.number_input(
+                                "Consensus Score (0-5)",
+                                min_value=0.0,
+                                max_value=5.0,
+                                value=criterion['recommended_consensus_score'],
+                                step=0.1,
+                                key=f"final_{supplier['supplier_id']}_{criterion['criterion_name']}"
+                            )
+                        
+                        with col2:
+                            consensus_justification = st.text_area(
+                                "Consensus Justification",
+                                value=f"Based on committee discussion and AI analysis",
+                                height=60,
+                                key=f"consensus_just_{supplier['supplier_id']}_{criterion['criterion_name']}"
+                            )
+                        
+                        dissenting_views = st.text_input(
+                            "Dissenting Views (if any)",
+                            placeholder="Record any dissenting opinions...",
+                            key=f"dissenting_{supplier['supplier_id']}_{criterion['criterion_name']}"
+                        )
+                        
+                        if st.form_submit_button("✅ Finalize Criterion", use_container_width=True):
+                            st.success(f"✅ {criterion['criterion_name']} finalized with score {final_score:.1f}")
+        
+        # Final consensus submission
+        st.markdown("---")
+        st.markdown("#### 🎯 Final Consensus Submission")
+        
+        if st.button("🏁 Finalize All Consensus Scores", type="primary", use_container_width=True):
+            st.info("📊 Finalizing consensus scores and calculating rankings...")
+            st.success("✅ Evaluation process completed!")
+            st.info("📧 All committee members will receive final results")
+    
+    except Exception as e:
+        st.error(f"❌ Error loading consensus meeting data: {e}")
+
+def show_evaluation_results_interface(eval_system):
+    """Interface to view final evaluation results"""
+    
+    st.markdown("### 📊 Evaluation Results")
+    st.markdown("View final evaluation results and supplier rankings")
+    
+    evaluation_id = st.session_state.get("current_evaluation_id")
+    if not evaluation_id:
+        st.info("📋 No active evaluation. Start a new evaluation process first.")
+        return
+    
+    # Get evaluation summary
+    try:
+        summary = eval_system.get_evaluation_summary(evaluation_id)
+        
+        if "error" in summary:
+            st.error(f"❌ {summary['error']}")
+            return
+        
+        st.markdown(f"**Evaluation ID:** {summary['evaluation_id']}")
+        st.markdown(f"**Status:** {summary['status']}")
+        st.markdown(f"**Total Suppliers:** {summary['total_suppliers']}")
+        
+        # Display supplier rankings
+        st.markdown("#### 🏆 Supplier Rankings")
+        
+        for supplier in summary["suppliers"]:
+            with st.expander(f"#{supplier['rank']} {supplier['supplier_name']} - Score: {supplier['total_score']:.1f}", 
+                           expanded=supplier['rank'] == 1):
+                
+                col1, col2, col3, col4 = st.columns(4)
+                
+                with col1:
+                    st.metric("Total Score", f"{supplier['total_score']:.1f}")
+                with col2:
+                    st.metric("Rank", f"#{supplier['rank']}")
+                with col3:
+                    status_emoji = "✅" if supplier['consensus_finalized'] else "⏳"
+                    st.metric("Status", f"{status_emoji} {'Finalized' if supplier['consensus_finalized'] else 'In Progress'}")
+                with col4:
+                    st.metric("AI Analysis", "✅" if supplier['ai_analysis_complete'] else "❌")
+                
+                # Progress indicators
+                progress_cols = st.columns(3)
+                with progress_cols[0]:
+                    st.progress(1.0 if supplier['ai_analysis_complete'] else 0.0, text="AI Analysis")
+                with progress_cols[1]:
+                    st.progress(1.0 if supplier['member_evaluations_count'] > 0 else 0.0, text="Member Reviews")
+                with progress_cols[2]:
+                    st.progress(1.0 if supplier['consensus_finalized'] else 0.0, text="Consensus")
+        
+        # Export options
+        st.markdown("#### 📄 Export Results")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button("📊 Download Excel Report", use_container_width=True):
+                st.info("📊 Excel report generation coming soon")
+        
+        with col2:
+            if st.button("📄 Download PDF Report", use_container_width=True):
+                st.info("📄 PDF report generation coming soon")
+        
+        with col3:
+            if st.button("📧 Email Results", use_container_width=True):
+                st.info("📧 Email functionality coming soon")
+        
+    except Exception as e:
+        st.error(f"❌ Error loading results: {e}")
+
+# Helper function to create committee member
+def create_committee_member(name: str, email: str, role: str, department: str = "Procurement") -> CommitteeMember:
+    """Create a committee member object"""
+    return CommitteeMember(
+        member_id=hashlib.md5(email.encode()).hexdigest()[:8],
+        name=name,
+        email=email,
+        role=CommitteeRole(role),
+        department=department
+    )

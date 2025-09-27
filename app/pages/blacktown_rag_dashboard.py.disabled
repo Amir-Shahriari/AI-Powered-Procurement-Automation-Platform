@@ -1,0 +1,929 @@
+#!/usr/bin/env python3
+"""
+Blacktown RAG Dashboard
+UI for managing and viewing Blacktown City Council evaluation standards stored as RAG data
+"""
+
+import streamlit as st
+import json
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Any, Optional
+
+from app.services.blacktown_rag_system import BlacktownRAGSystem, BlacktownRAGDocument
+from app.config import settings
+
+def _check_authentication():
+    """Check if user is authenticated, redirect to login if not"""
+    user = st.session_state.get("auth_user")
+    if not user:
+        st.error("🔒 Authentication Required")
+        st.info("Please sign in to access this page.")
+        if st.button("Go to Login"):
+            st.session_state.nav_current = "login"
+            st.rerun()
+        st.stop()
+    return user
+
+def _topbar():
+    """Top navigation bar"""
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        st.markdown("""
+        <div style="text-align: center; padding: 1rem; background: linear-gradient(90deg, #1e3a8a, #3b82f6); border-radius: 10px; margin-bottom: 2rem;">
+            <h2 style="color: white; margin: 0; font-weight: 600;">📚 Blacktown City Council Standards</h2>
+            <p style="color: #e0e7ff; margin: 0.5rem 0 0 0;">Official evaluation criteria and matrices stored as RAG data</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        if st.button("← Back to Main", key="back_to_main"):
+            st.session_state["current_page"] = "home"
+            st.rerun()
+
+def page_blacktown_rag_dashboard():
+    """Blacktown RAG Dashboard page"""
+    
+    # Check authentication first
+    user = _check_authentication()
+    
+    _topbar()
+    
+    # Initialize RAG system
+    rag_system = BlacktownRAGSystem(settings.DATA_DIR)
+    
+    # Sidebar navigation
+    with st.sidebar:
+        st.markdown("### 📋 Navigation")
+        
+        page_options = [
+            "📊 Overview",
+            "📋 Table 1 - Criteria Options",
+            "📊 Table 2 - Quotation Matrix",
+            "📊 Table 3 - Tender Matrix", 
+            "📏 Table 4 - Rating Scales",
+            "🏠 Local Preference Policy",
+            "🤝 Social Procurement Guidelines",
+            "🔍 Search & Update"
+        ]
+        
+        selected_page = st.radio("Select Section", page_options)
+        
+        st.markdown("---")
+        st.markdown("### ℹ️ About RAG Storage")
+        st.info("""
+        **RAG (Retrieval-Augmented Generation)** storage allows:
+        - Easy updates without code changes
+        - Version control and history
+        - Searchable content
+        - Maintainable standards
+        """)
+    
+    # Main content based on selection
+    if selected_page == "📊 Overview":
+        _show_overview(rag_system)
+    elif selected_page == "📋 Table 1 - Criteria Options":
+        _show_table_1(rag_system)
+    elif selected_page == "📊 Table 2 - Quotation Matrix":
+        _show_table_2(rag_system)
+    elif selected_page == "📊 Table 3 - Tender Matrix":
+        _show_table_3(rag_system)
+    elif selected_page == "📏 Table 4 - Rating Scales":
+        _show_table_4(rag_system)
+    elif selected_page == "🏠 Local Preference Policy":
+        _show_local_preference(rag_system)
+    elif selected_page == "🤝 Social Procurement Guidelines":
+        _show_social_procurement(rag_system)
+    elif selected_page == "🔍 Search & Update":
+        _show_search_update(rag_system)
+
+def _show_overview(rag_system: BlacktownRAGSystem):
+    """Show overview of all RAG documents"""
+    
+    st.markdown("### 📊 Blacktown City Council Standards Overview")
+    
+    # Get all documents
+    all_docs = rag_system.get_all_rag_documents()
+    
+    if not all_docs:
+        st.error("No RAG documents found. Please initialize the system.")
+        return
+    
+    # Summary metrics
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Total Documents", len(all_docs))
+    
+    with col2:
+        criteria_docs = [doc for doc in all_docs if doc.metadata.get("document_type") == "evaluation_criteria"]
+        st.metric("Criteria Documents", len(criteria_docs))
+    
+    with col3:
+        matrix_docs = [doc for doc in all_docs if doc.metadata.get("document_type") == "evaluation_matrix"]
+        st.metric("Matrix Documents", len(matrix_docs))
+    
+    with col4:
+        policy_docs = [doc for doc in all_docs if doc.metadata.get("document_type") in ["local_preference_policy", "social_procurement_guidelines"]]
+        st.metric("Policy Documents", len(policy_docs))
+    
+    # Documents list
+    st.markdown("### 📚 Available Documents")
+    
+    for doc in all_docs:
+        with st.expander(f"📄 {doc.title}", expanded=False):
+            col1, col2 = st.columns([3, 1])
+            
+            with col1:
+                st.markdown(f"**Document ID:** `{doc.document_id}`")
+                st.markdown(f"**Type:** {doc.metadata.get('document_type', 'Unknown')}")
+                st.markdown(f"**Version:** {doc.version}")
+                st.markdown(f"**Source:** {doc.metadata.get('source', 'Unknown')}")
+                if doc.metadata.get('table_reference'):
+                    st.markdown(f"**Reference:** {doc.metadata['table_reference']}")
+                
+                # Show content preview
+                if isinstance(doc.content, dict):
+                    if "criteria_categories" in doc.content:
+                        categories = list(doc.content["criteria_categories"].keys())
+                        st.markdown(f"**Criteria Categories:** {', '.join(categories[:5])}{'...' if len(categories) > 5 else ''}")
+                    elif "purchase_categories" in doc.content:
+                        categories = list(doc.content["purchase_categories"].keys())
+                        st.markdown(f"**Purchase Categories:** {', '.join(categories[:5])}{'...' if len(categories) > 5 else ''}")
+                    elif "rating_scales" in doc.content:
+                        scales = list(doc.content["rating_scales"].keys())
+                        st.markdown(f"**Rating Scales:** {', '.join(scales)}")
+            
+            with col2:
+                st.markdown(f"**Created:** {doc.created_date[:10]}")
+                st.markdown(f"**Updated:** {doc.updated_date[:10]}")
+                
+                if st.button("View Details", key=f"view_{doc.document_id}"):
+                    # Toggle the view state
+                    current_state = st.session_state.get(f"view_doc_{doc.document_id}", False)
+                    st.session_state[f"view_doc_{doc.document_id}"] = not current_state
+                    st.rerun()
+            
+            # Check if this document should show details
+            if st.session_state.get(f"view_doc_{doc.document_id}", False):
+                st.markdown("---")
+                st.markdown("### 📖 Document Content")
+                
+                # Display full content based on document type
+                document_type = doc.metadata.get("document_type")
+                table_reference = doc.metadata.get("table_reference", "")
+                
+                
+                if document_type == "local_preference_policy":
+                    _display_local_preference_content(doc)
+                elif document_type == "social_procurement_guidelines":
+                    _display_social_procurement_content(doc)
+                elif document_type == "evaluation_criteria" or table_reference == "Table 1":
+                    _display_criteria_content(doc)
+                elif document_type == "evaluation_matrix" or table_reference in ["Table 2", "Table 3"]:
+                    _display_matrix_content(doc)
+                elif document_type == "rating_scales" or table_reference == "Table 4":
+                    _display_rating_scales_content(doc)
+                else:
+                    # Generic content display
+                    st.markdown("**Document Content:**")
+                    st.json(doc.content)
+                
+                if st.button("Close Details", key=f"close_{doc.document_id}"):
+                    st.session_state[f"view_doc_{doc.document_id}"] = False
+                    st.rerun()
+
+def _show_table_1(rag_system: BlacktownRAGSystem):
+    """Show Table 1 - Criteria Options"""
+    
+    st.markdown("### 📋 Table 1 - Criteria Evaluation Options")
+    
+    doc = rag_system.load_rag_document("table_1_criteria_options")
+    if not doc:
+        st.error("Table 1 document not found.")
+        return
+    
+    st.markdown(f"**Source:** {doc.metadata.get('source', 'Unknown')}")
+    st.markdown(f"**Reference:** {doc.metadata.get('table_reference', 'Unknown')}")
+    st.markdown(f"**Version:** {doc.version}")
+    st.markdown(f"**Last Updated:** {doc.updated_date[:10]}")
+    
+    st.markdown("---")
+    
+    # Display criteria categories
+    criteria_categories = doc.content.get("criteria_categories", {})
+    
+    for category_key, category_data in criteria_categories.items():
+        with st.expander(f"📋 {category_data['name']}", expanded=False):
+            st.markdown(f"**Description:** {category_data['description']}")
+            
+            st.markdown("**Sub-Criteria:**")
+            for i, sub_criterion in enumerate(category_data.get("sub_criteria", []), 1):
+                st.markdown(f"{i}. **{sub_criterion['name']}**")
+                st.markdown(f"   - {sub_criterion['description']}")
+                st.markdown(f"   - Scoring Method: {sub_criterion.get('scoring', 'Not specified')}")
+                st.markdown("")
+
+def _show_table_2(rag_system: BlacktownRAGSystem):
+    """Show Table 2 - Quotation Matrix"""
+    
+    st.markdown("### 📊 Table 2 - Evaluation Criteria Matrix: Quotation Value ($100,000-$249,999)")
+    
+    doc = rag_system.load_rag_document("table_2_quotation_matrix")
+    if not doc:
+        st.error("Table 2 document not found.")
+        return
+    
+    st.markdown(f"**Source:** {doc.metadata.get('source', 'Unknown')}")
+    st.markdown(f"**Reference:** {doc.metadata.get('table_reference', 'Unknown')}")
+    st.markdown(f"**Contract Value Range:** {doc.metadata.get('contract_value_range', 'Unknown')}")
+    st.markdown(f"**Version:** {doc.version}")
+    
+    st.markdown("---")
+    
+    # Display purchase categories
+    purchase_categories = doc.content.get("purchase_categories", {})
+    
+    for category_key, category_data in purchase_categories.items():
+        with st.expander(f"🏗️ {category_data['name']}", expanded=False):
+            st.markdown(f"**Description:** {category_data['description']}")
+            st.markdown(f"**Risk Profile:** {category_data['risk_profile']}")
+            
+            st.markdown("**Evaluation Criteria & Weighting Ranges:**")
+            criteria = category_data.get("criteria", {})
+            
+            for criterion_key, criterion_data in criteria.items():
+                weighting_range = criterion_data.get("weighting_range", [0, 0])
+                st.markdown(f"- **{criterion_key.replace('_', ' ').title()}:** {weighting_range[0]}% - {weighting_range[1]}%")
+            
+            combined_10_percent = category_data.get("combined_10_percent", [])
+            if combined_10_percent:
+                st.markdown(f"**Combined 10% Weighting:** {', '.join(combined_10_percent)}")
+
+def _show_table_3(rag_system: BlacktownRAGSystem):
+    """Show Table 3 - Tender Matrix"""
+    
+    st.markdown("### 📊 Table 3 - Evaluation Criteria Matrix: Tender Value ($250,000+)")
+    
+    doc = rag_system.load_rag_document("table_3_tender_matrix")
+    if not doc:
+        st.error("Table 3 document not found.")
+        return
+    
+    st.markdown(f"**Source:** {doc.metadata.get('source', 'Unknown')}")
+    st.markdown(f"**Reference:** {doc.metadata.get('table_reference', 'Unknown')}")
+    st.markdown(f"**Contract Value Range:** {doc.metadata.get('contract_value_range', 'Unknown')}")
+    st.markdown(f"**Version:** {doc.version}")
+    
+    # Local preference note
+    if "local_preference_note" in doc.content:
+        st.info(f"**Local Preference:** {doc.content['local_preference_note']}")
+    
+    st.markdown("---")
+    
+    # Display purchase categories
+    purchase_categories = doc.content.get("purchase_categories", {})
+    
+    for category_key, category_data in purchase_categories.items():
+        with st.expander(f"🏗️ {category_data['name']}", expanded=False):
+            st.markdown(f"**Description:** {category_data['description']}")
+            st.markdown(f"**Risk Profile:** {category_data['risk_profile']}")
+            
+            st.markdown("**Evaluation Criteria & Weighting Ranges:**")
+            criteria = category_data.get("criteria", {})
+            
+            for criterion_key, criterion_data in criteria.items():
+                weighting_range = criterion_data.get("weighting_range", [0, 0])
+                st.markdown(f"- **{criterion_key.replace('_', ' ').title()}:** {weighting_range[0]}% - {weighting_range[1]}%")
+            
+            combined_10_percent = category_data.get("combined_10_percent", [])
+            if combined_10_percent:
+                st.markdown(f"**Combined 10% Weighting:** {', '.join(combined_10_percent)}")
+            
+            local_preference = category_data.get("local_preference", False)
+            if local_preference:
+                st.markdown("**Local Preference:** ✅ Applicable")
+
+def _show_table_4(rag_system: BlacktownRAGSystem):
+    """Show Table 4 - Rating Scales"""
+    
+    st.markdown("### 📏 Table 4 - Rating Scales")
+    
+    doc = rag_system.load_rag_document("table_4_rating_scales")
+    if not doc:
+        st.error("Table 4 document not found.")
+        return
+    
+    st.markdown(f"**Source:** {doc.metadata.get('source', 'Unknown')}")
+    st.markdown(f"**Reference:** {doc.metadata.get('table_reference', 'Unknown')}")
+    st.markdown(f"**Version:** {doc.version}")
+    
+    st.markdown("---")
+    
+    # Display rating scales
+    rating_scales = doc.content.get("rating_scales", {})
+    
+    for scale_key, scale_data in rating_scales.items():
+        with st.expander(f"📏 {scale_data['scale_name']}", expanded=False):
+            scores = scale_data.get("scores", {})
+            
+            for score in sorted(scores.keys(), reverse=True):
+                score_data = scores[score]
+                level = score_data.get("level", "Unknown")
+                requirements = score_data.get("requirements", "No requirements specified")
+                
+                # Convert score to integer for comparison
+                try:
+                    score_int = int(score)
+                except (ValueError, TypeError):
+                    score_int = 0  # Default to 0 if conversion fails
+                
+                # Color coding for scores
+                if score_int >= 4:
+                    color = "green"
+                elif score_int >= 3:
+                    color = "orange"
+                else:
+                    color = "red"
+                
+                st.markdown(f"**Score {score} - <span style='color: {color}'>{level}</span>**", unsafe_allow_html=True)
+                st.markdown(f"*{requirements}*")
+                st.markdown("")
+
+def _show_local_preference(rag_system: BlacktownRAGSystem):
+    """Show Local Preference Policy"""
+    
+    st.markdown("### 🏠 Local Preference Policy")
+    
+    doc = rag_system.load_rag_document("local_preference_policy")
+    if not doc:
+        st.error("Local Preference Policy document not found.")
+        return
+    
+    st.markdown(f"**Source:** {doc.metadata.get('source', 'Unknown')}")
+    st.markdown(f"**Policy Reference:** {doc.metadata.get('policy_reference', 'Unknown')}")
+    st.markdown(f"**Version:** {doc.version}")
+    
+    st.markdown("---")
+    
+    # Display policy details
+    policy_details = doc.content.get("policy_details", {})
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 🏠 Blacktown LGA")
+        blacktown_lga = policy_details.get("blacktown_lga", {})
+        st.markdown(f"**Discount:** {blacktown_lga.get('discount_percentage', 0)}%")
+        st.markdown(f"**Max Benefit:** ${blacktown_lga.get('max_benefit', 0):,}")
+        st.markdown(f"**Description:** {blacktown_lga.get('description', '')}")
+        st.markdown(f"**Application:** {blacktown_lga.get('application', '')}")
+    
+    with col2:
+        st.markdown("#### 🌏 Western Sydney")
+        western_sydney = policy_details.get("western_sydney", {})
+        st.markdown(f"**Discount:** {western_sydney.get('discount_percentage', 0)}%")
+        st.markdown(f"**Max Benefit:** ${western_sydney.get('max_benefit', 0):,}")
+        st.markdown(f"**Description:** {western_sydney.get('description', '')}")
+        st.markdown(f"**Application:** {western_sydney.get('application', '')}")
+        
+        st.markdown("**Eligible Councils:**")
+        councils = western_sydney.get("councils", [])
+        for council in councils:
+            st.markdown(f"- {council}")
+    
+    st.markdown("---")
+    st.markdown("#### 📋 Application Requirements")
+    application_requirements = doc.content.get("application_requirements", [])
+    for i, requirement in enumerate(application_requirements, 1):
+        st.markdown(f"{i}. {requirement}")
+
+def _show_social_procurement(rag_system: BlacktownRAGSystem):
+    """Show Social Procurement Guidelines"""
+    
+    st.markdown("### 🤝 Social Procurement Guidelines")
+    
+    doc = rag_system.load_rag_document("social_procurement_guidelines")
+    if not doc:
+        st.error("Social Procurement Guidelines document not found.")
+        return
+    
+    st.markdown(f"**Source:** {doc.metadata.get('source', 'Unknown')}")
+    st.markdown(f"**Version:** {doc.version}")
+    
+    st.markdown("---")
+    
+    # Definition
+    definition = doc.content.get("social_procurement_definition", "")
+    st.markdown("#### 📖 Definition")
+    st.info(definition)
+    
+    # Social value objectives
+    st.markdown("#### 🎯 Social Value Objectives")
+    objectives = doc.content.get("social_value_objectives", {})
+    
+    for obj_key, obj_data in objectives.items():
+        with st.expander(f"🎯 {obj_data['name']}", expanded=False):
+            st.markdown("**How these objectives can be achieved through social procurement:**")
+            how_achieved = obj_data.get("how_achieved", [])
+            for i, method in enumerate(how_achieved, 1):
+                st.markdown(f"{i}. {method}")
+    
+    # Application guidelines
+    st.markdown("---")
+    st.markdown("#### 📋 Application Guidelines")
+    guidelines = doc.content.get("application_guidelines", [])
+    for i, guideline in enumerate(guidelines, 1):
+        st.markdown(f"{i}. {guideline}")
+    
+    # Reference document
+    reference = doc.content.get("reference_document", "")
+    if reference:
+        st.markdown("---")
+        st.markdown("#### 📚 Reference Document")
+        st.markdown(f"**Guide:** {reference}")
+
+def _show_search_update(rag_system: BlacktownRAGSystem):
+    """Show search and update functionality"""
+    
+    st.markdown("### 🔍 Search & Update RAG Documents")
+    
+    # Search functionality
+    st.markdown("#### 🔍 Search Documents")
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        search_query = st.text_input("Search Query", placeholder="Enter search terms...")
+    
+    with col2:
+        document_type = st.selectbox(
+            "Document Type",
+            ["All", "evaluation_criteria", "evaluation_matrix", "rating_scales", "local_preference_policy", "social_procurement_guidelines"]
+        )
+    
+    if st.button("🔍 Search", type="primary"):
+        if search_query:
+            filter_type = None if document_type == "All" else document_type
+            results = rag_system.search_rag_documents(search_query, filter_type)
+            
+            st.markdown(f"**Search Results:** {len(results)} documents found")
+            
+            for doc in results:
+                with st.expander(f"📄 {doc.title}", expanded=False):
+                    st.markdown(f"**Document ID:** `{doc.document_id}`")
+                    st.markdown(f"**Type:** {doc.metadata.get('document_type', 'Unknown')}")
+                    st.markdown(f"**Version:** {doc.version}")
+                    st.markdown(f"**Last Updated:** {doc.updated_date[:10]}")
+                    
+                    # Show matching content snippet
+                    content_str = str(doc.content)
+                    query_lower = search_query.lower()
+                    if query_lower in content_str.lower():
+                        # Find and show context around the match
+                        start_idx = content_str.lower().find(query_lower)
+                        if start_idx != -1:
+                            context_start = max(0, start_idx - 100)
+                            context_end = min(len(content_str), start_idx + len(search_query) + 100)
+                            snippet = content_str[context_start:context_end]
+                            st.markdown(f"**Matching Content:** ...{snippet}...")
+    
+    # Update functionality
+    st.markdown("---")
+    st.markdown("#### ✏️ Update Documents")
+    
+    st.warning("⚠️ **Update Functionality**")
+    st.markdown("""
+    The RAG system stores official Blacktown City Council standards as JSON documents.
+    Updates can be made by:
+    
+    1. **Direct File Editing:** Edit JSON files in the `blacktown_rag/` directory
+    2. **Programmatic Updates:** Use the `update_rag_document()` method
+    3. **Manual Override:** Upload new versions through this interface (coming soon)
+    
+    **Note:** Always maintain version control and document changes when updating official standards.
+    """)
+    
+    # Document selection for updates
+    all_docs = rag_system.get_all_rag_documents()
+    if all_docs:
+        doc_options = {f"{doc.title} (v{doc.version})": doc.document_id for doc in all_docs}
+        selected_doc = st.selectbox("Select Document to View", list(doc_options.keys()))
+        
+        if selected_doc:
+            doc_id = doc_options[selected_doc]
+            doc = rag_system.load_rag_document(doc_id)
+            
+            if doc:
+                st.markdown("**Current Document Content:**")
+                st.json(doc.content)
+                
+                st.markdown("**Document Metadata:**")
+                st.json(doc.metadata)
+                
+                if st.button("🔄 Refresh Document", key=f"refresh_{doc_id}"):
+                    st.success("Document refreshed from file system")
+                    st.rerun()
+
+def _display_local_preference_content(doc):
+    """Display Local Preference Policy content"""
+    content = doc.content
+    
+    st.markdown("### 🏠 Local Preference Policy Details")
+    
+    # Policy details
+    if "policy_details" in content:
+        st.markdown("**Local Supplier Definitions:**")
+        policy_details = content["policy_details"]
+        
+        for area_key, area_data in policy_details.items():
+            if isinstance(area_data, dict):
+                area_name = area_data.get("name", area_key.replace("_", " ").title())
+                definition = area_data.get("definition", "Not specified")
+                st.markdown(f"#### {area_name}")
+                st.markdown(f"**Definition:** {definition}")
+                
+                # Show discount if available
+                if "discount" in area_data:
+                    st.markdown(f"**Discount:** {area_data['discount']}")
+    
+    # Application requirements
+    if "application_requirements" in content:
+        st.markdown("**Application Requirements:**")
+        requirements = content["application_requirements"]
+        for i, requirement in enumerate(requirements, 1):
+            st.markdown(f"{i}. {requirement}")
+    
+    # Show contract value thresholds
+    st.markdown("**Contract Value Thresholds:**")
+    st.markdown("- **$250,000+**: Local preference policy applies")
+    st.markdown("- **Below $250,000**: Local preference policy may apply based on specific requirements")
+    
+    # Western Sydney Councils list
+    st.markdown("**Western Sydney Councils Covered:**")
+    councils = [
+        "Blue Mountains City Council",
+        "City of Parramatta Council", 
+        "Cumberland City Council",
+        "Fairfield City Council",
+        "Hawkesbury City Council",
+        "Liverpool City Council",
+        "Parramatta City Council",
+        "Penrith City Council",
+        "The Hills Shire Council"
+    ]
+    for council in councils:
+        st.markdown(f"- {council}")
+
+def _display_social_procurement_content(doc):
+    """Display Social Procurement Guidelines content"""
+    content = doc.content
+    
+    st.markdown("### 🤝 Social Procurement Guidelines Details")
+    
+    # Social procurement definition
+    if "social_procurement_definition" in content:
+        st.markdown("**What is Social Procurement?**")
+        st.markdown(content["social_procurement_definition"])
+    
+    # Social value objectives
+    if "social_value_objectives" in content:
+        st.markdown("**Social Value Objectives:**")
+        objectives = content["social_value_objectives"]
+        
+        objective_titles = {
+            "employment_training": "Employment and Training",
+            "social_inclusion": "Social Inclusion", 
+            "diversity_equality": "Diversity and Equality",
+            "local_sustainability": "Local Sustainability",
+            "social_service_innovation": "Social and Service Innovation"
+        }
+        
+        for objective_key in objectives:
+            title = objective_titles.get(objective_key, objective_key.replace("_", " ").title())
+            st.markdown(f"#### {title}")
+            
+            # Show how this objective can be achieved
+            if objective_key == "employment_training":
+                st.markdown("- Building employment opportunities for people excluded from workforce")
+                st.markdown("- Strengthening place-based employment")
+                st.markdown("- Generating training opportunities for long-term unemployed")
+            elif objective_key == "social_inclusion":
+                st.markdown("- Addressing poverty and low income")
+                st.markdown("- Improving access to job markets")
+                st.markdown("- Building social supports and networks")
+            elif objective_key == "diversity_equality":
+                st.markdown("- Ensuring minority businesses have fair access")
+                st.markdown("- Building diverse supplier base")
+                st.markdown("- Supporting small businesses and social benefit suppliers")
+            elif objective_key == "local_sustainability":
+                st.markdown("- Considering local community viability")
+                st.markdown("- Stimulating local economy")
+                st.markdown("- Supporting communities with economic hardship")
+            elif objective_key == "social_service_innovation":
+                st.markdown("- Supporting social innovation through procurement")
+                st.markdown("- Testing and developing innovations in market environment")
+                st.markdown("- Opening new markets through procurement")
+    
+    # Application guidelines
+    if "application_guidelines" in content:
+        st.markdown("**How to Apply Social Procurement:**")
+        guidelines = content["application_guidelines"]
+        for i, guideline in enumerate(guidelines, 1):
+            st.markdown(f"{i}. {guideline}")
+    
+    # Reference document
+    if "reference_document" in content:
+        st.markdown("**Reference Document:**")
+        st.markdown(content["reference_document"])
+
+def _display_criteria_content(doc):
+    """Display evaluation criteria content"""
+    content = doc.content
+    
+    st.markdown("### 📋 Table 1 - Criteria Evaluation Options")
+    st.markdown("**Source:** Blacktown City Council Tender & Quotation Evaluation Manual")
+    
+    # Criteria categories
+    if "criteria_categories" in content:
+        criteria_categories = content["criteria_categories"]
+        
+        criteria_info = {
+            "compliance": {
+                "name": "Compliance",
+                "description": "Conformity with conditions of tender, completion of corporate information, schedules, and accreditations"
+            },
+            "price": {
+                "name": "Price", 
+                "description": "Total cost of quotation/tender (whole of life cost), comparison of tenders and benchmarks"
+            },
+            "relevant_experience": {
+                "name": "Relevant Experience",
+                "description": "General performance history, experience with similar contracts/projects, staff expertise"
+            },
+            "capability": {
+                "name": "Capability",
+                "description": "Demonstrated capability to perform works, ability to perform within workload, technical skills"
+            },
+            "management_financial": {
+                "name": "Management & Financial",
+                "description": "Financial capacity, supervision requirements, management skills, financial stability"
+            },
+            "quality_management": {
+                "name": "Quality Management",
+                "description": "Quality plan level, safety plan standards, reporting procedures, response resolution"
+            },
+            "work_health_safety": {
+                "name": "Work Health & Safety",
+                "description": "WHS system completion, industry standards compliance, independent certification"
+            },
+            "sustainable_environmental": {
+                "name": "Sustainable Environmental Management",
+                "description": "Environmental policy, independent certification, sustainability training, waste minimisation"
+            },
+            "social_community": {
+                "name": "Social & Community",
+                "description": "Knowledge of local conditions, social impact on economy, community engagement"
+            },
+            "eeo_fair_employment": {
+                "name": "EEO & Fair Employment",
+                "description": "Award compliance, superannuation, EEO policies, Aboriginal employment, apprenticeships"
+            }
+        }
+        
+        for category_key in criteria_categories:
+            if category_key in criteria_info:
+                info = criteria_info[category_key]
+                st.markdown(f"#### {info['name']}")
+                st.markdown(f"**Description:** {info['description']}")
+                
+                # Show sub-criteria if available
+                if category_key == "compliance":
+                    st.markdown("**Key Elements:**")
+                    st.markdown("- Conformity with conditions of tender")
+                    st.markdown("- Completion of corporate information")
+                    st.markdown("- Completion of schedules")
+                    st.markdown("- Supply of accreditations")
+                elif category_key == "price":
+                    st.markdown("**Key Elements:**")
+                    st.markdown("- Total cost of quotation/tender (whole of life cost)")
+                    st.markdown("- Comparison of tenders received")
+                    st.markdown("- Comparison of benchmarks")
+                    st.markdown("- Analysis of individual tendered items")
+                elif category_key == "relevant_experience":
+                    st.markdown("**Key Elements:**")
+                    st.markdown("- General performance history")
+                    st.markdown("- Experience with contracts of similar nature")
+                    st.markdown("- Profile and experience of staff in relevant field")
+                elif category_key == "capability":
+                    st.markdown("**Key Elements:**")
+                    st.markdown("- Demonstrated capability to perform works as specified")
+                    st.markdown("- Ability to perform contract within overall workload")
+                    st.markdown("- Current work load capacity")
+                    st.markdown("- Technical skills and appropriate resources")
+                elif category_key == "management_financial":
+                    st.markdown("**Key Elements:**")
+                    st.markdown("- Financial capacity against contract requirements")
+                    st.markdown("- Level of Council supervision required")
+                    st.markdown("- Management and Senior Personnel skills")
+                    st.markdown("- Financial stability and business operating period")
+                st.markdown("")
+
+def _display_matrix_content(doc):
+    """Display evaluation matrix content"""
+    content = doc.content
+    
+    # Determine which table this is based on document ID
+    if "table_2" in doc.document_id:
+        st.markdown("### 📊 Table 2 - Evaluation Criteria Matrix: Quotation Value ($100,000-$249,999)")
+        contract_range = "$100,000 - $249,999 (incl. GST)"
+    else:
+        st.markdown("### 📊 Table 3 - Evaluation Criteria Matrix: Tender Value ($250,000+)")
+        contract_range = "$250,000 and over (inclusive of GST)"
+    
+    st.markdown(f"**Contract Value Range:** {contract_range}")
+    st.markdown("**Source:** Blacktown City Council Tender & Quotation Evaluation Manual")
+    
+    # Local preference note for Table 3
+    if "local_preference_note" in content:
+        st.info(f"**Local Preference:** {content['local_preference_note']}")
+    
+    # Purchase categories
+    if "purchase_categories" in content:
+        purchase_categories = content["purchase_categories"]
+        
+        category_info = {
+            "standard_product_good": {
+                "name": "Standard Product or Good",
+                "description": "A product or good that is well tested in the marketplace and utilised by many other firms",
+                "risk": "Low Risk"
+            },
+            "construction_contract": {
+                "name": "Construction Contract",
+                "description": "Contract focuses on the delivery of construction works",
+                "risk": "Low to Medium Risk"
+            },
+            "consultancy_contract": {
+                "name": "Consultancy Contract", 
+                "description": "Consultancy requiring professional input",
+                "risk": "Low to High Risk"
+            },
+            "service_delivery_contract": {
+                "name": "Service Delivery Contract",
+                "description": "Service contract for limited period (regular or intermittent service provision)",
+                "risk": "Low to High Risk"
+            },
+            "management_contract": {
+                "name": "Management Contract",
+                "description": "Contract where contractor manages a facility for council",
+                "risk": "Medium to High Risk"
+            },
+            "lease_licence": {
+                "name": "Lease / Licence",
+                "description": "Where supplier submits price to access Council service or resource",
+                "risk": "Medium to High Risk"
+            }
+        }
+        
+        for category_key in purchase_categories:
+            if category_key in category_info:
+                info = category_info[category_key]
+                st.markdown(f"#### {info['name']}")
+                st.markdown(f"**Description:** {info['description']}")
+                st.markdown(f"**Risk Profile:** {info['risk']}")
+                
+                # Show typical weighting ranges based on the table
+                if "table_2" in doc.document_id:
+                    # Table 2 weightings
+                    weightings = {
+                        "standard_product_good": {"price": "40-60%", "relevant_experience": "10-30%", "capability": "10-30%", "whs": "5-10%"},
+                        "construction_contract": {"price": "40-60%", "relevant_experience": "10-20%", "capability": "5-20%", "quality_management": "2-10%", "management_financial": "0-10%", "whs": "5-10%"},
+                        "consultancy_contract": {"price": "20-50%", "relevant_experience": "10-30%", "capability": "5-30%", "management_financial": "0-10%", "quality_management": "2-5%", "whs": "2-5%"},
+                        "service_delivery_contract": {"price": "20-50%", "relevant_experience": "10-40%", "capability": "5-30%", "management_financial": "0-10%", "quality_management": "2-5%", "whs": "2-10%"},
+                        "management_contract": {"price": "30-50%", "relevant_experience": "10-30%", "capability": "10-30%", "management_financial": "5-10%", "quality_management": "2-10%", "whs": "0-10%"},
+                        "lease_licence": {"price": "30-50%", "relevant_experience": "10-30%", "capability": "10-30%", "management_financial": "5-10%", "quality_management": "0-10%", "whs": "0-10%"}
+                    }
+                else:
+                    # Table 3 weightings
+                    weightings = {
+                        "standard_product_good": {"price": "40-60%", "relevant_experience": "10-30%", "capability": "10-30%", "management_financial": "5-10%", "whs": "5-10%"},
+                        "construction_contract": {"price": "35-60%", "relevant_experience": "10-20%", "capability": "5-20%", "management_financial": "5-15%", "quality_management": "5-10%", "whs": "5-10%"},
+                        "consultancy_contract": {"price": "25-50%", "relevant_experience": "10-30%", "capability": "10-30%", "management_financial": "5-10%", "whs": "5-10%"},
+                        "service_delivery_contract": {"price": "30-50%", "relevant_experience": "10-30%", "capability": "10-30%", "management_financial": "5-10%", "quality_management": "5-10%", "whs": "5-10%"},
+                        "management_contract": {"price": "30-50%", "relevant_experience": "10-30%", "capability": "10-30%", "management_financial": "5-15%", "quality_management": "5-10%", "whs": "0-10%"},
+                        "lease_licence": {"price": "30-50%", "relevant_experience": "10-30%", "capability": "10-30%", "management_financial": "5-15%", "quality_management": "5-10%", "whs": "0-10%"}
+                    }
+                
+                if category_key in weightings:
+                    st.markdown("**Evaluation Criteria & Weighting Ranges:**")
+                    for criterion, weighting in weightings[category_key].items():
+                        criterion_name = criterion.replace("_", " ").title()
+                        st.markdown(f"- **{criterion_name}:** {weighting}")
+                
+                # Show combined 10% weighting for sustainability/EEO/Social
+                if "table_2" in doc.document_id:
+                    st.markdown("**Combined 10% Weighting:** Sustainability, EEO & Fair Employment")
+                else:
+                    if category_key in ["standard_product_good", "construction_contract"]:
+                        st.markdown("**Combined 10% Weighting:** Sustainability, EEO & Fair Employment")
+                    elif category_key in ["consultancy_contract", "management_contract"]:
+                        st.markdown("**Combined 10% Weighting:** Social & Community, EEO & Fair Employment")
+                
+                st.markdown("")
+
+def _display_rating_scales_content(doc):
+    """Display rating scales content"""
+    content = doc.content
+    
+    st.markdown("### 📏 Table 4 - Rating Scales")
+    st.markdown("**Source:** Blacktown City Council Tender & Quotation Evaluation Manual")
+    st.markdown("**Purpose:** Staff may use these guides or define specific rating guides appropriate for the tender being conducted.")
+    
+    # Rating scales
+    if "rating_scales" in content:
+        rating_scales = content["rating_scales"]
+        
+        scale_info = {
+            "whs": {
+                "name": "Work Health & Safety (WHS)",
+                "description": "Rating scale for WHS system compliance and safety management"
+            },
+            "sustainability": {
+                "name": "Sustainable Environmental Management",
+                "description": "Rating scale for environmental management systems and sustainability practices"
+            },
+            "social_community": {
+                "name": "Social and Community",
+                "description": "Rating scale for social procurement and community engagement"
+            },
+            "eeo_fair_employment": {
+                "name": "EEO & Fair Employment",
+                "description": "Rating scale for equal employment opportunity and fair employment practices"
+            }
+        }
+        
+        for scale_key in rating_scales:
+            if scale_key in scale_info:
+                info = scale_info[scale_key]
+                st.markdown(f"#### {info['name']}")
+                st.markdown(f"**Description:** {info['description']}")
+                
+                # Show score levels with color coding
+                st.markdown("**Rating Scale:**")
+                
+                score_descriptions = {
+                    "whs": {
+                        "5": "Excellent - Extensive WHS System + Risk Assessment + Safe Work Methods + Training Records",
+                        "4": "Very Good - Detailed WHS System Submitted (Evidence Supplied)",
+                        "3": "Good - Satisfactory WHS System Submitted (Evidence Supplied)",
+                        "2": "Fair - Simple WHS Policy System (Evidence Supplied)",
+                        "1": "Poor - WHS051.6 Contractors WHS Requirements Completed (No Evidence Supplied)",
+                        "0": "Unacceptable - No information provided or WHS system in place"
+                    },
+                    "sustainability": {
+                        "5": "Excellent - ISO14001 Certified + Confirmed Compliance + Detailed Sustainable Policies",
+                        "4": "Very Good - ISO14001 Certified + Confirmed Compliance + Sustainable Policies",
+                        "3": "Good - ISO14001 Certified + Confirmed Compliance + Some Sustainable Practices",
+                        "2": "Fair - Environmental Management System + One Sustainable Practice",
+                        "1": "Poor - Environmental Management System + No Sustainable Practices",
+                        "0": "Unacceptable - No information or no Environmental Sustainable System"
+                    },
+                    "social_community": {
+                        "5": "Excellent - Exceeds all requirements and is fully substantiated (extra value for money)",
+                        "4": "Very Good - Very satisfactory response, meets all requirements and is fully substantiated",
+                        "3": "Good - Satisfactory, meets all requirements and appropriately substantiated",
+                        "2": "Fair - Adequate response with material defects that prevent full submission",
+                        "1": "Poor - Unsatisfactory response, does not meet minimum requirements",
+                        "0": "Unacceptable - Non response or unsubstantiated claims"
+                    },
+                    "eeo_fair_employment": {
+                        "5": "Excellent - Award/EA wages + super + EEO policies + Aboriginal employment + apprenticeships",
+                        "4": "Very Good - Award/EA wages + super + EEO policies + Aboriginal employment + apprenticeships",
+                        "3": "Good - Award/EA wages + super + EEO policies + Aboriginal employment + apprenticeships",
+                        "2": "Fair - Award wages + super + basic EEO policies",
+                        "1": "Poor - Award wages + super + no EEO policies",
+                        "0": "Unacceptable - No information or no fair employment offered"
+                    }
+                }
+                
+                if scale_key in score_descriptions:
+                    for score in ["5", "4", "3", "2", "1", "0"]:
+                        description = score_descriptions[scale_key][score]
+                        
+                        # Color coding
+                        if score in ["5", "4"]:
+                            color = "green"
+                        elif score == "3":
+                            color = "orange"
+                        else:
+                            color = "red"
+                        
+                        st.markdown(f"**Score {score}:** <span style='color: {color}'>{description}</span>", unsafe_allow_html=True)
+                
+                st.markdown("")
+    
+    st.markdown("**Note:** These rating scales provide guidance when assessing each criterion. Specific rating guides may be defined for individual tenders.")
+
+if __name__ == "__main__":
+    page_blacktown_rag_dashboard()

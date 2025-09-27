@@ -1,0 +1,29 @@
+{
+  "project_id": "proj_005",
+  "title": "HVAC System Installation - Community Center",
+  "description": "Installation of new HVAC systems for the Blacktown Community Center",
+  "category": "hvac",
+  "status": "completed",
+  "contract_value": 320000.0,
+  "council": "Blacktown City Council",
+  "created_date": "2023-11-01T00:00:00",
+  "completion_date": "2024-02-28T00:00:00",
+  "project_manager": "David Wilson",
+  "tags": [
+    "hvac",
+    "community-center",
+    "installation",
+    "climate-control"
+  ],
+  "keywords": [
+    "hvac",
+    "community center",
+    "installation",
+    "climate control",
+    "heating",
+    "cooling"
+  ],
+  "tender_type": "tender",
+  "evaluation_method": "MEAT",
+  "compliance_level": "standard"
+}
